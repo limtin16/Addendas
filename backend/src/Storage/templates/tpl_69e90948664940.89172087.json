@@ -1,0 +1,27 @@
+{
+    "id": "tpl_69e90948664940.89172087",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura1",
+            "prefix": "THY",
+            "namespace": "https:test.com",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "Folio",
+                    "representation": "attribute",
+                    "source": "cfdi."
+                },
+                {
+                    "type": "field",
+                    "name": "test",
+                    "representation": "node",
+                    "value": ""
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

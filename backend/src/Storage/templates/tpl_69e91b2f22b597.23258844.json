@@ -1,0 +1,69 @@
+{
+    "id": "tpl_69e91b2f22b597.23258844",
+    "name": "TEst3",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "Folio",
+                    "representation": "attribute",
+                    "source": "cfdi.folio"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos1",
+                    "itemName": "part",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "CantidadPorPosicion",
+                            "representation": "attribute",
+                            "source": "cfdi.cantidad"
+                        },
+                        {
+                            "type": "field",
+                            "name": "PrecioPorPosicion",
+                            "representation": "attribute",
+                            "source": "cfdi.valorunitario"
+                        },
+                        {
+                            "type": "field",
+                            "name": "Importe",
+                            "representation": "attribute",
+                            "calculation": "cantidad * valorunitario"
+                        }
+                    ]
+                },
+                {
+                    "type": "field",
+                    "name": "TEst",
+                    "representation": "attribute",
+                    "value": "2"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos2",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "TEst2",
+                            "representation": "node",
+                            "value": "3"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

@@ -1,0 +1,54 @@
+{
+    "id": "tpl_69e90c253ae0e8.80013667",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "f1",
+            "prefix": "thy",
+            "namespace": "dafdf",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "Folio",
+                    "representation": "attribute",
+                    "source": "cfdi.folio"
+                },
+                {
+                    "type": "field",
+                    "name": "NumeroDeFacturaDelProveedor",
+                    "representation": "attribute",
+                    "source": "cfdi.folio"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "Test",
+                            "representation": "attribute",
+                            "value": "1"
+                        },
+                        {
+                            "type": "field",
+                            "name": "test2",
+                            "representation": "attribute",
+                            "source": "cfdi.serie"
+                        }
+                    ]
+                },
+                {
+                    "type": "field",
+                    "name": "test",
+                    "representation": "attribute",
+                    "calculation": "test"
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}
