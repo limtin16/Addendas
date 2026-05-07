@@ -85,5 +85,8 @@ foreach ($values as $path => $data) {
    ======================================================= */
 
 header('Content-Type: application/xml; charset=UTF-8');
-echo $xml;
+
+// Wrap the addenda XML with the proper CFDI root element
+$wrapped_xml = '<cfdi:Addenda xmlns:cfdi="http://www.sat.gob.mx/cfd/3">' . "\n\t" . trim($xml) . "\n" . '</cfdi:Addenda>';
+echo $wrapped_xml;
 exit;
