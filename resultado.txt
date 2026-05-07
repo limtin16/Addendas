@@ -433,11 +433,7 @@ echo json_encode([
 Archivo: C:\xampp\htdocs\addendas\backend\public\cfdi_fields.php
 ========================================
 <?php
-
 require_once dirname(__DIR__) . '/config.php';
-require_once BACKEND_ROOT . '/src/Services/CFDIParserService.php';
-
-use App\Services\CFDIParserService;
 
 header('Content-Type: application/json');
 
@@ -449,91 +445,54 @@ $cfdiPath = BACKEND_ROOT . '/src/storage/cfdi/ejemplo.xml';
 if (!file_exists($cfdiPath)) {
     echo json_encode([
         'error' => 'CFDI de ejemplo no encontrado',
-        'path'  => $cfdiPath
+        'path' => $cfdiPath
     ]);
     exit;
 }
 
 $xml = file_get_contents($cfdiPath);
 
-$parser = new CFDIParserService();
-$cfdi = $parser->parse($xml);
+$dom = new DOMDocument();
+$dom->loadXML($xml);
 
 $fields = [];
 
 // ====================================================
-// COMPROBANTE (ROOT)
+// Recorrer TODO el CFDI (DOM completo)
 // ====================================================
-if (!empty($cfdi->comprobante) && is_array($cfdi->comprobante)) {
-    foreach ($cfdi->comprobante as $key => $value) {
+function walkNode(DOMElement $el, string $path, array &$out)
+{
+    foreach ($el->attributes as $attr) {
+        if ($attr->prefix === 'xmlns') continue;
 
-        if ($value === null || is_array($value)) {
-            continue;
-        }
-
-        $fields[] = [
-            'value' => strtolower($key),
-            'label' => 'Comprobante.' . prettyLabel($key),
-            'scope' => 'root'
+        $out[] = [
+            'value' => strtolower($attr->name),
+            'label' => $path . ' → @' . $attr->name,
+            'scope' => 'all'
         ];
+    }
+
+    foreach ($el->childNodes as $child) {
+        if ($child instanceof DOMElement) {
+            walkNode(
+                $child,
+                $path . '.' . $child->nodeName,
+                $out
+            );
+        }
     }
 }
 
-// ====================================================
-// CONCEPTOS
-// ====================================================
-if (!empty($cfdi->conceptos) && isset($cfdi->conceptos[0])) {
-    foreach ($cfdi->conceptos[0] as $key => $value) {
+// iniciar desde el root
+walkNode(
+    $dom->documentElement,
+    $dom->documentElement->nodeName,
+    $fields
+);
 
-        if ($value === null || is_array($value)) {
-            continue;
-        }
-
-        $fields[] = [
-            'value' => strtolower($key),
-            'label' => 'Conceptos.' . prettyLabel($key),
-            'scope' => 'concept'
-        ];
-    }
-}
-
-// ====================================================
-// RESPUESTA
-// ====================================================
 echo json_encode([
     'fields' => $fields
 ]);
-
-// ====================================================
-// UTILIDAD PARA LABELS HUMANOS
-// ====================================================
-function prettyLabel($key)
-{
-    $map = [
-        // --- Comprobante ---
-        'folio'             => 'Folio',
-        'serie'             => 'Serie',
-        'fecha'             => 'Fecha',
-        'moneda'            => 'Moneda',
-        'tipodecomprobante' => 'Tipo de Comprobante',
-        'subtotal'          => 'SubTotal',
-        'total'             => 'Total',
-        'lugarexpedicion'   => 'Lugar de Expedición',
-        'exportacion'       => 'Exportación',
-
-        // --- Conceptos ---
-        'cantidad'          => 'Cantidad',
-        'valorunitario'     => 'Valor Unitario',
-        'claveunidad'       => 'Clave Unidad',
-        'noidentificacion'  => 'No. Identificación',
-        'descripcion'       => 'Descripción',
-        'importe'           => 'Importe',
-    ];
-
-    $key = strtolower($key);
-
-    return isset($map[$key]) ? $map[$key] : ucfirst($key);
-}
 
 
 
@@ -641,6 +600,27 @@ if (preg_match('/\n([ \t]+)<cfdi:/', $originalCfdi, $m)) {
 
 // Normalizar saltos de línea de la Addenda
 $addendaText = str_replace(["\r\n", "\r", "\n"], $newline, $newAddendaXml);
+/* =======================================================
+   4.1 ENVOLVER EN cfdi:Addenda (FIX PRINCIPAL)
+   ======================================================= */
+
+// Detectar namespace CFDI desde el XML original
+if (strpos($originalCfdi, 'http://www.sat.gob.mx/cfd/3') !== false) {
+    $cfdiNS = 'http://www.sat.gob.mx/cfd/3';
+} else {
+    $cfdiNS = 'http://www.sat.gob.mx/cfd/4';
+}
+
+// Limpiar wrapper si viene duplicado (seguridad)
+$addendaText = preg_replace('/<\/?cfdi:Addenda[^>]*>/', '', $addendaText);
+
+// Crear wrapper correcto
+$addendaText =
+    '<cfdi:Addenda xmlns:cfdi="' . $cfdiNS . '">' .
+    $newline .
+    $addendaText .
+    $newline .
+    '</cfdi:Addenda>';
 
 // Indentar la Addenda con el mismo nivel del CFDI
 $addendaIndented = preg_replace(
@@ -974,8 +954,17 @@ foreach ($values as $path => $data) {
 header('Content-Type: application/xml; charset=UTF-8');
 
 // Wrap the addenda XML with the proper CFDI root element
-$wrapped_xml = '<cfdi:Addenda xmlns:cfdi="http://www.sat.gob.mx/cfd/3">' . "\n\t" . trim($xml) . "\n" . '</cfdi:Addenda>';
-echo $wrapped_xml;
+$domCfdi = new DOMDocument();
+$domCfdi->loadXML($_SESSION['original_cfdi_xml']);
+
+$cfdiNS = $domCfdi->documentElement->namespaceURI ?? 'http://www.sat.gob.mx/cfd/4';
+
+$wrapped_xml =
+    '<cfdi:Addenda xmlns:cfdi="' . $cfdiNS . '">' .
+    "\n\t" . trim($xml) . "\n" .
+    '</cfdi:Addenda>';
+
+echo $xml;
 exit;
 
 
@@ -1031,22 +1020,22 @@ $children = $template->structure['root']['children'];
    ===================================================== */
 foreach ($children as $node) {
     if ($node['type'] !== 'field') continue;
+        $placeholder = null;
+        $simulated = null;
 
-    $placeholder = null;
-    $simulated   = null;
+        if (isset($node['value'])) {
+            $placeholder = $node['value'];
+            $simulated = $node['value'];
+        }
+        elseif (isset($node['source'])) {
+            $placeholder = '{{' . $node['source'] . '}}';
+            $simulated = 'VALOR';
+        }
+        elseif (isset($node['calculation'])) {
+            $placeholder = '{{calc:' . $node['calculation'] . '}}';
+            $simulated = '123.45';
+        }
 
-    if (isset($node['value'])) {
-        $placeholder = $node['value'];
-        $simulated   = $node['value'];
-    }
-    elseif (isset($node['source'])) {
-        $placeholder = '{{' . $node['source'] . '}}';
-        $simulated   = 'SIMULADO';
-    }
-    elseif (isset($node['calculation'])) {
-        $placeholder = '{{calc:' . $node['calculation'] . '}}';
-        $simulated   = '123.45';
-    }
 
     if ($placeholder !== null) {
         $docStructure->documentElement->setAttribute($node['name'], $placeholder);
@@ -2155,26 +2144,48 @@ class CfdiAddendaInserter
 
         // 4. Crear cfdi:Addenda (SOLO namespace SAT)
         $addendaEl = $cfdiDoc->createElementNS(
-            $cfdiNamespace,
-            'cfdi:Addenda'
-        );
+    $cfdiNamespace,
+    'cfdi:Addenda'
+);
 
-        // 5. Cargar XML de la addenda (root = <LGM:Factura>)
-        $addendaDoc = new DOMDocument('1.0', 'UTF-8');
-        $addendaDoc->loadXML($addendaXml);
+// ✅ FORZAR namespace correctamente
+$addendaEl->setAttributeNS(
+    'http://www.w3.org/2000/xmlns/',
+    'xmlns:cfdi',
+    $cfdiNamespace
+);
 
-        $facturaNode = $addendaDoc->documentElement;
+// importar addenda
+$addendaDoc = new DOMDocument('1.0', 'UTF-8');
+$addendaDoc->loadXML($addendaXml);
 
-        // 6. Importar SOLO <LGM:Factura>
-        $addendaEl->appendChild(
-            $cfdiDoc->importNode($facturaNode, true)
-        );
+$facturaNode = $addendaDoc->documentElement;
 
-        // 7. Insertar Addenda en el CFDI
-        $comprobante->appendChild($addendaEl);
+$imported = $cfdiDoc->importNode($facturaNode, true);
+$addendaEl->appendChild($imported);
+
+$comprobante->appendChild($addendaEl);
 
         // 8. Devolver CFDI final
-        return $cfdiDoc->saveXML();
+$xml = $cfdiDoc->saveXML();
+
+// ✅ 1. FORZAR xmlns:cfdi EN Addenda
+$xml = preg_replace(
+    '/<cfdi:Addenda\b([^>]*)>/',
+    '<cfdi:Addenda xmlns:cfdi="' . $cfdiNamespace . '"$1>',
+    $xml,
+    1
+);
+
+// ✅ 2. ELIMINAR xmlns:THY DEL ADDENDA (si se coló)
+$xml = preg_replace(
+    '/(<cfdi:Addenda[^>]*)(\s+xmlns:THY="[^"]*")/',
+    '$1',
+    $xml,
+    1
+);
+
+return $xml;
     }
 }
 
@@ -3729,45 +3740,216 @@ $templateId = $_GET['template_id'] ?? '';
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Addenda creada</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 40px;
-        }
-        .card {
-            background: white;
-            max-width: 500px;
-            margin: auto;
-            padding: 25px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        a {
-            display: block;
-            margin-top: 15px;
-            text-decoration: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Addenda creada</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    padding: 40px;
+}
+
+.card {
+    background: white;
+    max-width: 900px;
+    margin: auto;
+    padding: 25px;
+    border-radius: 8px;
+}
+
+.preview {
+    background: #111;
+    color: #9ef;
+    padding: 15px;
+    border-radius: 6px;
+    height: 350px;
+    overflow: auto;
+    font-family: monospace;
+    font-size: 13px;
+}
+
+button {
+    margin-top: 15px;
+    padding: 12px;
+    width: 100%;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+hr {
+    margin: 30px 0;
+}
+
+.file-status {
+    font-size: 13px;
+    margin-top: 8px;
+    color: #333;
+}
+</style>
+
 </head>
 <body>
 
 <div class="card">
-    <h2>✅ Addenda creada correctamente</h2>
 
-    <p>Template ID:</p>
-    <code><?= htmlspecialchars($templateId) ?></code>
+<h2>✅ Addenda creada correctamente</h2>
 
-    <a href="/addendas/frontend/wizard_step1.php">
-        ➕ Crear nueva addenda
-    </a>
+<p>Template ID:</p>
+<code><?= htmlspecialchars($templateId) ?></code>
 
-   <a href="/addendas/backend/public/preview_addenda_xml.php?template_id=<?= urlencode($templateId) ?>" target="_blank">
-    👁️ Ver XML de la addenda
-	</a>
+<hr>
+
+<!-- =============================== -->
+<!-- SUBIR CFDI (PRIMERO) -->
+<!-- =============================== -->
+
+<h3>📄 Generar CFDI con esta Addenda</h3>
+
+<input type="file"
+       id="targetCfdi"
+       accept=".xml">
+
+<div class="file-status" id="fileStatus">
+    Ningún archivo seleccionado
 </div>
+
+<button id="generateBtn" disabled>
+    Generar CFDI con Addenda ✅
+</button>
+
+<hr>
+
+<!-- =============================== -->
+<!-- PREVIEW REAL -->
+<!-- =============================== -->
+
+<h3>👁 Vista previa REAL de la Addenda</h3>
+
+<pre id="preview" class="preview">
+Sube un CFDI para ver la preview con datos reales...
+</pre>
+
+<hr>
+
+<a href="/addendas/frontend/wizard_step1.html">
+➕ Crear nueva addenda
+</a>
+
+</div>
+
+<script>
+
+const previewBox = document.getElementById('preview');
+const fileInput = document.getElementById('targetCfdi');
+const status = document.getElementById('fileStatus');
+const generateBtn = document.getElementById('generateBtn');
+
+let targetCfdiLoaded = false;
+
+// ===============================
+// SUBIR CFDI
+// ===============================
+fileInput.addEventListener('change', function () {
+
+    if (!fileInput.files.length) {
+        status.textContent = 'Ningún archivo seleccionado';
+        generateBtn.disabled = true;
+        targetCfdiLoaded = false;
+        return;
+    }
+
+    const file = fileInput.files[0];
+
+    if (!file.name.toLowerCase().endsWith('.xml')) {
+        status.textContent = 'El archivo debe ser XML (.xml)';
+        fileInput.value = '';
+        generateBtn.disabled = true;
+        targetCfdiLoaded = false;
+        return;
+    }
+
+    status.textContent = 'Archivo cargado: ' + file.name;
+
+    const formData = new FormData();
+    formData.append('target_cfdi', file);
+
+    // ✅ Guardar CFDI en sesión
+    fetch('/addendas/backend/public/load_target_cfdi.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(res => {
+
+        if (!res.ok) {
+            alert('❌ No se pudo cargar el CFDI');
+            generateBtn.disabled = true;
+            return;
+        }
+
+        targetCfdiLoaded = true;
+        generateBtn.disabled = false;
+
+        updatePreview();
+    });
+});
+
+// ===============================
+// PREVIEW REAL (con autofill)
+// ===============================
+function updatePreview() {
+
+    if (!targetCfdiLoaded) {
+        previewBox.textContent = 'Sube un CFDI para ver valores reales';
+        return;
+    }
+
+    fetch('/addendas/backend/public/preview_addenda.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+    })
+    .then(r => r.text())
+    .then(xml => {
+        previewBox.textContent = xml;
+    })
+    .catch(error => {
+        previewBox.textContent = 'Error generando preview';
+        console.error(error);
+    });
+}
+
+// ===============================
+// GENERAR CFDI FINAL
+// ===============================
+generateBtn.addEventListener('click', function () {
+
+    if (!targetCfdiLoaded) {
+        alert('Debes subir primero un CFDI');
+        return;
+    }
+
+    let xmlAddenda = previewBox.textContent;
+
+    // ✅ eliminar wrapper cfdi:Addenda
+    xmlAddenda = xmlAddenda.replace(/<\/?cfdi:Addenda[^>]*>/g, '').trim();
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/addendas/backend/public/generate_final_cfdi.php';
+
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'addenda_xml';
+    input.value = xmlAddenda;
+
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+});
+
+</script>
 
 </body>
 </html>
