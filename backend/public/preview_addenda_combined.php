@@ -46,22 +46,22 @@ $children = $template->structure['root']['children'];
    ===================================================== */
 foreach ($children as $node) {
     if ($node['type'] !== 'field') continue;
+        $placeholder = null;
+        $simulated = null;
 
-    $placeholder = null;
-    $simulated   = null;
+        if (isset($node['value'])) {
+            $placeholder = $node['value'];
+            $simulated = $node['value'];
+        }
+        elseif (isset($node['source'])) {
+            $placeholder = '{{' . $node['source'] . '}}';
+            $simulated = 'VALOR';
+        }
+        elseif (isset($node['calculation'])) {
+            $placeholder = '{{calc:' . $node['calculation'] . '}}';
+            $simulated = '123.45';
+        }
 
-    if (isset($node['value'])) {
-        $placeholder = $node['value'];
-        $simulated   = $node['value'];
-    }
-    elseif (isset($node['source'])) {
-        $placeholder = '{{' . $node['source'] . '}}';
-        $simulated   = 'SIMULADO';
-    }
-    elseif (isset($node['calculation'])) {
-        $placeholder = '{{calc:' . $node['calculation'] . '}}';
-        $simulated   = '123.45';
-    }
 
     if ($placeholder !== null) {
         $docStructure->documentElement->setAttribute($node['name'], $placeholder);

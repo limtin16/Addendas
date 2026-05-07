@@ -1,0 +1,4582 @@
+========================================
+Archivo: C:\xampp\htdocs\addendas\test.php
+========================================
+<?php
+phpinfo();
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\config.php
+========================================
+<?php
+
+define('BACKEND_ROOT', __DIR__);
+define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/src/Storage/templates');
+define('FRONTEND_URL', '/addendas');
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\test.php
+========================================
+$xml = file_get_contents('cfdi_prueba.xml');
+$parser = new CFDIParserService();
+$resultado = $parser->parse($xml);
+
+var_dump($resultado->toArray());
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\add_field_to_group_step4.php
+========================================
+<?php
+session_start();
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BACKEND_ROOT . '/src/DTO/Template.php';
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+// Validar template_id
+$templateId = $_POST['template_id'] ?? null;
+if (!$templateId) {
+    die('template_id no proporcionado');
+}
+
+// Validar grupo activo
+if (!isset($_SESSION['current_group']) || $_SESSION['current_group'] === null) {
+    die('No hay un grupo activo');
+}
+
+// ===============================
+// CONSTRUIR CAMPO DEL GRUPO
+// ===============================
+$field = [
+    'type' => 'field',
+    'name' => $_POST['field_name'],
+    'representation' => $_POST['representation']
+];
+
+// ===============================
+// TRADUCIR UI → BACKEND
+// ===============================
+switch ($_POST['origin_type']) {
+
+    case 'cfdi':
+        // El usuario escribió "Cantidad"
+        // Internamente se guarda como cfdi.cantidad
+        $field['source'] = 'cfdi.' . strtolower(trim($_POST['cfdi_field']));
+        break;
+
+    case 'fixed':
+        $field['value'] = $_POST['fixed_value'];
+        break;
+
+    case 'calculation':
+        $field['calculation'] = $_POST['calculation'];
+        break;
+}
+
+// ===============================
+// AGREGAR CAMPO AL GRUPO EN SESIÓN
+// ===============================
+$_SESSION['current_group']['children'][] = $field;
+
+// Volver al Step 4
+header(
+    'Location: /addendas/frontend/wizard_step4.php?template_id=' .
+    urlencode($templateId)
+);
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\analyze_addenda.php
+========================================
+<?php
+session_start();
+
+require_once dirname(__DIR__) . '/config.php';
+
+/* =======================================================
+   1. Validar archivo
+   ======================================================= */
+
+if (
+    !isset($_FILES['addenda_xml']) ||
+    $_FILES['addenda_xml']['error'] !== UPLOAD_ERR_OK
+) {
+    die('❌ Error al subir el archivo XML.');
+}
+
+$xmlContent = file_get_contents($_FILES['addenda_xml']['tmp_name']);
+if (!$xmlContent || trim($xmlContent) === '') {
+    die('❌ El archivo XML está vacío.');
+}
+
+/* =======================================================
+   2. Cargar XML original (CFDI o Addenda)
+   ======================================================= */
+
+libxml_use_internal_errors(true);
+$originalDom = new DOMDocument('1.0', 'UTF-8');
+
+if (!$originalDom->loadXML($xmlContent)) {
+    die('❌ El archivo no es un XML válido.');
+}
+
+/* =======================================================
+   3. EXTRAER SOLO <Addenda> y ELIMINAR TODO LO DEMÁS
+   ======================================================= */
+
+// XPath sobre el XML original
+$xpath = new DOMXPath($originalDom);
+
+/*
+ * Buscar Addenda sin importar:
+ * - namespace
+ * - prefijo
+ * - versión CFDI
+ */
+$addendaNode = $xpath->query('//*[local-name()="Addenda"]')->item(0);
+
+if (!$addendaNode) {
+    die('❌ El XML no contiene una Addenda.');
+}
+
+// (Opcional) Guardar CFDI original para autofill futuro
+$_SESSION['original_cfdi_xml'] = $originalDom->saveXML();
+
+/*
+ * Crear un NUEVO DOM que contenga ÚNICAMENTE la Addenda
+ * En este punto, CFDI, Timbre, Emisor, Receptor, etc.
+ * DEJAN DE EXISTIR
+ */
+$addendaDom = new DOMDocument('1.0', 'UTF-8');
+/*
+ |========================================================
+ | Normalización GENÉRICA de namespaces en Addenda
+ |========================================================
+ */
+$xpath = new DOMXPath($addendaDom);
+
+/** 1️⃣ Recolectar uso de prefijos reales */
+$prefixUsage = [];
+
+foreach ($xpath->query('//*[namespace-uri()]') as $node) {
+    if (!$node instanceof DOMElement) continue;
+
+    $prefix = $node->prefix;
+    if ($prefix) {
+        $prefixUsage[$prefix][] = $node;
+    }
+}
+
+/** 2️⃣ Recolectar declaraciones xmlns existentes */
+$declaredNamespaces = [];
+
+foreach ($xpath->query('//@xmlns:*') as $attr) {
+    if ($attr instanceof DOMAttr) {
+        $declaredNamespaces[$attr->prefix === 'xmlns'
+            ? $attr->localName
+            : null] = $attr->nodeValue;
+    }
+}
+
+/** 3️⃣ Limpiar declaraciones duplicadas y mal ubicadas */
+foreach ($xpath->query('/descendant-or-self::*') as $node) {
+    if (!$node instanceof DOMElement) continue;
+
+    foreach (iterator_to_array($node->attributes ?? []) as $attr) {
+        if ($attr->prefix === 'xmlns') {
+            // ❌ Eliminamos TODAS primero (se reinsertan bien después)
+            $node->removeAttributeNode($attr);
+        }
+    }
+}
+
+/** 4️⃣ Reinsertar xmlns:cfdi solo en <cfdi:Addenda> */
+$addendaRoot = $addendaDom->documentElement;
+if (isset($declaredNamespaces['cfdi'])) {
+    $addendaRoot->setAttribute('xmlns:cfdi', $declaredNamespaces['cfdi']);
+}
+
+/** 5️⃣ Reinsertar namespaces de proveedor en el primer nodo que los usa */
+foreach ($prefixUsage as $prefix => $nodes) {
+    if ($prefix === 'cfdi') continue;
+
+    $namespaceUri = $declaredNamespaces[$prefix] ?? null;
+    if (!$namespaceUri) continue;
+
+    // Primer nodo real que lo usa
+    $firstNode = $nodes[0];
+    if (!$firstNode->hasAttribute("xmlns:$prefix")) {
+        $firstNode->setAttribute("xmlns:$prefix", $namespaceUri);
+    }
+}
+$cleanAddenda = $addendaDom->importNode($addendaNode, true);
+$addendaDom->appendChild($cleanAddenda);
+// Guardar la Addenda EXACTA como texto (sin tocarla)
+$_SESSION['addenda_instance']['addenda_xml_template'] =
+    $originalDom->saveXML($addendaNode);
+
+// A partir de aquí SOLO se trabaja con $addendaDom
+$addendaRoot = $addendaDom->documentElement;
+$namespaces = [];
+
+if ($addendaRoot->hasAttributes()) {
+    foreach ($addendaRoot->attributes as $attr) {
+        // Capturar xmlns y xmlns:prefijo
+        if (strpos($attr->nodeName, 'xmlns') === 0) {
+            $namespaces[$attr->nodeName] = $attr->nodeValue;
+        }
+    }
+}
+
+/* =======================================================
+   4. Parsear la Addenda LIMPIA a estructura abstracta
+   ======================================================= */
+
+function parseAddendaNode(DOMElement $element): array
+{
+    $node = [
+        'type' => 'node',
+        'name' => $element->nodeName,
+        'children' => []
+    ];
+
+    /* =========================
+       1. Capturar namespaces
+       ========================= */
+    $namespaces = [];
+    if ($element->hasAttributes()) {
+        foreach ($element->attributes as $attr) {
+            if (strpos($attr->nodeName, 'xmlns') === 0) {
+                $namespaces[$attr->nodeName] = $attr->nodeValue;
+            }
+        }
+    }
+    if ($namespaces) {
+        $node['namespaces'] = $namespaces;
+    }
+
+    /* =========================
+       2. Atributos normales
+       ========================= */
+    if ($element->hasAttributes()) {
+        foreach ($element->attributes as $attr) {
+            // ⚠️ Omitir xmlns:*
+            if (strpos($attr->nodeName, 'xmlns') !== 0) {
+                $node['children'][] = [
+                    'type'  => 'field',
+                    'name'  => '@' . $attr->name,
+                    'value' => $attr->value
+                ];
+            }
+        }
+    }
+
+    /* =========================
+       3. Nodos hijos
+       ========================= */
+    foreach ($element->childNodes as $child) {
+        if ($child instanceof DOMElement) {
+            $node['children'][] = parseAddendaNode($child);
+        }
+    }
+
+    return $node;
+}  
+
+/*
+ * IMPORTANTE:
+ * No queremos que el formulario muestre el wrapper <cfdi:Addenda>
+ * sino sus hijos reales (THY:Factura, etc.)
+ */
+$structure = parseAddendaNode($addendaRoot);
+
+/* =======================================================
+   5. Guardar estructura en sesión (INSTANCIACIÓN)
+   ======================================================= */
+
+$_SESSION['addenda_instance']['structure']   = $structure;
+$_SESSION['addenda_instance']['origin']      = 'upload';
+$_SESSION['addenda_instance']['uploaded_at'] = date('c');
+
+/* =======================================================
+   6. Redirigir al formulario de instanciación
+   ======================================================= */
+
+header('Location: /addendas/frontend/render_instance_form.php');
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\analyze_addenda_xsd.php
+========================================
+<?php
+session_start();
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BACKEND_ROOT . '/src/Services/XsdAddendaParserService.php';
+
+use App\Services\XsdAddendaParserService;
+
+if (
+    !isset($_FILES['addenda_xsd']) ||
+    $_FILES['addenda_xsd']['error'] !== UPLOAD_ERR_OK
+) {
+    die('Error al subir XSD');
+}
+
+$xsdContent = file_get_contents($_FILES['addenda_xsd']['tmp_name']);
+if (!$xsdContent) {
+    die('XSD vacío');
+}
+
+$parser = new XsdAddendaParserService();
+$addendaXml = $parser->parse($xsdContent);
+
+// Extraer namespace DEL XSD (obligatorio por elementFormDefault=qualified)
+if (!preg_match('/xmlns="([^"]+)"/', $addendaXml, $m)) {
+    die('El XSD no define namespace por defecto');
+}
+
+$_SESSION['addenda_instance'] = [
+    'origin'        => 'xsd',
+    'xsd_namespace' => $m[1],
+    'structure'     => $parser->getStructure()
+];
+
+header('Location: /addendas/frontend/render_instance_form.php');
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\cfdi_autofill_suggestions.php
+========================================
+<?php
+session_start();
+
+require_once dirname(__DIR__) . '/config.php';
+
+header('Content-Type: application/json; charset=UTF-8');
+
+if (!isset($_SESSION['target_cfdi_xml'])) {
+    echo json_encode([
+        'error' => 'No target CFDI loaded'
+    ]);
+    exit;
+}
+
+$xml = $_SESSION['target_cfdi_xml'];
+
+$dom = new DOMDocument();
+$dom->loadXML($xml);
+
+$xpath = new DOMXPath($dom);
+
+/* Registrar namespaces del CFDI */
+foreach ($dom->documentElement->attributes as $attr) {
+    if ($attr->prefix === 'xmlns') {
+        $xpath->registerNamespace($attr->localName, $attr->nodeValue);
+    }
+}
+
+$fields = [];
+
+/**
+ * Recorre TODOS los nodos y extrae atributos
+ */
+function walkNode(DOMElement $el, string $path, array &$out)
+{
+    foreach ($el->attributes as $attr) {
+        if ($attr->prefix === 'xmlns') continue;
+
+        $out[] = [
+            'path'  => $path . '.@' . $attr->name,
+            'label' => $path . ' → @' . $attr->name,
+            'value' => $attr->value
+        ];
+    }
+
+    foreach ($el->childNodes as $child) {
+        if ($child instanceof DOMElement) {
+            walkNode(
+                $child,
+                $path . '.' . $child->nodeName,
+                $out
+            );
+        }
+    }
+}
+
+walkNode(
+    $dom->documentElement,
+    $dom->documentElement->nodeName,
+    $fields
+);
+
+echo json_encode([
+    'fields' => $fields
+], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\cfdi_fields.php
+========================================
+<?php
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BACKEND_ROOT . '/src/Services/CFDIParserService.php';
+
+use App\Services\CFDIParserService;
+
+header('Content-Type: application/json');
+
+// ====================================================
+// CFDI REAL (ajusta esta ruta si es necesario)
+// ====================================================
+$cfdiPath = BACKEND_ROOT . '/src/storage/cfdi/ejemplo.xml';
+
+if (!file_exists($cfdiPath)) {
+    echo json_encode([
+        'error' => 'CFDI de ejemplo no encontrado',
+        'path'  => $cfdiPath
+    ]);
+    exit;
+}
+
+$xml = file_get_contents($cfdiPath);
+
+$parser = new CFDIParserService();
+$cfdi = $parser->parse($xml);
+
+$fields = [];
+
+// ====================================================
+// COMPROBANTE (ROOT)
+// ====================================================
+if (!empty($cfdi->comprobante) && is_array($cfdi->comprobante)) {
+    foreach ($cfdi->comprobante as $key => $value) {
+
+        if ($value === null || is_array($value)) {
+            continue;
+        }
+
+        $fields[] = [
+            'value' => strtolower($key),
+            'label' => 'Comprobante.' . prettyLabel($key),
+            'scope' => 'root'
+        ];
+    }
+}
+
+// ====================================================
+// CONCEPTOS
+// ====================================================
+if (!empty($cfdi->conceptos) && isset($cfdi->conceptos[0])) {
+    foreach ($cfdi->conceptos[0] as $key => $value) {
+
+        if ($value === null || is_array($value)) {
+            continue;
+        }
+
+        $fields[] = [
+            'value' => strtolower($key),
+            'label' => 'Conceptos.' . prettyLabel($key),
+            'scope' => 'concept'
+        ];
+    }
+}
+
+// ====================================================
+// RESPUESTA
+// ====================================================
+echo json_encode([
+    'fields' => $fields
+]);
+
+// ====================================================
+// UTILIDAD PARA LABELS HUMANOS
+// ====================================================
+function prettyLabel($key)
+{
+    $map = [
+        // --- Comprobante ---
+        'folio'             => 'Folio',
+        'serie'             => 'Serie',
+        'fecha'             => 'Fecha',
+        'moneda'            => 'Moneda',
+        'tipodecomprobante' => 'Tipo de Comprobante',
+        'subtotal'          => 'SubTotal',
+        'total'             => 'Total',
+        'lugarexpedicion'   => 'Lugar de Expedición',
+        'exportacion'       => 'Exportación',
+
+        // --- Conceptos ---
+        'cantidad'          => 'Cantidad',
+        'valorunitario'     => 'Valor Unitario',
+        'claveunidad'       => 'Clave Unidad',
+        'noidentificacion'  => 'No. Identificación',
+        'descripcion'       => 'Descripción',
+        'importe'           => 'Importe',
+    ];
+
+    $key = strtolower($key);
+
+    return isset($map[$key]) ? $map[$key] : ucfirst($key);
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\generate_addenda_xml.php
+========================================
+<?php
+
+// 1️⃣ Apagar errores en salida (crítico para XML)
+ini_set('display_errors', '0');
+error_reporting(0);
+
+// 2️⃣ Limpiar cualquier salida previa
+if (ob_get_level()) {
+    ob_end_clean();
+}
+ob_start();
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BACKEND_ROOT . '/src/DTO/Template.php';
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
+
+use App\Services\TemplateService;
+use App\Services\AddendaXmlBuilder;
+
+$templateId = $_GET['id'] ?? '';
+
+if ($templateId === '') {
+    http_response_code(400);
+    exit;
+}
+
+$templateService = new TemplateService();
+$template = $templateService->get($templateId);
+
+if (!$template) {
+    http_response_code(404);
+    exit;
+}
+
+$builder = new AddendaXmlBuilder();
+$xml = $builder->build($template->structure);
+
+// 3️⃣ Limpiar otra vez por seguridad
+ob_clean();
+
+// 4️⃣ Enviar SOLO XML
+header('Content-Type: application/xml; charset=UTF-8');
+header('Content-Length: ' . strlen($xml));
+
+echo $xml;
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\generate_final_cfdi.php
+========================================
+<?php
+session_start();
+
+/* =======================================================
+   1. Validaciones básicas
+   ======================================================= */
+
+if (!isset($_SESSION['original_cfdi_xml'])) {
+    die('❌ No se encontró el CFDI original en sesión.');
+}
+
+if (!isset($_POST['addenda_xml']) || trim($_POST['addenda_xml']) === '') {
+    die('❌ No se recibió la Addenda generada.');
+}
+
+$originalCfdi  = $_SESSION['original_cfdi_xml'];
+$newAddendaXml = trim($_POST['addenda_xml']);
+
+/* =======================================================
+   2. Eliminar Addenda previa (si existiera)
+   ======================================================= */
+
+$originalCfdi = preg_replace(
+    '#\s*<cfdi:Addenda\b[^>]*>.*?</cfdi:Addenda>#s',
+    '',
+    $originalCfdi
+);
+
+/* =======================================================
+   3. Detectar formato del CFDI original
+   ======================================================= */
+
+// Detectar salto de línea (\n o \r\n)
+$newline = str_contains($originalCfdi, "\r\n") ? "\r\n" : "\n";
+
+// Detectar indentación base (espacios o tabs)
+if (preg_match('/\n([ \t]+)<cfdi:/', $originalCfdi, $m)) {
+    $baseIndent = $m[1];
+} else {
+    $baseIndent = "  "; // fallback: 2 espacios
+}
+
+/* =======================================================
+   4. Preparar Addenda respetando el formato original
+   ======================================================= */
+
+// Normalizar saltos de línea de la Addenda
+$addendaText = str_replace(["\r\n", "\r", "\n"], $newline, $newAddendaXml);
+
+// Indentar la Addenda con el mismo nivel del CFDI
+$addendaIndented = preg_replace(
+    '/^/m',
+    $baseIndent,
+    $addendaText
+);
+
+// Asegurar saltos correctos alrededor
+$addendaIndented = $newline . rtrim($addendaIndented, "\r\n");
+
+/* =======================================================
+   5. Insertar Addenda sin tocar el resto del CFDI
+   ======================================================= */
+
+if (strpos($originalCfdi, '</cfdi:Complemento>') !== false) {
+
+    // Insertar Addenda justo después del Complemento
+    $finalCfdi = str_replace(
+        '</cfdi:Complemento>',
+        "</cfdi:Complemento>{$addendaIndented}",
+        $originalCfdi
+    );
+
+} else {
+
+    // Insertar Addenda antes de cerrar el Comprobante
+    $finalCfdi = str_replace(
+        '</cfdi:Comprobante>',
+        "{$addendaIndented}</cfdi:Comprobante>",
+        $originalCfdi
+    );
+}
+
+/* =======================================================
+   6. Salida del CFDI final
+   ======================================================= */
+
+header('Content-Type: application/xml; charset=UTF-8');
+header('Content-Disposition: attachment; filename="cfdi_con_addenda.xml"');
+
+echo $finalCfdi;
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\insert_addenda_form.html
+========================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Insertar Addenda en CFDI (Prueba)</title>
+</head>
+<body>
+
+<h2>Insertar Addenda en CFDI</h2>
+
+<form
+    action="insert_addenda_into_cfdi.php"
+    method="POST"
+    enctype="multipart/form-data"
+>
+    <label>Template ID</label><br>
+    <input
+        type="text"
+        name="template_id"
+        value="tpl_69e78e047b53e4.56878003"
+        required
+    ><br><br>
+
+    <label>Archivo CFDI (XML)</label><br>
+    <input
+        type="file"
+        name="cfdi"
+        accept=".xml"
+        required
+    ><br><br>
+
+    <button type="submit">Insertar Addenda</button>
+</form>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\insert_addenda_into_cfdi.php
+========================================
+<?php
+
+ob_start();
+require_once dirname(__DIR__) . '/config.php';
+
+require_once BACKEND_ROOT . '/src/DTO/Template.php';
+require_once BACKEND_ROOT . '/src/DTO/CfdiMap.php';
+
+
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
+require_once BACKEND_ROOT . '/src/Services/CFDIParserService.php';
+require_once BACKEND_ROOT . '/src/Services/CfdiValueResolver.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaAutofillService.php';
+require_once BACKEND_ROOT . '/src/Services/CfdiAddendaInserter.php';
+
+
+
+use App\Services\AddendaXmlBuilder;
+use App\Services\AddendaAutofillService;
+use App\Services\CfdiValueResolver;
+use App\Services\CfdiAddendaInserter;
+use App\Services\TemplateService;
+
+
+// ✅ Validar POST
+$templateId = $_POST['template_id'] ?? '';
+$file       = $_FILES['cfdi'] ?? null;
+
+if ($templateId === '' || !$file) {
+    http_response_code(400);
+    exit('Faltan datos');
+}
+try {
+    // Leer CFDI subido
+    $cfdiXml = file_get_contents($_FILES['cfdi']['tmp_name']);
+    if ($cfdiXml === false) {
+        throw new Exception('No se pudo leer el CFDI subido');
+    }
+
+    // Cargar template
+    $templateService = new TemplateService();
+    $template = $templateService->get($templateId);
+
+    if (!$template) {
+        throw new Exception('Template no encontrado');
+    }
+
+    // Generar Addenda
+	$structure = $template->structure ?? [];
+
+	// 1. Construir Addenda
+	$builder = new AddendaXmlBuilder();
+	$addendaXml = $builder->build($structure);
+
+	// 2. Autofill (USA EL MISMO $structure NORMALIZADO)
+	$autofill = new AddendaAutofillService();
+	$addendaXml = $autofill->fill(
+		$addendaXml,
+		$cfdiXml,
+		$structure
+	);
+	
+	if (strpos($addendaXml, '{{') !== false) {
+
+    preg_match_all('/\{\{([^\}]+)\}\}/', $addendaXml, $matches);
+
+    throw new Exception(
+        'Autofill falló. Placeholders restantes: ' .
+        implode(', ', array_unique($matches[1]))
+    );
+}
+	
+	// DEBUG TEMPORAL
+	if (strpos($addendaXml, '{{') !== false) {
+		throw new Exception('Autofill no reemplazó todos los placeholders');
+	}
+
+
+    if (!$addendaXml) {
+        throw new Exception('No se pudo generar la Addenda XML');
+    }
+
+	// 3. Insertar Addenda en CFDI
+	$inserter = new CfdiAddendaInserter();
+	$resultCfdi = $inserter->insert($cfdiXml, $addendaXml);
+
+    if (!$resultCfdi) {
+        throw new Exception('No se pudo insertar la Addenda en el CFDI');
+    }
+
+    // ✅ ÉXITO: devolver CFDI final
+	ob_clean();
+    header('Content-Type: application/xml; charset=UTF-8');
+    echo $resultCfdi;
+    exit;
+
+} catch (Throwable $e) {
+    // Mostrar error exacto (solo para debug)
+	ob_clean();
+    http_response_code(500);
+    echo 'ERROR: ' . $e->getMessage();
+    exit;
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\load_target_cfdi.php
+========================================
+<?php
+session_start();
+
+/* =======================================================
+   Validar archivo
+   ======================================================= */
+
+if (
+    !isset($_FILES['target_cfdi']) ||
+    $_FILES['target_cfdi']['error'] !== UPLOAD_ERR_OK
+) {
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'No se recibió el CFDI destino'
+    ]);
+    exit;
+}
+
+$xml = file_get_contents($_FILES['target_cfdi']['tmp_name']);
+
+if (!$xml || trim($xml) === '') {
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'El CFDI destino está vacío'
+    ]);
+    exit;
+}
+
+/* =======================================================
+   Guardar CFDI DESTINO en sesión
+   ======================================================= */
+
+$_SESSION['target_cfdi_xml'] = $xml;
+
+echo json_encode([
+    'ok' => true
+]);
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\preview_addenda.php
+========================================
+<?php
+session_start();
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BACKEND_ROOT . '/src/Services/CFDIParserService.php';
+require_once BACKEND_ROOT . '/src/Services/CfdiValueResolver.php';
+
+use App\Services\CFDIParserService;
+use App\Services\CfdiValueResolver;
+
+/* =======================================================
+   Validaciones básicas
+   ======================================================= */
+
+if (!isset($_SESSION['addenda_instance']['addenda_xml_template'])) {
+    http_response_code(400);
+    echo 'No addenda template';
+    exit;
+}
+
+if (!isset($_SESSION['original_cfdi_xml'])) {
+    http_response_code(400);
+    echo 'No CFDI loaded';
+    exit;
+}
+
+/* =======================================================
+   Preparar datos base
+   ======================================================= */
+
+// Addenda ORIGINAL como texto
+$xml = $_SESSION['addenda_instance']['addenda_xml_template'];
+
+// Valores enviados desde la UI
+$values = json_decode(file_get_contents('php://input'), true) ?? [];
+
+// Preparar resolver CFDI
+$parser = new CFDIParserService();
+$cfdiMap = $parser->parse($_SESSION['original_cfdi_xml']);
+$resolver = new CfdiValueResolver($cfdiMap);
+
+/* =======================================================
+   Reemplazar atributos en Addenda
+   ======================================================= */
+
+foreach ($values as $path => $data) {
+
+    // Solo nos interesan atributos (.@)
+    if (!str_contains($path, '.@')) {
+        continue;
+    }
+
+    [, $attr] = explode('.@', $path, 2);
+
+    $value  = $data['value']  ?? null;
+    $source = $data['source'] ?? null;
+
+    // Si hay source, resolver desde CFDI
+    if ($source) {
+        try {
+            $resolved = $resolver->resolve($source);
+            if ($resolved !== null && $resolved !== '') {
+                $value = $resolved;
+            }
+        } catch (\Throwable $e) {
+            // Si no se puede resolver, conservamos valor manual
+        }
+    }
+
+    if ($value === null) {
+        continue;
+    }
+
+    // Reemplazo tolerante de atributo (1 sola ocurrencia)
+    $xml = preg_replace(
+        '/\b' . preg_quote($attr, '/') . '="[^"]*"/',
+        $attr . '="' . htmlspecialchars((string)$value, ENT_XML1) . '"',
+        $xml,
+        1
+    );
+}
+
+/* =======================================================
+   Output de preview
+   ======================================================= */
+
+header('Content-Type: application/xml; charset=UTF-8');
+
+// Wrap the addenda XML with the proper CFDI root element
+$wrapped_xml = '<cfdi:Addenda xmlns:cfdi="http://www.sat.gob.mx/cfd/3">' . "\n\t" . trim($xml) . "\n" . '</cfdi:Addenda>';
+echo $wrapped_xml;
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\preview_addenda_combined.php
+========================================
+<?php
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
+
+use App\Services\TemplateService;
+use App\Services\AddendaXmlBuilder;
+
+header('Content-Type: application/json');
+
+$templateId = $_GET['template_id'] ?? null;
+if (!$templateId) {
+    http_response_code(400);
+    echo json_encode(['error' => 'template_id requerido']);
+    exit;
+}
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+if (!$template) {
+    http_response_code(404);
+    echo json_encode(['error' => 'Template no encontrado']);
+    exit;
+}
+
+$builder = new AddendaXmlBuilder();
+$xmlBase = $builder->build($template->structure);
+if (!$xmlBase) {
+    http_response_code(500);
+    echo json_encode(['error' => 'No se pudo generar XML base']);
+    exit;
+}
+
+// DOMs
+$docStructure = new DOMDocument('1.0', 'UTF-8');
+$docStructure->loadXML($xmlBase);
+
+$docSimulated = new DOMDocument('1.0', 'UTF-8');
+$docSimulated->loadXML($xmlBase);
+
+$children = $template->structure['root']['children'];
+
+/* =====================================================
+   ROOT FIELDS
+   ===================================================== */
+foreach ($children as $node) {
+    if ($node['type'] !== 'field') continue;
+
+    $placeholder = null;
+    $simulated   = null;
+
+    if (isset($node['value'])) {
+        $placeholder = $node['value'];
+        $simulated   = $node['value'];
+    }
+    elseif (isset($node['source'])) {
+        $placeholder = '{{' . $node['source'] . '}}';
+        $simulated   = 'SIMULADO';
+    }
+    elseif (isset($node['calculation'])) {
+        $placeholder = '{{calc:' . $node['calculation'] . '}}';
+        $simulated   = '123.45';
+    }
+
+    if ($placeholder !== null) {
+        $docStructure->documentElement->setAttribute($node['name'], $placeholder);
+        $docSimulated->documentElement->setAttribute($node['name'], $simulated);
+    }
+}
+
+/* =====================================================
+   GROUPS
+   ===================================================== */
+foreach ($children as $node) {
+    if ($node['type'] !== 'group') continue;
+
+    $groupsS = $docStructure->getElementsByTagName($node['name']);
+    $groupsF = $docSimulated->getElementsByTagName($node['name']);
+
+    for ($i = 0; $i < $groupsS->length; $i++) {
+
+        $groupS = $groupsS->item($i);
+        $groupF = $groupsF->item($i);
+
+        for ($j = 0; $j < $groupS->childNodes->length; $j++) {
+
+            $itemS = $groupS->childNodes->item($j);
+            if ($itemS->nodeType !== XML_ELEMENT_NODE) continue;
+
+            $itemF = $groupF->childNodes->item($j);
+
+            foreach ($node['children'] as $field) {
+
+                $placeholder = null;
+                $simulated   = null;
+
+                if (isset($field['value'])) {
+                    $placeholder = $field['value'];
+                    $simulated   = $field['value'];
+                }
+                elseif (isset($field['source'])) {
+                    $placeholder = '{{' . $field['source'] . '}}';
+                    $simulated   = 'SIMULADO';
+                }
+                elseif (isset($field['calculation'])) {
+                    $placeholder = '{{calc:' . $field['calculation'] . '}}';
+                    $simulated   = '123.45';
+                }
+
+                if ($placeholder !== null) {
+                    $itemS->setAttribute($field['name'], $placeholder);
+                    $itemF->setAttribute($field['name'], $simulated);
+                }
+            }
+        }
+    }
+}
+
+echo json_encode([
+    'structurePreview' => $docStructure->saveXML($docStructure->documentElement),
+    'simulatedPreview' => $docSimulated->saveXML($docSimulated->documentElement)
+]);
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\preview_addenda_live.php
+========================================
+<?php
+
+require_once dirname(__use App\Services\TemplateService;require_once dirname(__DIR__) . '/config.php';
+use App\Services\AddendaXmlBuilder;
+
+$templateId = $_GET['template_id'] ?? null;
+if (!$templateId) {
+    http_response_code(400);
+    exit('template_id requerido');
+}
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+if (!$template) {
+    http_response_code(404);
+    exit('Template no encontrado');
+}
+
+$builder = new AddendaXmlBuilder();
+$xml = $builder->build($template->structure);
+
+// Preview estructural con placeholders visibles
+$doc = new DOMDocument();
+$doc->loadXML($xml);
+
+foreach ($template->structure['root']['children'] as $node) {
+    if ($node['type'] !== 'field') continue;
+
+    $value = isset($node['value'])
+        ? $node['value']
+        : (isset($node['source']) ? '{{'.$node['source'].'}}' : null);
+
+    if ($value) {
+        $doc->documentElement->setAttribute($node['name'], $value);
+    }
+}
+
+echo json_encode([
+    'structurePreview' => $doc->saveXML($doc->documentElement),
+    'simulatedPreview' => str_replace('{{cfdi.moneda}}', 'MXN',
+                             $doc->saveXML($doc->documentElement))
+]);
+
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
+
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\preview_addenda_xml.php
+========================================
+<?php
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BACKEND_ROOT . '/src/DTO/Template.php';
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
+
+use App\Services\TemplateService;
+use App\Services\AddendaXmlBuilder;
+
+$templateId = $_GET['template_id'] ?? '';
+
+if ($templateId === '') {
+    http_response_code(400);
+    exit('Template ID requerido');
+}
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+
+if (!$template) {
+    http_response_code(404);
+    exit('Template no encontrado');
+}
+
+$builder = new AddendaXmlBuilder();
+
+// ⚠️ Solo estructura (sin autofill)
+$xml = $builder->build($template->structure);
+
+// Devolver como texto plano para preview
+header('Content-Type: application/xml; charset=utf-8');
+echo $xml;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\save_group_step4.php
+========================================
+<?php
+session_start();
+
+require_once dirname(__DIR__) . '/config.php';
+
+// ✅ CARGAR CLASES NECESARIAS
+require_once BACKEND_ROOT . '/src/DTO/Template.php';
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+// ✅ Validar template_id
+$templateId = $_POST['template_id'] ?? null;
+if (!$templateId) {
+    die('template_id no proporcionado');
+}
+
+// ✅ Validar grupo en sesión
+if (
+    !isset($_SESSION['current_group']) ||
+    empty($_SESSION['current_group'])
+) {
+    die('No hay grupo activo para guardar');
+}
+
+// ✅ Obtener template
+$service = new TemplateService();
+$template = $service->get($templateId);
+
+if (!$template) {
+    die('Template no encontrado');
+}
+
+// ✅ Agregar grupo al root
+$template->structure['root']['children'][] = $_SESSION['current_group'];
+
+// ✅ Guardar template actualizado
+$service->update($templateId, $template->structure);
+
+// ✅ Limpiar grupo actual
+$_SESSION['current_group'] = null;
+
+// ✅ Volver al wizard step 4 (para agregar otro grupo)
+header('Location: /addendas/frontend/wizard_step4.php?template_id=' . urlencode($templateId));
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\save_template.php
+========================================
+<?php
+
+define('BASE_PATH', dirname(__DIR__));
+
+require_once BASE_PATH . '/src/DTO/Template.php';
+require_once BASE_PATH . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+$service = new TemplateService();
+
+// Simulación de estructura (luego vendrá del HTML)
+$structure = [
+    'root' => 'Factura',
+    'location' => 'ADDENDA',
+    'fields' => [
+        [
+            'name' => 'Folio',
+            'type' => 'string'
+        ]
+    ],
+    'groups' => []
+];
+
+$template = $service->save(
+    'Plantilla de prueba',
+    'ADDENDA',
+    $structure
+);
+
+header('Content-Type: application/json; charset=utf-8');
+
+echo json_encode(
+    $template->toArray(),
+);
+?>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\save_template_step1.php
+========================================
+<?php
+
+define('BASE_PATH', dirname(__DIR__));
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BASE_PATH . '/src/DTO/Template.php';
+require_once BASE_PATH . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+// Validación básica
+$name = trim($_POST['name'] ?? '');
+$location = $_POST['location'] ?? '';
+
+if ($name === '' || !in_array($location, ['ADDENDA', 'COMPLEMENTO'])) {
+    die('❌ Datos inválidos. Regresa e intenta de nuevo.');
+}
+
+$service = new TemplateService();
+
+// Estructura inicial VACÍA (se completará en el Paso 2)
+$structure = [
+    'root' => [
+        'name' => null,
+        'prefix' => null,
+        'namespace' => null,
+        'children' => []
+    ]
+];
+
+// ✅ Crear template
+$template = $service->save($name, $location, $structure);
+
+header('Location: /addendas/frontend/wizard_step2.php?template_id=' . urlencode($template->id));
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\save_template_step2.php
+========================================
+<?php
+
+define('BASE_PATH', dirname(__DIR__));
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BASE_PATH . '/src/DTO/Template.php';
+require_once BASE_PATH . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+// Leer datos
+$templateId = $_POST['template_id'] ?? '';
+$rootName   = trim($_POST['root_name'] ?? '');
+$prefix     = trim($_POST['prefix'] ?? '');
+$namespace  = trim($_POST['namespace'] ?? '');
+
+// Validaciones
+$templateId = $_POST['template_id'] ?? '';$namespace  = trim($_POST['namespace'] ?? '');
+
+if ($templateId === '' || $rootName === '' || $namespace === '') {
+    die('❌ Datos inválidos. Regresa e intenta de nuevo.');
+}
+
+$rootName   = trim($_POST['root_name'] ?? '');
+$prefix     = trim($_POST['prefix'] ?? '');
+
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+
+if (!$template) {
+    die('❌ Template no encontrado.');
+}
+
+// ✅ Actualizar SOLO el root
+$template->structure['root']['name']      = $rootName;
+$template->structure['root']['prefix'] = $prefix ?: null;
+$template->structure['root']['namespace'] = $namespace;
+
+// ✅ Guardar (SIN pasar template_id)
+$service->update($templateId, $template->structure);
+
+
+// ✅ REDIRIGIR al Paso 3
+header('Location: /addendas/frontend/wizard_step3.php?template_id=' . urlencode($template->id));
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\save_template_step3.php
+========================================
+<?php
+
+define('BASE_PATH', dirname(__DIR__));
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BASE_PATH . '/src/DTO/Template.php';
+require_once BASE_PATH . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+// Leer datos
+$templateId     = $_POST['template_id'] ?? '';
+$fieldName      = trim($_POST['field_name'] ?? '');
+$representation = $_POST['representation'] ?? 'node';
+$source         = trim($_POST['source'] ?? '');
+
+// Validaciones
+if ($templateId === '' || $fieldName === '') {
+    die('❌ Datos inválidos. Regresa e intenta de nuevo.');
+}
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+
+if (!$template) {
+    die('❌ Template no encontrado.');
+}
+
+// ✅ Crear definición del campo
+$fieldNode = [
+    'type' => 'field',
+    'name' => $fieldName,
+    'representation' => $representation,
+];
+switch ($_POST['origin_type'] ?? null) {
+
+    case 'cfdi':
+        // UI: "Cantidad" → backend: cfdi.cantidad
+        $fieldNode['source'] = 'cfdi.' . strtolower(trim($_POST['cfdi_field']));
+        break;
+
+    case 'fixed':
+        $fieldNode['value'] = $_POST['fixed_value'];
+        break;
+
+    case 'calculation':
+        $fieldNode['calculation'] = $_POST['calculation'];
+        break;
+}
+
+if ($source !== '') {
+    $fieldNode['source'] = $source;
+}
+
+// ✅ Agregar al root
+$template->structure['root']['children'][] = $fieldNode;
+
+// ✅ Guardar
+$service->update($templateId, $template->structure);
+
+// ✅ REDIRIGIR De neuvo al paso 3 PARA MAS CAMPOS
+header('Location: /addendas/frontend/wizard_step3.php?template_id=' . urlencode($templateId));
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\save_template_step4.php
+========================================
+<?php
+
+define('BASE_PATH', dirname(__DIR__));
+
+require_once dirname(__DIR__) . '/config.php';
+require_once BASE_PATH . '/src/DTO/Template.php';
+require_once BASE_PATH . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+// Leer datos
+$templateId   = $_POST['template_id'] ?? '';
+$groupName    = trim($_POST['group_name'] ?? '');
+$itemName     = trim($_POST['item_name'] ?? '');
+$source       = trim($_POST['source'] ?? '');
+
+$fieldName    = trim($_POST['field_name'] ?? '');
+$representation = $_POST['representation'] ?? 'attribute';
+
+// Validar
+if ($templateId === '' || $groupName === '' || $itemName === '' || $fieldName === '') {
+    die('❌ Datos inválidos.');
+}
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+
+if (!$template) {
+    die('❌ Template no encontrado.');
+}
+
+// ✅ CONSTRUIR GRUPO (sin tocar root)
+$group = [
+    'type'       => 'group',
+    'name'       => $groupName,
+    'itemName'   => $itemName,
+    'repeatable' => true,
+    'children'   => [
+        [
+            'type' => 'field',
+            'name' => $fieldName,
+            'representation' => $representation
+        ]
+    ]
+];
+
+if ($source !== '') {
+    $group['source'] = $source;
+}
+
+// ✅ AGREGAR AL ROOT EXISTENTE
+$template->structure['root']['children'][] = $group;
+
+// ✅ GUARDAR SIN RECREAR ROOT
+$service->update($templateId, $template->structure);
+
+// ✅ Fin del wizard (luego haremos pantalla final)
+header('Location: /addendas/frontend/wizard_done.php?template_id=' . urlencode($templateId));
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\start_group_step4.php
+========================================
+<?php
+session_start();
+
+$_SESSION['current_group'] = [
+    'type' => 'group',
+    'name' => $_POST['group_name'],
+    'itemName' => $_POST['item_name'],
+    'repeatable' => true,
+    'source' => $_POST['source'] ?? null,
+    'children' => []
+];
+
+header('Location: /addendas/frontend/wizard_step4.php?template_id=' . $_POST['template_id']);
+exit;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\test_autofill.php
+========================================
+<?php
+
+require_once dirname(__DIR__) . '/config.php';
+
+require_once BACKEND_ROOT . '/src/DTO/Template.php';
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaAutofillService.php';
+require_once BACKEND_ROOT . '/src/Services/CfdiAddendaInserter.php';
+
+use App\Services\TemplateService;
+use App\Services\AddendaXmlBuilder;
+use App\Services\AddendaAutofillService;
+use App\Services\CfdiAddendaInserter;
+
+// ----------------------
+// 1. Template
+// ----------------------
+$templateId = $_GET['template_id'] ?? null;
+if (!$templateId) {
+    die('template_id requerido');
+}
+
+$templateService = new TemplateService();
+$template = $templateService->get($templateId);
+
+if (!$template) {
+    die('Template no encontrado');
+}
+
+// ----------------------
+// 2. Construir Addenda base
+// ----------------------
+$builder = new AddendaXmlBuilder();
+$addendaXml = $builder->build($template->structure);
+
+
+/**
+ * 3. Leer CFDI real
+ */
+$cfdiPath = BACKEND_ROOT . '/src/Storage/cfdi/ejemplo.xml';
+
+if (!file_exists($cfdiPath)) {
+    die('CFDI no encontrado en: ' . $cfdiPath);
+}
+
+$cfdiXml = file_get_contents($cfdiPath);
+
+
+// ----------------------
+// 4. AUTOFILL
+// ----------------------
+$autofill = new AddendaAutofillService();
+
+$filledAddenda = $autofill->fill(
+    $addendaXml,
+    $cfdiXml,
+    $template->structure
+);
+
+// ----------------------
+// 5. Insertar Addenda en CFDI
+// ----------------------
+$inserter = new CfdiAddendaInserter();
+$finalCfdi = $inserter->insert($cfdiXml, $filledAddenda);
+
+// ----------------------
+// 6. Salida
+// ----------------------
+header('Content-Type: application/xml; charset=UTF-8');
+echo $finalCfdi;
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\public\upload_cfdi.php
+========================================
+<?php
+
+require_once __DIR__ . '/../src/Exceptions/InvalidCfdiException.php';
+require_once __DIR__ . '/../src/DTO/CfdiMap.php';
+require_once __DIR__ . '/../src/Services/CFDIParserService.php';
+
+use App\Services\CFDIParserService;
+use App\Exceptions\InvalidCfdiException;
+
+echo "<pre>";
+
+if (!isset($_FILES['cfdi'])) {
+    echo "❌ No se recibió ningún archivo.";
+    exit;
+}
+
+$file = $_FILES['cfdi'];
+
+if ($file['error'] !== UPLOAD_ERR_OK) {
+    echo "❌ Error al subir el archivo.";
+    exit;
+}
+
+$xmlContent = file_get_contents($file['tmp_name']);
+
+$parser = new CFDIParserService();
+
+try {
+    $cfdiMap = $parser->parse($xmlContent);
+
+    echo "✅ CFDI parseado correctamente\n\n";
+    print_r($cfdiMap->toArray());
+
+} catch (InvalidCfdiException $e) {
+    echo "❌ Error CFDI: " . $e->getMessage();
+} catch (Exception $e) {
+    echo "❌ Error inesperado: " . $e->getMessage();
+}
+
+echo "</pre>";
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\DTO\CfdiMap.php
+========================================
+<?php
+
+namespace App\DTO;
+
+class CfdiMap
+{
+    public string $version;
+    public string $uuid;
+    public string $serie;
+    public string $folio;
+    public string $fecha;
+    public string $moneda;
+    public float $subtotal;
+    public float $total;
+	
+    public array $comprobante = [];
+    public array $emisor = [];
+    public array $receptor = [];
+    public array $conceptos = [];
+
+    public function toArray(): array
+    {
+        return [
+            'version'   => $this->version,
+            'uuid'      => $this->uuid,
+            'serie'     => $this->serie,
+            'folio'     => $this->folio,
+            'fecha'     => $this->fecha,
+            'moneda'    => $this->moneda,
+            'subtotal'  => $this->subtotal,
+            'total'     => $this->total,
+            'emisor'    => $this->emisor,
+            'receptor'  => $this->receptor,
+            'conceptos' => $this->conceptos,
+        ];
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\DTO\Template.php
+========================================
+<?php
+
+namespace App\DTO;
+
+class Template
+{
+    public ?string $id = null;
+    public ?string $name = null;
+    public ?string $location = null;
+
+    /**
+     * Puede ser null durante la hidratación.
+     * El sistema siempre debe tratarla como array usando ?? []
+     */
+    public ?array $structure = null;
+
+    public ?string $createdAt = null;
+
+    public function toArray(): array
+    {
+        return [
+            'id'        => $this->id,
+            'name'      => $this->name,
+            'location'  => $this->location,
+            'structure' => $this->structure ?? [],
+            'createdAt' => $this->createdAt,
+        ];
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\Exceptions\InvalidCfdiException.php
+========================================
+<?php
+
+namespace App\Exceptions;
+
+use Exception;
+
+class InvalidCfdiException extends Exception
+{
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\Services\AddendaAutofillService.php
+========================================
+<?php
+
+namespace App\Services;
+
+require_once dirname(__DIR__) . '/Services/CFDIParserService.php';
+require_once dirname(__DIR__) . '/Services/CfdiValueResolver.php';
+
+use App\Services\CFDIParserService;
+use App\Services\CfdiValueResolver;
+use DOMDocument;
+use DOMXPath;
+
+class AddendaAutofillService
+{
+    public function fill(string $addendaXml, string $cfdiXml, array $structure): string
+    {
+        $parser = new CFDIParserService();
+        $cfdiData = $parser->parse($cfdiXml);
+        $resolver = new CfdiValueResolver($cfdiData);
+
+        $doc = new DOMDocument('1.0', 'UTF-8');
+        $doc->loadXML($addendaXml);
+        $xpath = new DOMXPath($doc);
+
+        foreach ($structure['root']['children'] as $node) {
+            if ($node['type'] === 'field') {
+                $this->fillSimpleField($doc, $node, $resolver);
+            }
+
+            if ($node['type'] === 'group') {
+                $this->fillGroup($doc, $xpath, $node, $resolver);
+            }
+        }
+
+        $xml = $doc->saveXML($doc->documentElement);
+        return preg_replace('/\{\{[^}]+\}\}/', '', $xml);
+    }
+
+    /* =====================================================
+       ROOT FIELDS
+       ===================================================== */
+    private function fillSimpleField(
+        DOMDocument $doc,
+        array $field,
+        CfdiValueResolver $resolver
+    ): void {
+
+        $value = null;
+
+        if (isset($field['value'])) {
+            $value = $field['value'];
+        }
+        elseif (isset($field['source'])) {
+            $value = $resolver->resolve($field['source']);
+        }
+        elseif (isset($field['calculation'])) {
+            $value = $this->evaluateCalculation(
+                $field['calculation'],
+                $resolver,
+                null
+            );
+        }
+
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        $doc->documentElement->setAttribute(
+            $field['name'],
+            (string)$value
+        );
+    }
+
+    /* =====================================================
+       GROUPS
+       ===================================================== */
+    private function fillGroup(
+        DOMDocument $doc,
+        DOMXPath $xpath,
+        array $group,
+        CfdiValueResolver $resolver
+    ): void {
+
+        $conceptos = $resolver->getConceptos();
+        if (empty($conceptos)) {
+            return;
+        }
+
+        foreach ($xpath->query("//*[local-name()='{$group['name']}']") as $groupEl) {
+
+            while ($groupEl->firstChild) {
+                $groupEl->removeChild($groupEl->firstChild);
+            }
+
+            foreach ($conceptos as $index => $concepto) {
+
+                $item = $doc->createElementNS(
+                    $groupEl->namespaceURI,
+                    $groupEl->prefix . ':' . $group['itemName']
+                );
+
+                foreach ($group['children'] as $field) {
+
+                    $value = null;
+
+                    if (isset($field['value'])) {
+                        $value = $field['value'];
+                    }
+                    elseif (isset($field['source'])) {
+                        $value = $resolver->resolve(
+                            $field['source'],
+                            $concepto,
+                            $index
+                        );
+                    }
+                    elseif (isset($field['calculation'])) {
+                        $value = $this->evaluateCalculation(
+                            $field['calculation'],
+                            $resolver,
+                            $concepto
+                        );
+                    }
+
+                    if ($value !== null && $value !== '') {
+                        $item->setAttribute(
+                            $field['name'],
+                            (string)$value
+                        );
+                    }
+                }
+
+                $groupEl->appendChild($item);
+            }
+        }
+    }
+
+    /* =====================================================
+       SAFE CALCULATION ENGINE
+       ===================================================== */
+    private function evaluateCalculation(
+        string $expression,
+        CfdiValueResolver $resolver,
+        ?array $concepto
+    ): float {
+
+        preg_match_all('/[a-zA-Z_][a-zA-Z0-9_]*/', $expression, $matches);
+        $variables = array_unique($matches[0]);
+
+        $resolved = [];
+
+        foreach ($variables as $var) {
+            $value = $resolver->resolve(
+                'cfdi.' . strtolower($var),
+                $concepto
+            );
+
+            if ($value === null) {
+                throw new \RuntimeException(
+                    "No se pudo resolver '{$var}' en cálculo"
+                );
+            }
+
+            if (!is_numeric($value)) {
+                throw new \RuntimeException(
+                    "La variable '{$var}' no es numérica"
+                );
+            }
+
+            $resolved[$var] = (float) $value;
+        }
+
+        $safeExpr = $expression;
+        foreach ($resolved as $var => $num) {
+            $safeExpr = preg_replace(
+                '/\b' . preg_quote($var, '/') . '\b/',
+                $num,
+                $safeExpr
+            );
+        }
+
+        if (!preg_match('/^[0-9\.\+\-\*\/\(\)\s]+$/', $safeExpr)) {
+            throw new \RuntimeException('Expresión de cálculo inválida');
+        }
+
+        try {
+            $result = eval('return ' . $safeExpr . ';');
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Error evaluando cálculo');
+        }
+
+        return round((float)$result, 2);
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\Services\AddendaXmlBuilder.php
+========================================
+<?php
+
+namespace App\Services;
+
+use DOMDocument;
+use DOMElement;
+
+class AddendaXmlBuilder
+{
+    /**
+     * Construye el XML de la Addenda a partir de la estructura del template
+     * DEVUELVE SOLO EL NODO RAÍZ (sin <?xml … ?>)
+     */
+    public function build(array $structure): string
+    {
+        if (!isset($structure['root'])) {
+            throw new \InvalidArgumentException('Estructura inválida: no existe root');
+        }
+
+        $rootDef = $structure['root'];
+
+        $name      = $rootDef['name'] ?? null;
+        $prefix    = $rootDef['prefix'] ?? null;
+        $namespace = $rootDef['namespace'] ?? null;
+        $children  = $rootDef['children'] ?? [];
+
+        if (!$name || !$prefix || !$namespace) {
+            throw new \InvalidArgumentException('Root incompleto: name, prefix o namespace faltante');
+        }
+
+        // Documento
+        $doc = new DOMDocument('1.0', 'UTF-8');
+        $doc->formatOutput = true;
+
+        // ROOT con namespace
+        $root = $doc->createElementNS(
+            $namespace,
+            $prefix . ':' . $name
+        );
+
+        $doc->appendChild($root);
+
+        // Hijos
+        foreach ($children as $child) {
+            $this->buildNode($doc, $root, $child, $prefix, $namespace);
+        }
+
+        // ✅ DEVOLVER SOLO EL ELEMENTO RAÍZ (sin XML declaration)
+        return $doc->saveXML($doc->documentElement);
+    }
+
+    /**
+     * Construye nodos (field / group)
+     */
+    private function buildNode(
+        DOMDocument $doc,
+        DOMElement $parent,
+        array $definition,
+        string $prefix,
+        string $namespace
+    ): void {
+        $type = $definition['type'] ?? 'field';
+
+        if ($type === 'field') {
+            $this->buildField($doc, $parent, $definition, $prefix, $namespace);
+            return;
+        }
+
+        if ($type === 'group') {
+            $this->buildGroup($doc, $parent, $definition, $prefix, $namespace);
+            return;
+        }
+
+        throw new \InvalidArgumentException("Tipo de nodo desconocido: {$type}");
+    }
+
+    /**
+     * Campo simple
+     */
+    private function buildField(
+        DOMDocument $doc,
+        DOMElement $parent,
+        array $field,
+        string $prefix,
+        string $namespace
+    ): void {
+        $name = $field['name'] ?? null;
+        if (!$name) {
+            return;
+        }
+
+        $representation = $field['representation'] ?? 'node';
+        $placeholder    = '{{' . $name . '}}';
+
+        // Atributo
+        if ($representation === 'attribute') {
+            $parent->setAttribute($name, $placeholder);
+            return;
+        }
+
+        // Nodo correctamente namespaced
+        $el = $doc->createElementNS(
+            $namespace,
+            $prefix . ':' . $name,
+            $placeholder
+        );
+
+        $parent->appendChild($el);
+    }
+
+    /**
+     * Grupo (Conceptos)
+     */
+    private function buildGroup(
+        DOMDocument $doc,
+        DOMElement $parent,
+        array $group,
+        string $prefix,
+        string $namespace
+    ): void {
+        $groupName = $group['name'] ?? null;
+        $itemName  = $group['itemName'] ?? 'Item';
+        $children  = $group['children'] ?? [];
+
+        if (!$groupName) {
+            return;
+        }
+
+        // Grupo
+        $groupEl = $doc->createElementNS(
+            $namespace,
+            $prefix . ':' . $groupName
+        );
+
+        // Item base
+        $itemEl = $doc->createElementNS(
+            $namespace,
+            $prefix . ':' . $itemName
+        );
+
+        foreach ($children as $childDef) {
+            $this->buildNode($doc, $itemEl, $childDef, $prefix, $namespace);
+        }
+
+        $groupEl->appendChild($itemEl);
+        $parent->appendChild($groupEl);
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\Services\CfdiAddendaInserter.php
+========================================
+<?php
+
+namespace App\Services;
+
+use DOMDocument;
+use DOMXPath;
+
+class CfdiAddendaInserter
+{
+    /**
+     * Inserta la addenda ya generada (y autofilled) dentro del CFDI.
+     * Opción A: el namespace del cliente vive en <LGM:Factura>,
+     * cfdi:Addenda solo tiene namespace SAT.
+     */
+    public function insert(string $cfdiXml, string $addendaXml): string
+    {
+        // 1. Cargar CFDI
+        $cfdiDoc = new DOMDocument('1.0', 'UTF-8');
+        $cfdiDoc->preserveWhiteSpace = false;
+        $cfdiDoc->formatOutput = true;
+        $cfdiDoc->loadXML($cfdiXml);
+
+        // 2. Detectar versión CFDI y namespace SAT
+        $comprobante = $cfdiDoc->documentElement;
+        $version = $comprobante->getAttribute('Version');
+
+        $cfdiNamespace = match ($version) {
+            '3.3' => 'http://www.sat.gob.mx/cfd/3',
+            '4.0' => 'http://www.sat.gob.mx/cfd/4',
+            default => 'http://www.sat.gob.mx/cfd/4',
+        };
+
+        $xpath = new DOMXPath($cfdiDoc);
+        $xpath->registerNamespace('cfdi', $cfdiNamespace);
+
+        // 3. Eliminar Addenda previa si existe
+        $existing = $xpath->query('cfdi:Addenda', $comprobante);
+        if ($existing->length > 0) {
+            $comprobante->removeChild($existing->item(0));
+        }
+
+        // 4. Crear cfdi:Addenda (SOLO namespace SAT)
+        $addendaEl = $cfdiDoc->createElementNS(
+            $cfdiNamespace,
+            'cfdi:Addenda'
+        );
+
+        // 5. Cargar XML de la addenda (root = <LGM:Factura>)
+        $addendaDoc = new DOMDocument('1.0', 'UTF-8');
+        $addendaDoc->loadXML($addendaXml);
+
+        $facturaNode = $addendaDoc->documentElement;
+
+        // 6. Importar SOLO <LGM:Factura>
+        $addendaEl->appendChild(
+            $cfdiDoc->importNode($facturaNode, true)
+        );
+
+        // 7. Insertar Addenda en el CFDI
+        $comprobante->appendChild($addendaEl);
+
+        // 8. Devolver CFDI final
+        return $cfdiDoc->saveXML();
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\Services\CFDIParserService.php
+========================================
+<?php
+
+namespace App\Services;
+
+// ✅ Cargar DTO
+require_once dirname(__DIR__) . '/DTO/CfdiMap.php';
+
+use App\DTO\CfdiMap;
+use DOMDocument;
+use DOMXPath;
+
+class CFDIParserService
+{
+    public function parse(string $cfdiXml): CfdiMap
+    {
+        if (trim($cfdiXml) === '') {
+            throw new \InvalidArgumentException('CFDI XML vacío');
+        }
+
+        $doc = new DOMDocument();
+        $doc->preserveWhiteSpace = false;
+        $doc->loadXML($cfdiXml); // ✅ USAR LA VARIABLE CORRECTA
+
+        $xpath = new DOMXPath($doc);
+        $xpath->registerNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
+
+        $map = new CfdiMap();
+
+        // ✅ Ejemplo mínimo de parse (puede ser más completo en tu caso)
+        $comprobante = $xpath->query('/cfdi:Comprobante')->item(0);
+
+        if ($comprobante instanceof \DOMElement) {
+
+			$comprobanteData = [
+				'folio'             => $comprobante->getAttribute('Folio'),
+				'fecha'             => $comprobante->getAttribute('Fecha'),
+				'moneda'            => $comprobante->getAttribute('Moneda'),
+				'serie'             => $comprobante->getAttribute('Serie'),
+				'tipodecomprobante' => $comprobante->getAttribute('TipoDeComprobante'),
+				'lugarexpedicion'   => $comprobante->getAttribute('LugarExpedicion'),
+			];
+
+			// ✅ Mantener propiedades existentes (compatibilidad)
+			$map->folio  = $comprobanteData['folio'];
+			$map->fecha  = $comprobanteData['fecha'];
+			$map->moneda = $comprobanteData['moneda'];
+
+			// ✅ NUEVO: exponer comprobante como array
+			$map->comprobante = $comprobanteData;
+		}
+
+        // ✅ Conceptos
+        $conceptos = [];
+        foreach ($xpath->query('//cfdi:Concepto') as $concepto) {
+            $conceptos[] = [
+                'cantidad'         => $concepto->getAttribute('Cantidad'),
+                'valorunitario'    => $concepto->getAttribute('ValorUnitario'),
+                'claveunidad'      => $concepto->getAttribute('ClaveUnidad'),
+                'noidentificacion' => $concepto->getAttribute('NoIdentificacion'),
+            ];
+        }
+
+        $map->conceptos = $conceptos;
+
+        return $map;
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\Services\CfdiValueResolver.php
+========================================
+<?php
+
+namespace App\Services;
+
+use App\DTO\CfdiMap;
+
+class CfdiValueResolver
+{
+    private CfdiMap $cfdiMap;
+
+    public function __construct(CfdiMap $cfdiMap)
+    {
+        $this->cfdiMap = $cfdiMap;
+    }
+
+    /**
+     * Resuelve valores desde el CFDI.
+     *
+     * Soporta:
+     *   cfdi.folio
+     *   cfdi.fecha
+     *   cfdi.moneda
+     *
+     * Y también, en contexto de grupo:
+     *   cfdi.cantidad
+     *   cfdi.valorunitario
+     */
+    public function resolve(
+        string $path,
+        ?array $concepto = null,
+        ?int $index = null
+    ) {
+        $parts = explode('.', $path);
+
+        if ($parts[0] !== 'cfdi') {
+            return null;
+        }
+
+        // Quitamos 'cfdi'
+        array_shift($parts);
+
+        // ✅ CASO 1: estamos dentro de un grupo (concepto actual)
+        if ($concepto !== null && count($parts) === 1) {
+            $key = strtolower($parts[0]);
+
+            return $concepto[$key] ?? null;
+        }
+
+        // ✅ CASO 2: navegación normal sobre CfdiMap
+        $current = $this->cfdiMap;
+
+        foreach ($parts as $key) {
+
+            // Propiedad del objeto CfdiMap
+            if (is_object($current) && property_exists($current, $key)) {
+                $current = $current->$key;
+                continue;
+            }
+
+            // Array (emisor, receptor, etc.)
+            if (is_array($current) && array_key_exists($key, $current)) {
+                $current = $current[$key];
+                continue;
+            }
+
+            return null;
+        }
+
+        return $current;
+    }
+
+    /**
+     * Devuelve los conceptos del CFDI (para grupos)
+     */
+    public function getConceptos(): array
+    {
+        return $this->cfdiMap->conceptos ?? [];
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\Services\TemplateService.php
+========================================
+<?php
+
+namespace App\Services;
+
+require_once dirname(__DIR__) . '/DTO/Template.php';
+
+use App\DTO\Template;
+use RuntimeException;
+
+
+class TemplateService
+{
+    /**
+     * Crea y guarda una nueva plantilla
+     */
+public function save(string $name, string $location, array $structure, ?string $id = null): Template
+{
+    $template = new Template();
+
+    // ✅ SI viene ID, se reutiliza
+    if ($id) {
+        $template->id = $id;
+    } else {
+        $template->id = $this->generateId();
+    }
+
+    $template->name = $name;
+    $template->location = $location;
+    $template->structure = $this->normalizeStructure($structure);
+
+    $this->persist($template);
+
+    return $template;
+}
+
+/**
+ * Crea una nueva plantilla a partir de una Addenda analizada
+ *
+ * @param array $structure Estructura abstracta de la Addenda
+ * @return string template_id generado
+ */
+public function createFromAddenda(array $structure): string
+{
+    // 1. Definir nombre base del template
+    $templateName = $structure['name'];
+
+    // 2. Generar ID (opcional, save() también puede hacerlo)
+    $templateId = $this->generateId();
+
+    // 3. Ruta donde se guardará el template
+    $location = BACKEND_ROOT . "/src/storage/templates/{$templateId}.json";
+
+    if (!is_dir(dirname($location))) {
+        mkdir(dirname($location), 0777, true);
+    }
+
+    // 4. Construir estructura compatible con el wizard
+    $templateStructure = [
+        'root' => [
+            'type' => 'root',
+            'name' => $structure['name'],
+            'children' => []
+        ]
+    ];
+
+    foreach ($structure['children'] as $child) {
+        $templateStructure['root']['children'][] =
+            $this->normalizeNode($child);
+    }
+
+    // 5. Delegar guardado al servicio existente
+    $template = $this->save(
+        $templateName,   // name
+        $location,       // location (string)
+        $templateStructure, // structure (array)
+        $templateId      // id
+    );
+
+    return $template->id;
+}
+
+
+/**
+ * Normaliza nodos/fields detectados para el wizard
+ */
+private function normalizeNode(array $node): array
+{
+    if ($node['type'] === 'field') {
+        return [
+            'type' => 'field',
+            'name' => $node['name'],
+            'representation' => 'node',
+            'origin' => [
+                'type' => 'fixed',
+                'value' => null
+            ]
+        ];
+    }
+
+    // Nodo con hijos (grupo)
+    $children = [];
+    foreach ($node['children'] as $child) {
+        $children[] = $this->normalizeNode($child);
+    }
+
+    return [
+        'type' => 'group',
+        'name' => $node['name'],
+        'repeatable' => true,
+        'children' => $children
+    ];
+}
+
+
+	public function update(string $id, array $structure): Template
+	{
+		$template = $this->get($id);
+
+		if (!$template) {
+			throw new RuntimeException('Template no encontrado');
+		}
+
+		$template->structure = $this->normalizeStructure($structure);
+		$this->persist($template);
+
+		return $template;
+	}
+    /**
+     * Obtiene una plantilla por ID
+     */
+    public function get(string $id): ?Template
+    {
+        $path = $this->getPath($id);
+
+        if (!file_exists($path)) {
+            return null;
+        }
+
+        $data = json_decode(file_get_contents($path), true);
+
+        if (!is_array($data)) {
+            throw new RuntimeException("Template corrupto: {$id}");
+        }
+
+        $template = new Template();
+        $template->id = $data['id'] ?? $id;
+        $template->name = $data['name'] ?? '';
+        $template->location = $data['location'] ?? '';
+        $template->structure = $this->normalizeStructure($data['structure'] ?? []);
+
+        return $template;
+    }
+
+    /**
+     * GUARDA el template (UN SOLO CAMINO)
+     */
+    private function persist(Template $template): void
+    {
+        file_put_contents(
+            $this->getPath($template->id),
+            json_encode(
+                $template->toArray(),
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
+            )
+        );
+    }
+
+    /**
+     * Verifica y completa estructura mínima obligatoria
+     */
+private function normalizeStructure(array $structure): array
+{
+    // ✅ Si no existe root, lo creamos
+    if (!isset($structure['root']) || !is_array($structure['root'])) {
+        $structure['root'] = [
+            'name' => null,
+            'prefix' => null,
+            'namespace' => null,
+            'children' => [],
+        ];
+        return ['root' => $structure['root']];
+    }
+
+    // ✅ Preservar valores existentes
+    $root = $structure['root'];
+
+    $normalizedRoot = [
+        'name' => $root['name'] ?? null,
+        'prefix' => $root['prefix'] ?? null,
+        'namespace' => $root['namespace'] ?? null,
+        'children' => [],
+    ];
+
+    // ✅ Preservar children existentes
+    if (isset($root['children']) && is_array($root['children'])) {
+        $normalizedRoot['children'] = $root['children'];
+    }
+
+    // ✅ RETORNAR SOLO root (nada más)
+    return [
+        'root' => $normalizedRoot
+    ];
+}
+
+    /**
+     * Genera ID único
+     */
+    private function generateId(): string
+    {
+        return 'tpl_' . uniqid('', true);
+    }
+
+    /**
+     * Ruta del archivo JSON
+     */
+    private function getPath(string $id): string
+    {
+        return TEMPLATE_STORAGE_PATH . '/' . $id . '.json';
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\backend\src\Services\XsdAddendaParserService.php
+========================================
+<?php
+
+namespace App\Services;
+
+use DOMDocument;
+use DOMElement;
+use DOMXPath;
+use RuntimeException;
+
+class XsdAddendaParserService
+{
+    private DOMXPath $xpath;
+    private DOMDocument $xsdDom;
+    private DOMDocument $xmlDom;
+
+    // ✅ Namespace default definido por el XSD
+    private ?string $targetNamespace = null;
+
+    /**
+     * Punto de entrada principal.
+     * Recibe el XSD como texto y devuelve XML vacío válido.
+     */
+    public function parse(string $xsdContent): string
+    {
+        $this->loadXsd($xsdContent);
+        $this->initXml();
+
+        $rootElement = $this->getRootElement();
+        if (!$rootElement) {
+            throw new RuntimeException('No se encontró elemento raíz en XSD');
+        }
+
+        $xmlRoot = $this->parseElement($rootElement);
+        $this->xmlDom->appendChild($xmlRoot);
+
+        // ✅ Importante: devolver SOLO el nodo raíz (sin header XML)
+        return $this->xmlDom->saveXML($xmlRoot);
+    }
+
+    /* =====================================================
+       Cargar XSD
+       ===================================================== */
+
+    private function loadXsd(string $content): void
+    {
+        $this->xsdDom = new DOMDocument();
+        if (!$this->xsdDom->loadXML($content)) {
+            throw new RuntimeException('No se pudo cargar el XSD');
+        }
+
+        $this->xpath = new DOMXPath($this->xsdDom);
+        $this->xpath->registerNamespace(
+            'xs',
+            'http://www.w3.org/2001/XMLSchema'
+        );
+
+        // ✅ Leer targetNamespace del schema
+        $schema = $this->xpath->query('/xs:schema')->item(0);
+        if ($schema instanceof DOMElement) {
+            $this->targetNamespace = $schema->getAttribute('targetNamespace') ?: null;
+        }
+    }
+
+    /* =====================================================
+       Inicializar XML destino
+       ===================================================== */
+
+    private function initXml(): void
+    {
+        $this->xmlDom = new DOMDocument('1.0', 'UTF-8');
+        $this->xmlDom->formatOutput = true;
+    }
+
+    /* =====================================================
+       Obtener elemento raíz del XSD
+       ===================================================== */
+
+    private function getRootElement(): ?DOMElement
+    {
+        return $this->xpath
+            ->query('/xs:schema/xs:element')
+            ->item(0);
+    }
+
+    /* =====================================================
+       Parseo recursivo de elementos
+       ===================================================== */
+
+    private function parseElement(DOMElement $xsdElement): DOMElement
+    {
+        $name = $xsdElement->getAttribute('name');
+        if (!$name) {
+            throw new RuntimeException('Elemento sin nombre');
+        }
+
+        // ✅ Crear elemento XML con namespace DEFAULT
+        $xmlElement = $this->createXmlElement($name);
+
+        // Atributos definidos directamente en el element
+        $this->parseAttributes($xsdElement, $xmlElement);
+
+        // ComplexType
+        $complexType = $this->xpath
+            ->query('xs:complexType', $xsdElement)
+            ->item(0);
+
+        if ($complexType instanceof DOMElement) {
+            $this->parseComplexType($complexType, $xmlElement);
+        }
+
+        return $xmlElement;
+    }
+
+    /* =====================================================
+       Parse complexType
+       ===================================================== */
+
+    private function parseComplexType(
+        DOMElement $complexType,
+        DOMElement $parentXml
+    ): void {
+        // Secuencia
+        $sequence = $this->xpath
+            ->query('xs:sequence', $complexType)
+            ->item(0);
+
+        if ($sequence instanceof DOMElement) {
+            foreach ($this->xpath->query('xs:element', $sequence) as $child) {
+                if (!$child instanceof DOMElement) {
+                    continue;
+                }
+
+                // ✅ Solo una instancia (aunque maxOccurs > 1)
+                $childXml = $this->parseElement($child);
+                $parentXml->appendChild($childXml);
+            }
+        }
+
+        // Atributos del complexType
+        $this->parseAttributes($complexType, $parentXml);
+    }
+
+    /* =====================================================
+       Parse atributos
+       ===================================================== */
+
+    private function parseAttributes(
+        DOMElement $xsdNode,
+        DOMElement $xmlNode
+    ): void {
+        foreach ($this->xpath->query('xs:attribute', $xsdNode) as $attr) {
+            if (!$attr instanceof DOMElement) {
+                continue;
+            }
+
+            $name = $attr->getAttribute('name');
+            if ($name) {
+                $xmlNode->setAttribute($name, '');
+            }
+        }
+    }
+
+    /* =====================================================
+       Crear elemento XML con namespace default del XSD
+       ===================================================== */
+
+    private function createXmlElement(string $name): DOMElement
+    {
+        if ($this->targetNamespace) {
+            $element = $this->xmlDom->createElement($name);
+
+            // ⚠️ Forzar namespace default como atributo EXPLÍCITO
+            if ($this->targetNamespace) {
+                $element->setAttribute(
+                    'xmlns',
+                    $this->targetNamespace
+                );
+            }
+
+            return $element;
+        }
+
+        return $this->xmlDom->createElement($name);
+    }
+}
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\index.html
+========================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subir CFDI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f7f7f7;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        button {
+            margin-top: 15px;
+            padding: 10px 16px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Subir factura CFDI</h2>
+
+    <form action="/addendas/backend/public/upload_cfdi.php"
+          method="POST"
+          enctype="multipart/form-data">
+
+        <label>Archivo CFDI (XML):</label><br><br>
+        <input type="file" name="cfdi" accept=".xml" required><br><br>
+
+        <button type="submit">Subir y leer CFDI</button>
+    </form>
+</div>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\render_instance_form.php
+========================================
+<?php
+session_start();
+
+if (!isset($_SESSION['addenda_instance']['structure'])) {
+    die('❌ No hay una addenda cargada para instanciar.');
+}
+
+$structure = $_SESSION['addenda_instance']['structure'];
+
+function renderFields(array $nodes, string $prefix = ''): void
+{
+    foreach ($nodes as $node) {
+
+        if ($node['type'] === 'node') {
+            echo "<fieldset>";
+            echo "<legend>" . htmlspecialchars($node['name']) . "</legend>";
+            renderFields($node['children'], $prefix . $node['name'] . '.');
+            echo "</fieldset>";
+        }
+
+        if ($node['type'] === 'field') {
+            $fieldKey = $prefix . $node['name'];
+            echo "<div style='margin-bottom:10px;'>";
+            echo "<label>" . htmlspecialchars($node['name']) . "</label>";
+echo "<div class='field-row'>";
+
+echo "<input type='text'
+      class='addenda-input'
+      data-field='" . htmlspecialchars($fieldKey) . "'>";
+
+echo "<select class='cfdi-autofill'
+      data-target='" . htmlspecialchars($fieldKey) . "'>
+        <option value=''>— Tomar de CFDI —</option>
+      </select>";
+
+echo "</div>";
+            echo "</div>";
+        }
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Rellenar Addenda</title>
+
+<style>
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f6f8;
+    padding: 30px;
+    margin: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.note {
+    color: #555;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+/* =======================
+   FORMULARIO
+======================= */
+.form-column fieldset {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+legend {
+    padding: 0 8px;
+    font-weight: 600;
+}
+
+label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+}
+
+input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* =======================
+   PREVIEW
+======================= */
+.preview-column h3 {
+    margin-top: 0;
+}
+
+.preview {
+    background: #111;
+    color: #9ef;
+    padding: 15px;
+    border-radius: 6px;
+    max-height: 500px;
+    overflow: auto;
+    font-family: monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+}
+
+/* =======================
+   BOTÓN FINAL (SOLO ESTE)
+======================= */
+.preview-column #generateBtn {
+    margin-top: 20px;
+    padding: 14px;
+    width: 100%;
+    font-size: 16px;
+    background: #0067c0;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.preview-column #generateBtn:hover {
+    background: #0053a0;
+}
+
+/* Botón deshabilitado */
+#generateBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* =======================
+   FACTURA DESTINO
+======================= */
+.target-invoice {
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    background: #fafafa;
+    margin-bottom: 20px;
+}
+
+.target-invoice input[type="file"] {
+    margin-top: 10px;
+}
+
+.file-status {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* =======================
+   PREVIEW EXPANDIBLE
+======================= */
+.preview-wrapper {
+    position: relative;
+}
+
+/* Botón expandir (⛶) */
+.preview-expand {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 10;
+    width: auto;
+    margin: 0;
+}
+
+.preview-expand:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* ===== MODO PANTALLA COMPLETA ===== */
+.preview-wrapper.fullscreen {
+    position: fixed;
+    inset: 0;
+    background: #111;
+    z-index: 9999;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-wrapper.fullscreen h3 {
+    color: #fff;
+}
+
+.preview-wrapper.fullscreen .preview {
+    flex: 1;
+    max-height: none;
+    font-size: 14px;
+}
+.field-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.field-row input {
+    flex: 1;
+}
+
+.field-row select {
+    width: 240px;
+    font-size: 13px;
+}
+.autofill-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h2>Rellenar Addenda Existente</h2>
+        <p class="note">
+            La estructura de esta addenda es fija.  
+            Solo completa los valores necesarios para generar la factura final.
+        </p>
+    </div>
+
+    <div class="main">
+
+        <!-- FORMULARIO -->
+        <div class="form-column">
+
+            <!-- WARNING AUTOFILL (ARRIBA DEL FORMULARIO) -->
+            <div id="autofillWarning" class="autofill-warning" style="display:none;">
+                ⚠️ Para usar el autofill debes subir primero la factura destino.
+            </div>
+
+            <form id="instanceForm">
+                <?php renderFields($structure['children']); ?>
+            </form>
+
+        </div>
+
+        <!-- PREVIEW + BOTÓN -->
+       <div class="preview-column">
+
+    <!-- FACTURA DESTINO -->
+    <div class="target-invoice">
+        <h3>📄 Factura destino</h3>
+        <p class="note">
+            Sube la factura (CFDI) a la que se le agregará esta addenda.
+            Esta factura no debe contener Addenda.
+        </p>
+
+        <input type="file"
+               id="targetCfdi"
+               accept=".xml">
+
+        <div class="file-status" id="targetCfdiStatus">
+            No se ha seleccionado ningún archivo.
+        </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-wrapper" id="previewWrapper">
+
+    <button class="preview-expand" id="togglePreview" title="Expandir / Contraer">
+        ⛶
+    </button>
+
+    <h3 style="margin-top:30px;">👁 Vista previa de la Addenda</h3>
+
+    <pre id="preview" class="preview">Cargando…</pre>
+
+    </div>
+
+    <!-- BOTÓN FINAL -->
+    <button id="generateBtn" disabled>
+        Generar CFDI con Addenda
+    </button>
+</div>
+
+    </div>
+</div>
+
+<script>
+const form = document.getElementById('instanceForm');
+const previewBox = document.getElementById('preview');
+// Controlador global para cancelar previews anteriores
+let previewAbortController = null;
+
+// 👇 NUEVO: contador de requests
+let previewRequestId = 0;
+
+
+function getValues() {
+    const values = {};
+
+    form.querySelectorAll('.addenda-input').forEach(input => {
+        values[input.dataset.field] = {
+            value: input.value,
+            source: input.dataset.source || null
+        };
+    });
+
+    return values;
+}
+
+function escapeXml(str = '') {
+    return str.replace(/[<>&'"]/g, c => ({
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;',
+        '"': '&quot;',
+        "'": '&apos;'
+    })[c]);
+}
+
+
+form.addEventListener('input', updatePreview);
+updatePreview();
+
+document.getElementById('generateBtn').addEventListener('click', function () {
+
+    if (!targetCfdiLoaded) {
+        alert('Debes subir primero la factura destino.');
+        return;
+    }
+
+    const xmlAddenda = previewBox.textContent;
+    const targetFile = targetCfdiInput.files[0];
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/addendas/backend/public/generate_final_cfdi.php';
+    form.enctype = 'multipart/form-data';
+
+    const addendaInput = document.createElement('input');
+    addendaInput.type = 'hidden';
+    addendaInput.name = 'addenda_xml';
+    addendaInput.value = xmlAddenda;
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.name = 'target_cfdi';
+
+    // Truco: reasignar archivos
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(targetFile);
+    fileInput.files = dataTransfer.files;
+
+    form.appendChild(addendaInput);
+    form.appendChild(fileInput);
+    document.body.appendChild(form);
+    form.submit();
+});
+
+const targetCfdiInput = document.getElementById('targetCfdi');
+const generateBtn = document.getElementById('generateBtn');
+const statusBox = document.getElementById('targetCfdiStatus');
+
+let targetCfdiLoaded = false;
+
+targetCfdiInput.addEventListener('change', function () {
+
+    if (!this.files || !this.files.length) {
+        targetCfdiLoaded = false;
+        generateBtn.disabled = true;
+        statusBox.textContent = 'No se ha seleccionado ningún archivo.';
+        return;
+    }
+
+    const file = this.files[0];
+
+    if (!file.name.toLowerCase().endsWith('.xml')) {
+        statusBox.textContent = 'El archivo debe ser XML (.xml)';
+        this.value = '';
+        generateBtn.disabled = true;
+        targetCfdiLoaded = false;
+        return;
+    }
+
+    statusBox.textContent = 'Factura cargada: ' + file.name;
+    targetCfdiLoaded = true;
+    generateBtn.disabled = false;
+
+    // Enviar CFDI destino al backend para habilitar autofill
+const fd = new FormData();
+fd.append('target_cfdi', file);
+
+fetch('/addendas/backend/public/load_target_cfdi.php', {
+    method: 'POST',
+    body: fd
+})
+.then(r => r.json())
+.then(res => {
+
+    if (!res.ok) {
+        alert('❌ No se pudo cargar la factura destino para autofill');
+        return;
+    }
+
+    // ✅ Ahora sí se puede usar autofill
+    loadCfdiAutofillSuggestions();
+});
+
+});
+const togglePreviewBtn = document.getElementById('togglePreview');
+const previewWrapper = document.getElementById('previewWrapper');
+
+togglePreviewBtn.addEventListener('click', function () {
+    previewWrapper.classList.toggle('fullscreen');
+
+    // Cambiar icono
+    togglePreviewBtn.textContent =
+        previewWrapper.classList.contains('fullscreen') ? '✕' : '⛶';
+});
+function populateAutofillSelectors() {
+    document.querySelectorAll('.cfdi-autofill').forEach(select => {
+
+        cfdiSuggestions.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.path;                // cfdi.xxx
+            opt.textContent = f.label;         // Label humano
+            opt.dataset.value = f.value;       // Valor real
+            select.appendChild(opt);
+        });
+
+        select.addEventListener('change', onAutofillSelect);
+    });
+}
+function onAutofillSelect(event) {
+    const select = event.target;
+    const path = select.value;
+
+    if (!targetCfdiLoaded) {
+    showAutofillWarning();
+    event.target.value = '';
+    return;
+}
+
+    if (!path) return;
+
+    const input = document.querySelector(
+        `input[data-field="${select.dataset.target}"]`
+    );
+
+    const selectedOption = select.options[select.selectedIndex];
+    const value = selectedOption.dataset.value;
+
+    if (!input) return;
+
+    input.value = value;
+
+    setTimeout(() => {
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    }, 0);
+
+    // 3️⃣ Guardar source en dataset (para futuro uso)
+    input.dataset.source = path;
+}
+function updatePreview() {
+
+    // Incrementar ID de request (marca este request como el más reciente)
+    const requestId = ++previewRequestId;
+
+    // Cancelar request anterior si existe
+    if (previewAbortController) {
+        previewAbortController.abort();
+    }
+
+    // Crear nuevo controller
+    previewAbortController = new AbortController();
+
+    fetch('/addendas/backend/public/preview_addenda.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(getValues()),
+        signal: previewAbortController.signal
+    })
+    .then(response => response.text())
+    .then(xml => {
+
+        // ✅ SOLO pintar si este request es el último
+        if (requestId === previewRequestId) {
+            previewBox.textContent = xml;
+        }
+
+    })
+    .catch(error => {
+        // Ignorar abortos intencionales
+        if (error.name !== 'AbortError') {
+            console.error('Preview error:', error);
+        }
+    });
+}
+
+let cfdiSuggestions = [];
+
+function loadCfdiAutofillSuggestions() {
+
+    fetch('/addendas/backend/public/cfdi_autofill_suggestions.php')
+        .then(r => r.json())
+        .then(data => {
+
+            if (data.error) {
+                alert(
+                    '⚠️ Para usar autofill debes subir primero la factura destino.'
+                );
+                disableAutofill();
+                return;
+            }
+
+            cfdiSuggestions = data.fields || [];
+            populateAutofillSelectors();
+            enableAutofill();
+            hideAutofillWarning();
+        });
+}
+
+function disableAutofill() {
+    document.querySelectorAll('.cfdi-autofill').forEach(sel => {
+        sel.disabled = true;
+    });
+
+    showAutofillWarning();
+}
+
+function enableAutofill() {
+    document.querySelectorAll('.cfdi-autofill').forEach(sel => {
+        sel.disabled = false;
+    });
+}
+document.addEventListener('DOMContentLoaded', function () {
+    disableAutofill();
+});
+function showAutofillWarning() {
+    const w = document.getElementById('autofillWarning');
+    if (w) w.style.display = 'block';
+}
+
+function hideAutofillWarning() {
+    const w = document.getElementById('autofillWarning');
+    if (w) w.style.display = 'none';
+}
+</script>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\select_mode.php
+========================================
+<?php
+// select_mode.php
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Crear Addenda – Seleccionar modo</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    padding: 40px;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+}
+
+.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+}
+
+.mode-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.mode-card:hover {
+    border-color: #0078d4;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.mode-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mode-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.mode-title {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.mode-desc {
+    font-size: 14px;
+    color: #555;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>¿Cómo deseas crear la addenda?</h1>
+
+<div class="mode-grid">
+
+    <!-- OPCIÓN 1: MANUAL -->
+    <div class="mode-card" onclick="goManual()">
+        <div class="mode-icon">🛠</div>
+        <div class="mode-title">Crear manualmente</div>
+        <div class="mode-desc">
+            Usa el wizard paso a paso para definir la addenda desde cero.
+        </div>
+    </div>
+
+    <!-- OPCIÓN 2: SUBIR XML -->
+    <div class="mode-card" onclick="goUpload()">
+        <div class="mode-icon">📄</div>
+        <div class="mode-title">Subir addenda o CFDI</div>
+        <div class="mode-desc">
+            Analiza una addenda existente y recrea la plantilla automáticamente.
+        </div>
+    </div>
+
+    <!-- OPCIÓN 3: XSD (DESHABILITADA) -->
+    <div class="mode-card disabled">
+        <div class="mode-icon">📐</div>
+        <div class="mode-title">Subir XSD</div>
+        <div class="mode-desc">
+            Genera la addenda a partir de un esquema XSD. (Próximamente)
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<script>
+function goManual() {
+    // Flujo actual existente
+    window.location.href = '/addendas/frontend/wizard_step1.html';
+}
+
+function goUpload() {
+    // Nuevo flujo que implementaremos ahora
+    window.location.href = '/addendas/frontend/upload_addenda.php';
+}
+</script>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\upload_addenda.php
+========================================
+<?php
+// upload_addenda.php
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Subir Addenda o CFDI</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    padding: 40px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+}
+
+h1 {
+    text-align: center;
+}
+
+p.description {
+    text-align: center;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+input[type="file"] {
+    width: 100%;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.note {
+    font-size: 13px;
+    color: #666;
+    margin-top: 10px;
+}
+
+.error {
+    color: #b00020;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+}
+.error.visible {
+    display: block;
+}
+
+.file-info {
+    font-size: 14px;
+    margin-top: 10px;
+    color: #0078d4;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Subir Addenda o CFDI</h1>
+
+<p class="description">
+Sube un CFDI que contenga una Addenda o un archivo de Addenda XML independiente.
+El sistema analizará la estructura para recrear la plantilla automáticamente.
+</p>
+
+<form method="post"
+      action="/addendas/backend/public/analyze_addenda.php"
+      enctype="multipart/form-data"
+      id="uploadForm">
+
+    <div class="form-group">
+        <input type="file"
+               name="addenda_xml"
+               id="addendaXml"
+               accept=".xml"
+               required>
+        <div class="file-info" id="fileInfo"></div>
+        <div class="error" id="fileError">
+            Debes seleccionar un archivo XML válido.
+        </div>
+    </div>
+
+    <button type="submit">Analizar archivo</button>
+
+    <div class="note">
+        * Archivos soportados: CFDI con Addenda o Addenda XML aislada.
+    </div>
+</form>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    var input = document.getElementById('addendaXml');
+    var form = document.getElementById('uploadForm');
+    var errorBox = document.getElementById('fileError');
+    var fileInfo = document.getElementById('fileInfo');
+
+    input.addEventListener('change', function () {
+        errorBox.classList.remove('visible');
+        fileInfo.textContent = '';
+
+        if (!input.files || !input.files.length) {
+            return;
+        }
+
+        var file = input.files[0];
+        var name = file.name.toLowerCase();
+
+        if (!name.endsWith('.xml')) {
+            errorBox.textContent = 'El archivo debe ser XML (.xml)';
+            errorBox.classList.add('visible');
+            input.value = '';
+            return;
+        }
+
+        fileInfo.textContent = 'Archivo seleccionado: ' + file.name;
+    });
+
+    form.addEventListener('submit', function (e) {
+        if (!input.files || !input.files.length) {
+            errorBox.classList.add('visible');
+            e.preventDefault();
+            return;
+        }
+    });
+});
+</script>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\upload_addenda_xsd.php
+========================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Subir XSD de Addenda</title>
+</head>
+<body>
+
+<h2>📐 Generar Addenda desde XSD</h2>
+
+<p>
+    Sube el archivo XSD de la addenda.
+    Se generará una estructura base que podrás completar después.
+</p>
+
+<form action="/addendas/backend/public/analyze_addenda_xsd.php"
+      method="POST"
+      enctype="multipart/form-data">
+
+    <input type="file"
+           name="addenda_xsd"
+           accept=".xsd"
+           required>
+
+    <br><br>
+
+    <button type="submit">
+        Generar Addenda
+    </button>
+</form>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\wizard_done.php
+========================================
+<?php
+$templateId = $_GET['template_id'] ?? '';
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Addenda creada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 40px;
+        }
+        .card {
+            background: white;
+            max-width: 500px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        a {
+            display: block;
+            margin-top: 15px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>✅ Addenda creada correctamente</h2>
+
+    <p>Template ID:</p>
+    <code><?= htmlspecialchars($templateId) ?></code>
+
+    <a href="/addendas/frontend/wizard_step1.php">
+        ➕ Crear nueva addenda
+    </a>
+
+   <a href="/addendas/backend/public/preview_addenda_xml.php?template_id=<?= urlencode($templateId) ?>" target="_blank">
+    👁️ Ver XML de la addenda
+	</a>
+</div>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\wizard_step1.html
+========================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear plantilla – Paso 1</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            max-width: 500px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 6px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 16px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Crear plantilla – Paso 1</h2>
+    <p>Define la información básica de la plantilla.</p>
+
+    <form method="POST" action="/addendas/backend/public/save_template_step1.php">
+        
+        <label for="name">Nombre de la plantilla</label>
+        <input type="text" id="name" name="name" required>
+        <div class="hint">Ejemplo: Addenda Thyssenkrupp Factura</div>
+
+        <label for="location">¿Dónde se usará esta información?</label>
+        <select id="location" name="location" required>
+            <option value="">Selecciona una opción</option>
+            <option value="ADDENDA">Addenda (información adicional del cliente)</option>
+            <option value="COMPLEMENTO">Complemento (información técnica especial)</option>
+        </select>
+
+        <button type="submit">Continuar al Paso 2</button>
+    </form>
+</div>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\wizard_step2.php
+========================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear plantilla – Paso 2</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 40px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            max-width: 500px;
+            margin: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 6px;
+        }
+        .hint {
+            font-size: 13px;
+            color: #666;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Crear plantilla – Paso 2</h2>
+    <p>Define la estructura principal solicitada por tu cliente.</p>
+
+    <form method="post" action="/addendas/backend/public/save_template_step2.php">
+        <!-- Id de la plantilla creada en el paso 1 -->
+        <input type="hidden" name="template_id" value="<?php echo $_GET['template_id'] ?? ''; ?>">
+
+        <label for="root">Nombre de la sección principal</label>
+        <input type="text" id="root_name" name="root_name" required>
+        <div class="hint">
+            Normalmente lo especifica tu cliente.  
+            Ejemplos: <b>Factura</b>, <b>AddendaDCG</b>, <b>Invoice</b>
+        </div>
+
+        <label for="prefix">Prefijo del formato (opcional)</label>
+        <input type="text" id="prefix" name="prefix">
+        <div class="hint">
+            Ejemplos: <b>THY</b>, <b>mabe</b>.  
+            Si tu cliente no indicó ninguno, puedes dejarlo vacío.
+        </div>
+		<label for="namespace">Namespace del formato</label>
+		<input
+			type="text"
+			id="namespace"
+			name="namespace"
+			required
+		>
+		<div class="hint">
+			Este valor normalmente lo proporciona el cliente o viene en el XML/XSD.<br>
+			Ejemplo: <code>http://www.thyssenkrupp.com/schema</code>
+		</div>
+
+        <button type="submit">Continuar al Paso 3</button>
+    </form>
+</div>
+
+</body>
+</html>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\wizard_step3.php
+========================================
+<?php
+
+require_once dirname(__DIR__) . '/backend/config.php';
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+$templateId = $_GET['template_id'] ?? null;
+if (!$templateId) {
+    header('Location: wizard_step1.php');
+    exit;
+}
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+if (!$template) {
+    header('Location: wizard_step1.php');
+    exit;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Crear addenda – Paso 3</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    padding: 40px;
+}
+.card {
+    background: #fff;
+    max-width: 600px;
+    margin: auto;
+    padding: 25px;
+    border-radius: 6px;
+}
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+input, select, button {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+button {
+    margin-top: 25px;
+    cursor: pointer;
+}
+
+/* Preview */
+.preview-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.preview-box {
+    flex: 1 1 0;
+    min-width: 0;
+}
+.xml-preview {
+    background: #111;
+    color: #6cf;
+    padding: 10px;
+    max-height: 300px;
+    overflow: auto;
+    white-space: pre-wrap;
+    font-size: 13px;
+}
+
+/* UX Errors */
+.ux-error {
+    color: #b00020;
+    font-size: 13px;
+    margin-top: 4px;
+    display: none;
+}
+.ux-error.visible {
+    display: block;
+}
+select.error {
+    border: 1px solid #b00020;
+}
+</style>
+</head>
+
+<body>
+<div class="card">
+<h2>Crear addenda – Paso 3</h2>
+<p>Agrega campos simples a la addenda.</p>
+
+<!-- ================================================= -->
+<!-- FORMULARIO STEP 3 -->
+<!-- ================================================= -->
+<form method="post" action="/addendas/backend/public/save_template_step3.php">
+<input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+
+<label>Nombre del campo</label>
+<input type="text" name="field_name" placeholder="Ej. Folio" required>
+
+<label>Representación</label>
+<select name="representation" required>
+    <option value="node">Como nodo</option>
+    <option value="attribute">Como atributo</option>
+</select>
+
+<label>¿De dónde se obtiene el valor?</label>
+<select name="origin_type" class="origin_type" required>
+    <option value="">Selecciona...</option>
+    <option value="cfdi">Desde el CFDI</option>
+    <option value="fixed">Valor fijo</option>
+    <option value="calculation">Cálculo</option>
+</select>
+
+<!-- CFDI -->
+<div class="origin_cfdi" style="display:none">
+    <label>Campo del CFDI</label>
+    <select name="cfdi_field" class="cfdi_field">
+        <option value="">Selecciona un campo del CFDI</option>
+    </select>
+    <div class="ux-error">Debes seleccionar un campo del CFDI</div>
+</div>
+
+<!-- VALOR FIJO -->
+<div class="origin_fixed" style="display:none">
+    <label>Valor fijo</label>
+    <input type="text" name="fixed_value" placeholder="Ej. MXN, PZA, 1">
+</div>
+
+<!-- CALCULO -->
+<div class="origin_calc" style="display:none">
+    <label>Expresión de cálculo</label>
+    <input type="text" name="calculation" placeholder="Ej. cantidad * valorunitario">
+</div>
+
+<button type="submit">Agregar campo</button>
+</form>
+
+<hr>
+
+<h3>Campos agregados</h3>
+<ul>
+<?php foreach ($template->structure['root']['children'] as $node): ?>
+<?php if ($node['type'] === 'field'): ?>
+<li><?= htmlspecialchars($node['name']) ?> (<?= htmlspecialchars($node['representation']) ?>)</li>
+<?php endif; ?>
+<?php endforeach; ?>
+</ul>
+
+<hr>
+
+<!-- ================================================= -->
+<!-- FORMULARIO STEP 4 -->
+<!-- ================================================= -->
+<form method="get" action="/addendas/frontend/wizard_step4.php">
+<input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+<button type="submit">Continuar al Paso 4 →</button>
+</form>
+
+<hr>
+
+<h3>👁 Vista previa de la addenda</h3>
+
+<div class="preview-container">
+    <div class="preview-box">
+        <h4>Estructura</h4>
+        <pre id="xmlStructure" class="xml-preview">Cargando…</pre>
+    </div>
+    <div class="preview-box">
+        <h4>Autofill simulado</h4>
+        <pre id="xmlSimulated" class="xml-preview">Cargando…</pre>
+    </div>
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+var form = document.querySelector('form[action*="save_template_step3"]');
+var origin = form.querySelector('.origin_type');
+
+/* Mostrar/ocultar origen */
+function toggleOrigin(val) {
+    form.querySelector('.origin_cfdi').style.display = val === 'cfdi' ? 'block' : 'none';
+    form.querySelector('.origin_fixed').style.display = val === 'fixed' ? 'block' : 'none';
+    form.querySelector('.origin_calc').style.display = val === 'calculation' ? 'block' : 'none';
+}
+
+origin.addEventListener('change', function () {
+    toggleOrigin(this.value);
+});
+
+/* UX error */
+function showError(el, msg) {
+    el.classList.add('error');
+    var box = el.parentNode.querySelector('.ux-error');
+    if (box) {
+        box.textContent = msg;
+        box.classList.add('visible');
+    }
+}
+function clearError(el) {
+    el.classList.remove('error');
+    var box = el.parentNode.querySelector('.ux-error');
+    if (box) box.classList.remove('visible');
+}
+
+/* Validación CFDI */
+function validateCfdi() {
+    var sel = form.querySelector('.cfdi_field');
+    if (!sel.value) {
+        showError(sel, 'Debes seleccionar un campo del CFDI');
+        return false;
+    }
+    clearError(sel);
+    return true;
+}
+
+/* Submit */
+form.addEventListener('submit', function (e) {
+    if (origin.value === 'cfdi' && !validateCfdi()) {
+        e.preventDefault();
+    }
+});
+
+/* Cargar campos CFDI */
+fetch('/addendas/backend/public/cfdi_fields.php')
+.then(r => r.json())
+.then(data => {
+    if (!data.fields) return;
+    var select = document.querySelector('.cfdi_field');
+    data.fields
+        .filter(f => f.scope === 'root')
+        .forEach(f => {
+            var opt = document.createElement('option');
+            opt.value = f.value;
+            opt.textContent = f.label;
+            select.appendChild(opt);
+        });
+});
+
+/* Preview */
+function decode(html) {
+    var t = document.createElement('textarea');
+    t.innerHTML = html;
+    return t.value;
+}
+
+fetch('/addendas/backend/public/preview_addenda_combined.php?template_id=<?= urlencode($templateId) ?>')
+.then(r => r.json())
+.then(d => {
+    document.getElementById('xmlStructure').textContent = decode(d.structurePreview);
+    document.getElementById('xmlSimulated').textContent = decode(d.simulatedPreview);
+});
+});
+</script>
+
+</body>
+</html>
+
+
+
+========================================
+Archivo: C:\xampp\htdocs\addendas\frontend\wizard_step4.php
+========================================
+<?php
+session_start();
+
+require_once dirname(__DIR__) . '/backend/config.php';
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
+
+use App\Services\TemplateService;
+
+$templateId = $_GET['template_id'] ?? null;
+if (!$templateId) {
+    header('Location: wizard_step1.php');
+    exit;
+}
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+if (!$template) {
+    header('Location: wizard_step1.php');
+    exit;
+}
+
+// Inicializar grupo activo
+if (!isset($_SESSION['current_group'])) {
+    $_SESSION['current_group'] = null;
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Crear addenda – Paso 4</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    padding: 40px;
+}
+.card {
+    background: #fff;
+    max-width: 700px;
+    margin: auto;
+    padding: 25px;
+    border-radius: 6px;
+}
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+input, select, button {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+button {
+    margin-top: 15px;
+    cursor: pointer;
+}
+ul {
+    margin-top: 10px;
+}
+hr {
+    margin: 30px 0;
+}
+
+/* UX errors */
+.ux-error {
+    color: #b00020;
+    font-size: 13px;
+    display: none;
+}
+.ux-error.visible {
+    display: block;
+}
+select.error {
+    border: 1px solid #b00020;
+}
+
+/* Preview */
+.preview-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.preview-box {
+    flex: 1 1 0;
+    min-width: 0;
+}
+.xml-preview {
+    background: #111;
+    color: #6cf;
+    padding: 10px;
+    max-height: 300px;
+    overflow: auto;
+    white-space: pre-wrap;
+    font-size: 13px;
+}
+</style>
+</head>
+
+<body>
+<div class="card" data-template-id="<?= htmlspecialchars($templateId) ?>">
+
+<h2>Crear addenda – Paso 4</h2>
+<p>Agrega grupos repetibles y sus campos.</p>
+
+<?php if ($_SESSION['current_group'] === null): ?>
+
+<h3>Nuevo grupo</h3>
+
+<form method="post" action="/addendas/backend/public/start_group_step4.php">
+    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+
+    <label>Nombre del grupo</label>
+    <input type="text" name="group_name" required>
+
+    <label>Nombre de cada elemento</label>
+    <input type="text" name="item_name" required>
+
+    <button type="submit">Crear grupo</button>
+</form>
+
+<?php else: ?>
+
+<h3>Grupo: <?= htmlspecialchars($_SESSION['current_group']['name']) ?></h3>
+
+<p>Campos del grupo:</p>
+<ul>
+<?php foreach ($_SESSION['current_group']['children'] as $field): ?>
+    <li><?= htmlspecialchars($field['name']) ?> (<?= htmlspecialchars($field['representation']) ?>)</li>
+<?php endforeach; ?>
+</ul>
+
+<hr>
+
+<h4>Agregar campo al grupo</h4>
+
+<form method="post" action="/addendas/backend/public/add_field_to_group_step4.php">
+    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+
+    <label>Nombre del campo</label>
+    <input type="text" name="field_name" required>
+
+    <label>Representación</label>
+    <select name="representation" required>
+        <option value="attribute">Como atributo</option>
+        <option value="node">Como nodo</option>
+    </select>
+
+    <label>¿De dónde se obtiene el valor?</label>
+    <select name="origin_type" class="origin_type" required>
+        <option value="">Selecciona...</option>
+        <option value="cfdi">Desde el CFDI</option>
+        <option value="fixed">Valor fijo</option>
+        <option value="calculation">Cálculo</option>
+    </select>
+
+    <!-- CFDI -->
+    <div class="origin_cfdi" style="display:none">
+        <label>Campo del CFDI</label>
+        <select name="cfdi_field" class="cfdi_field">
+            <option value="">Selecciona un campo del CFDI</option>
+        </select>
+        <div class="ux-error">Debes seleccionar un campo del CFDI</div>
+    </div>
+
+    <!-- VALOR FIJO -->
+    <div class="origin_fixed" style="display:none">
+        <label>Valor fijo</label>
+        <input type="text" name="fixed_value">
+    </div>
+
+    <!-- CALCULO -->
+    <div class="origin_calc" style="display:none">
+        <label>Expresión de cálculo</label>
+        <input type="text" name="calculation" placeholder="cantidad * valorunitario">
+    </div>
+
+    <button type="submit">Agregar campo</button>
+</form>
+
+<hr>
+
+<form method="post" action="/addendas/backend/public/save_group_step4.php">
+    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+    <button type="submit">Guardar grupo</button>
+</form>
+
+<?php endif; ?>
+
+<hr>
+
+<form method="get" action="/addendas/frontend/wizard_done.php">
+    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+    <button type="submit">Finalizar addenda ✅</button>
+</form>
+
+<hr>
+
+<h3>👁 Vista previa de la addenda</h3>
+
+<div class="preview-container">
+    <div class="preview-box">
+        <h4>Estructura</h4>
+        <pre id="xmlStructure" class="xml-preview">Cargando…</pre>
+    </div>
+    <div class="preview-box">
+        <h4>Autofill simulado</h4>
+        <pre id="xmlSimulated" class="xml-preview">Cargando…</pre>
+    </div>
+</div>
+
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* ==================================================
+       PREVIEW (SIEMPRE ACTIVO)
+       ================================================== */
+
+    function decodeHtml(html) {
+        var t = document.createElement('textarea');
+        t.innerHTML = html;
+        return t.value;
+    }
+
+    function updatePreview() {
+        var structure = document.getElementById('xmlStructure');
+        var simulated = document.getElementById('xmlSimulated');
+        if (!structure || !simulated) return;
+
+        var container = document.querySelector('.card');
+        if (!container) return;
+
+        var templateId = container.dataset.templateId;
+        if (!templateId) return;
+
+        fetch(
+            '/addendas/backend/public/preview_addenda_combined.php?template_id=' +
+            encodeURIComponent(templateId)
+        )
+        .then(function (r) {
+            return r.json();
+        })
+        .then(function (d) {
+            structure.textContent = decodeHtml(d.structurePreview);
+            simulated.textContent = decodeHtml(d.simulatedPreview);
+        })
+        .catch(function () {
+            structure.textContent = 'Error cargando preview';
+            simulated.textContent = '';
+        });
+    }
+
+    // 🔥 SIEMPRE ejecuta el preview
+    updatePreview();
+
+    /* ==================================================
+       FORMULARIO DE GRUPO (SOLO SI EXISTE)
+       ================================================== */
+
+    var groupForm = document.querySelector(
+        'form[action*="add_field_to_group_step4"]'
+    );
+
+    if (!groupForm) {
+        // No hay grupo activo: solo preview
+        return;
+    }
+
+    var originSelect = groupForm.querySelector('.origin_type');
+    var cfdiSelect   = groupForm.querySelector('.cfdi_field');
+
+    if (!originSelect || !cfdiSelect) {
+        return;
+    }
+
+    function toggleOrigin(value) {
+        var cfdi  = groupForm.querySelector('.origin_cfdi');
+        var fixed = groupForm.querySelector('.origin_fixed');
+        var calc  = groupForm.querySelector('.origin_calc');
+
+        if (cfdi)  cfdi.style.display  = value === 'cfdi' ? 'block' : 'none';
+        if (fixed) fixed.style.display = value === 'fixed' ? 'block' : 'none';
+        if (calc)  calc.style.display  = value === 'calculation' ? 'block' : 'none';
+    }
+
+    originSelect.addEventListener('change', function () {
+        toggleOrigin(this.value);
+    });
+
+    // Estado inicial
+    toggleOrigin(originSelect.value);
+
+    /* ===========================
+       VALIDACIÓN CFDI
+       =========================== */
+
+    function showError(el, msg) {
+        el.classList.add('error');
+        var box = el.parentNode.querySelector('.ux-error');
+        if (box) {
+            box.textContent = msg;
+            box.classList.add('visible');
+        }
+    }
+
+    function clearError(el) {
+        el.classList.remove('error');
+        var box = el.parentNode.querySelector('.ux-error');
+        if (box) {
+            box.classList.remove('visible');
+        }
+    }
+
+    function validateCfdi() {
+        if (!cfdiSelect.value) {
+            showError(cfdiSelect, 'Debes seleccionar un campo del CFDI');
+            return false;
+        }
+        clearError(cfdiSelect);
+        return true;
+    }
+
+    groupForm.addEventListener('submit', function (e) {
+        if (originSelect.value === 'cfdi' && !validateCfdi()) {
+            e.preventDefault();
+        }
+    });
+
+    /* ===========================
+       CARGA DE CAMPOS CFDI
+       =========================== */
+
+    fetch('/addendas/backend/public/cfdi_fields.php')
+        .then(function (r) {
+            return r.json();
+        })
+        .then(function (data) {
+            if (!data.fields) return;
+
+            data.fields.forEach(function (field) {
+                if (field.scope !== 'concept') return;
+
+                var opt = document.createElement('option');
+                opt.value = field.value;
+                opt.textContent = field.label;
+                cfdiSelect.appendChild(opt);
+            });
+        });
+
+});
+</script>
+
+</body>
+</html>
+
+
+

@@ -1,9 +1,5 @@
 <?php
-
 require_once dirname(__DIR__) . '/config.php';
-require_once BACKEND_ROOT . '/src/Services/CFDIParserService.php';
-
-use App\Services\CFDIParserService;
 
 header('Content-Type: application/json');
 
@@ -15,88 +11,51 @@ $cfdiPath = BACKEND_ROOT . '/src/storage/cfdi/ejemplo.xml';
 if (!file_exists($cfdiPath)) {
     echo json_encode([
         'error' => 'CFDI de ejemplo no encontrado',
-        'path'  => $cfdiPath
+        'path' => $cfdiPath
     ]);
     exit;
 }
 
 $xml = file_get_contents($cfdiPath);
 
-$parser = new CFDIParserService();
-$cfdi = $parser->parse($xml);
+$dom = new DOMDocument();
+$dom->loadXML($xml);
 
 $fields = [];
 
 // ====================================================
-// COMPROBANTE (ROOT)
+// Recorrer TODO el CFDI (DOM completo)
 // ====================================================
-if (!empty($cfdi->comprobante) && is_array($cfdi->comprobante)) {
-    foreach ($cfdi->comprobante as $key => $value) {
+function walkNode(DOMElement $el, string $path, array &$out)
+{
+    foreach ($el->attributes as $attr) {
+        if ($attr->prefix === 'xmlns') continue;
 
-        if ($value === null || is_array($value)) {
-            continue;
-        }
-
-        $fields[] = [
-            'value' => strtolower($key),
-            'label' => 'Comprobante.' . prettyLabel($key),
-            'scope' => 'root'
+        $out[] = [
+            'value' => strtolower($attr->name),
+            'label' => $path . ' → @' . $attr->name,
+            'scope' => 'all'
         ];
+    }
+
+    foreach ($el->childNodes as $child) {
+        if ($child instanceof DOMElement) {
+            walkNode(
+                $child,
+                $path . '.' . $child->nodeName,
+                $out
+            );
+        }
     }
 }
 
-// ====================================================
-// CONCEPTOS
-// ====================================================
-if (!empty($cfdi->conceptos) && isset($cfdi->conceptos[0])) {
-    foreach ($cfdi->conceptos[0] as $key => $value) {
+// iniciar desde el root
+walkNode(
+    $dom->documentElement,
+    $dom->documentElement->nodeName,
+    $fields
+);
 
-        if ($value === null || is_array($value)) {
-            continue;
-        }
-
-        $fields[] = [
-            'value' => strtolower($key),
-            'label' => 'Conceptos.' . prettyLabel($key),
-            'scope' => 'concept'
-        ];
-    }
-}
-
-// ====================================================
-// RESPUESTA
-// ====================================================
 echo json_encode([
     'fields' => $fields
 ]);
-
-// ====================================================
-// UTILIDAD PARA LABELS HUMANOS
-// ====================================================
-function prettyLabel($key)
-{
-    $map = [
-        // --- Comprobante ---
-        'folio'             => 'Folio',
-        'serie'             => 'Serie',
-        'fecha'             => 'Fecha',
-        'moneda'            => 'Moneda',
-        'tipodecomprobante' => 'Tipo de Comprobante',
-        'subtotal'          => 'SubTotal',
-        'total'             => 'Total',
-        'lugarexpedicion'   => 'Lugar de Expedición',
-        'exportacion'       => 'Exportación',
-
-        // --- Conceptos ---
-        'cantidad'          => 'Cantidad',
-        'valorunitario'     => 'Valor Unitario',
-        'claveunidad'       => 'Clave Unidad',
-        'noidentificacion'  => 'No. Identificación',
-        'descripcion'       => 'Descripción',
-        'importe'           => 'Importe',
-    ];
-
-    $key = strtolower($key);
-
-    return isset($map[$key]) ? $map[$key] : ucfirst($key);
-}

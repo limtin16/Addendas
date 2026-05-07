@@ -46,6 +46,27 @@ if (preg_match('/\n([ \t]+)<cfdi:/', $originalCfdi, $m)) {
 
 // Normalizar saltos de línea de la Addenda
 $addendaText = str_replace(["\r\n", "\r", "\n"], $newline, $newAddendaXml);
+/* =======================================================
+   4.1 ENVOLVER EN cfdi:Addenda (FIX PRINCIPAL)
+   ======================================================= */
+
+// Detectar namespace CFDI desde el XML original
+if (strpos($originalCfdi, 'http://www.sat.gob.mx/cfd/3') !== false) {
+    $cfdiNS = 'http://www.sat.gob.mx/cfd/3';
+} else {
+    $cfdiNS = 'http://www.sat.gob.mx/cfd/4';
+}
+
+// Limpiar wrapper si viene duplicado (seguridad)
+$addendaText = preg_replace('/<\/?cfdi:Addenda[^>]*>/', '', $addendaText);
+
+// Crear wrapper correcto
+$addendaText =
+    '<cfdi:Addenda xmlns:cfdi="' . $cfdiNS . '">' .
+    $newline .
+    $addendaText .
+    $newline .
+    '</cfdi:Addenda>';
 
 // Indentar la Addenda con el mismo nivel del CFDI
 $addendaIndented = preg_replace(

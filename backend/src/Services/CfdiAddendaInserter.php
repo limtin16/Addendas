@@ -41,25 +41,47 @@ class CfdiAddendaInserter
 
         // 4. Crear cfdi:Addenda (SOLO namespace SAT)
         $addendaEl = $cfdiDoc->createElementNS(
-            $cfdiNamespace,
-            'cfdi:Addenda'
-        );
+    $cfdiNamespace,
+    'cfdi:Addenda'
+);
 
-        // 5. Cargar XML de la addenda (root = <LGM:Factura>)
-        $addendaDoc = new DOMDocument('1.0', 'UTF-8');
-        $addendaDoc->loadXML($addendaXml);
+// ✅ FORZAR namespace correctamente
+$addendaEl->setAttributeNS(
+    'http://www.w3.org/2000/xmlns/',
+    'xmlns:cfdi',
+    $cfdiNamespace
+);
 
-        $facturaNode = $addendaDoc->documentElement;
+// importar addenda
+$addendaDoc = new DOMDocument('1.0', 'UTF-8');
+$addendaDoc->loadXML($addendaXml);
 
-        // 6. Importar SOLO <LGM:Factura>
-        $addendaEl->appendChild(
-            $cfdiDoc->importNode($facturaNode, true)
-        );
+$facturaNode = $addendaDoc->documentElement;
 
-        // 7. Insertar Addenda en el CFDI
-        $comprobante->appendChild($addendaEl);
+$imported = $cfdiDoc->importNode($facturaNode, true);
+$addendaEl->appendChild($imported);
+
+$comprobante->appendChild($addendaEl);
 
         // 8. Devolver CFDI final
-        return $cfdiDoc->saveXML();
+$xml = $cfdiDoc->saveXML();
+
+// ✅ 1. FORZAR xmlns:cfdi EN Addenda
+$xml = preg_replace(
+    '/<cfdi:Addenda\b([^>]*)>/',
+    '<cfdi:Addenda xmlns:cfdi="' . $cfdiNamespace . '"$1>',
+    $xml,
+    1
+);
+
+// ✅ 2. ELIMINAR xmlns:THY DEL ADDENDA (si se coló)
+$xml = preg_replace(
+    '/(<cfdi:Addenda[^>]*)(\s+xmlns:THY="[^"]*")/',
+    '$1',
+    $xml,
+    1
+);
+
+return $xml;
     }
 }
