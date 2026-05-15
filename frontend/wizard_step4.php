@@ -6,16 +6,17 @@ require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
 
 use App\Services\TemplateService;
 
-$templateId = $_GET['template_id'] ?? null;
+$templateId = $_GET['template_id'] ?? $_POST['template_id'] ?? null;
+
 if (!$templateId) {
-    header('Location: wizard_step1.php');
+    header('Location: wizard_step1.html');
     exit;
 }
 
 $service = new TemplateService();
 $template = $service->get($templateId);
 if (!$template) {
-    header('Location: wizard_step1.php');
+    header('Location: wizard_step1.html');
     exit;
 }
 
@@ -148,35 +149,6 @@ select.error {
         <option value="node">Como nodo</option>
     </select>
 
-    <label>¿De dónde se obtiene el valor?</label>
-    <select name="origin_type" class="origin_type" required>
-        <option value="">Selecciona...</option>
-        <option value="cfdi">Desde el CFDI</option>
-        <option value="fixed">Valor fijo</option>
-        <option value="calculation">Cálculo</option>
-    </select>
-
-    <!-- CFDI -->
-    <div class="origin_cfdi" style="display:none">
-        <label>Campo del CFDI</label>
-        <select name="cfdi_field" class="cfdi_field">
-            <option value="">Selecciona un campo del CFDI</option>
-        </select>
-        <div class="ux-error">Debes seleccionar un campo del CFDI</div>
-    </div>
-
-    <!-- VALOR FIJO -->
-    <div class="origin_fixed" style="display:none">
-        <label>Valor fijo</label>
-        <input type="text" name="fixed_value">
-    </div>
-
-    <!-- CALCULO -->
-    <div class="origin_calc" style="display:none">
-        <label>Expresión de cálculo</label>
-        <input type="text" name="calculation" placeholder="cantidad * valorunitario">
-    </div>
-
     <button type="submit">Agregar campo</button>
 </form>
 
@@ -191,8 +163,9 @@ select.error {
 
 <hr>
 
-<form method="get" action="/addendas/frontend/wizard_done.php">
+<form method="post" action="/addendas/backend/public/save_group_step4.php">
     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+    <input type="hidden" name="redirect_done" value="1">
     <button type="submit">Finalizar addenda ✅</button>
 </form>
 
@@ -268,87 +241,6 @@ document.addEventListener('DOMContentLoaded', function () {
         // No hay grupo activo: solo preview
         return;
     }
-
-    var originSelect = groupForm.querySelector('.origin_type');
-    var cfdiSelect   = groupForm.querySelector('.cfdi_field');
-
-    if (!originSelect || !cfdiSelect) {
-        return;
-    }
-
-    function toggleOrigin(value) {
-        var cfdi  = groupForm.querySelector('.origin_cfdi');
-        var fixed = groupForm.querySelector('.origin_fixed');
-        var calc  = groupForm.querySelector('.origin_calc');
-
-        if (cfdi)  cfdi.style.display  = value === 'cfdi' ? 'block' : 'none';
-        if (fixed) fixed.style.display = value === 'fixed' ? 'block' : 'none';
-        if (calc)  calc.style.display  = value === 'calculation' ? 'block' : 'none';
-    }
-
-    originSelect.addEventListener('change', function () {
-        toggleOrigin(this.value);
-    });
-
-    // Estado inicial
-    toggleOrigin(originSelect.value);
-
-    /* ===========================
-       VALIDACIÓN CFDI
-       =========================== */
-
-    function showError(el, msg) {
-        el.classList.add('error');
-        var box = el.parentNode.querySelector('.ux-error');
-        if (box) {
-            box.textContent = msg;
-            box.classList.add('visible');
-        }
-    }
-
-    function clearError(el) {
-        el.classList.remove('error');
-        var box = el.parentNode.querySelector('.ux-error');
-        if (box) {
-            box.classList.remove('visible');
-        }
-    }
-
-    function validateCfdi() {
-        if (!cfdiSelect.value) {
-            showError(cfdiSelect, 'Debes seleccionar un campo del CFDI');
-            return false;
-        }
-        clearError(cfdiSelect);
-        return true;
-    }
-
-    groupForm.addEventListener('submit', function (e) {
-        if (originSelect.value === 'cfdi' && !validateCfdi()) {
-            e.preventDefault();
-        }
-    });
-
-    /* ===========================
-       CARGA DE CAMPOS CFDI
-       =========================== */
-
-    fetch('/addendas/backend/public/cfdi_fields.php')
-        .then(function (r) {
-            return r.json();
-        })
-        .then(function (data) {
-            if (!data.fields) return;
-
-            data.fields.forEach(function (field) {
-                if (field.scope !== 'concept') return;
-
-                var opt = document.createElement('option');
-                opt.value = field.value;
-                opt.textContent = field.label;
-                cfdiSelect.appendChild(opt);
-            });
-        });
 
 });
 </script>

@@ -100,6 +100,7 @@ select.error {
 <form method="post" action="/addendas/backend/public/save_template_step3.php">
 <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
 
+
 <label>Nombre del campo</label>
 <input type="text" name="field_name" placeholder="Ej. Folio" required>
 
@@ -108,27 +109,6 @@ select.error {
     <option value="node">Como nodo</option>
     <option value="attribute">Como atributo</option>
 </select>
-
-<!-- CFDI -->
-<div class="origin_cfdi" style="display:none">
-    <label>Campo del CFDI</label>
-    <select name="cfdi_field" class="cfdi_field">
-        <option value="">Selecciona un campo del CFDI</option>
-    </select>
-    <div class="ux-error">Debes seleccionar un campo del CFDI</div>
-</div>
-
-<!-- VALOR FIJO -->
-<div class="origin_fixed" style="display:none">
-    <label>Valor fijo</label>
-    <input type="text" name="fixed_value" placeholder="Ej. MXN, PZA, 1">
-</div>
-
-<!-- CALCULO -->
-<div class="origin_calc" style="display:none">
-    <label>Expresión de cálculo</label>
-    <input type="text" name="calculation" placeholder="Ej. cantidad * valorunitario">
-</div>
 
 <button type="submit">Agregar campo</button>
 </form>
@@ -173,14 +153,19 @@ select.error {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-var form = document.querySelector('form[action*="save_template_step3"]');
+    function decode(html) {
+        const t = document.createElement('textarea');
+        t.innerHTML = html;
+        return t.value;
+    }
 
-fetch('/addendas/backend/public/preview_addenda_combined.php?template_id=<?= urlencode($templateId) ?>')
-.then(r => r.json())
-.then(d => {
-    document.getElementById('xmlStructure').textContent = decode(d.structurePreview);
-    document.getElementById('xmlSimulated').textContent = decode(d.simulatedPreview);
-});
+    fetch('/addendas/backend/public/preview_addenda_combined.php?template_id=<?= urlencode($templateId) ?>')
+    .then(r => r.json())
+    .then(d => {
+        document.getElementById('xmlStructure').textContent = decode(d.structurePreview);
+        document.getElementById('xmlSimulated').textContent = decode(d.simulatedPreview);
+    });
+
 });
 </script>
 

@@ -3,31 +3,41 @@ session_start();
 
 require_once dirname(__DIR__) . '/config.php';
 
-// ✅ CARGAR CLASES NECESARIAS
+// ✅ CLASES
 require_once BACKEND_ROOT . '/src/DTO/Template.php';
 require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
-
 require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
 
+use App\Services\TemplateService;
 use App\Services\AddendaXmlBuilder;
 
-use App\Services\TemplateService;
+// ===============================
+// ✅ DETECTAR SI ES FINALIZACIÓN
+// ===============================
+$isFinalizing = !empty($_POST['redirect_done']);
 
-// ✅ Validar template_id
+// ===============================
+// ✅ VALIDAR template_id
+// ===============================
 $templateId = $_POST['template_id'] ?? null;
+
 if (!$templateId) {
     die('template_id no proporcionado');
 }
 
-// ✅ Validar grupo en sesión
+// ===============================
+// ✅ VALIDAR GRUPO (solo si NO finaliza)
+// ===============================
 if (
-    !isset($_SESSION['current_group']) ||
-    empty($_SESSION['current_group'])
+    !$isFinalizing &&
+    (!isset($_SESSION['current_group']) || empty($_SESSION['current_group']))
 ) {
     die('No hay grupo activo para guardar');
 }
 
-// ✅ Obtener template
+// ===============================
+// ✅ OBTENER TEMPLATE
+// ===============================
 $service = new TemplateService();
 $template = $service->get($templateId);
 
@@ -35,67 +45,84 @@ if (!$template) {
     die('Template no encontrado');
 }
 
-// ✅ Agregar grupo al root
-$template->structure['root']['children'][] = $_SESSION['current_group'];
-
-// ✅ Guardar template actualizado
-$service->update($templateId, $template->structure);
-
-// ✅ Limpiar grupo actual
-$_SESSION['current_group'] = null;
-
-require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
-
-use App\Services\AddendaXmlBuilder;
-
 // ===============================
-// SI FINALIZA → preparar instance
+// ✅ CASO 1: GUARDAR GRUPO
 // ===============================
-if (!empty($_POST['redirect_done'])) {
+if (!$isFinalizing) {
 
-    $builder = new AddendaXmlBuilder();
-
-    // Generar XML base
-    $addendaXmlTemplate = $builder->build($template->structure);
-
-    // Convertir a instance (copia de lógica previa)
-    function convertNode($node) {
-        if (($node['type'] ?? '') === 'field') {
-            return [
-                'type' => 'field',
-                'name' => $node['name']
-            ];
-        }
-
-        if (($node['type'] ?? '') === 'group') {
-            return [
-                'type' => 'node',
-                'name' => $node['name'],
-                'children' => array_map('convertNode', $node['children'] ?? [])
-            ];
-        }
-
-        return null;
+    // asegurar estructura válida
+    if (!isset($_SESSION['current_group']['children'])) {
+        $_SESSION['current_group']['children'] = [];
     }
 
-    $root = $template->structure['root'] ?? [];
+    // ✅ agregar grupo al template
+    $template->structure['root']['children'][] = $_SESSION['current_group'];
 
-    $instanceStructure = [
-        'type' => 'node',
-        'name' => $root['name'] ?? 'Addenda',
-        'children' => array_values(array_filter(
-            array_map('convertNode', $root['children'] ?? [])
-        ))
-    ];
+    // ✅ guardar template
+    $service->update($templateId, $template->structure);
 
-    // Guardar en sesión
-    $_SESSION['addenda_instance'] = [
-        'structure' => $instanceStructure,
-        'addenda_xml_template' => $addendaXmlTemplate
-    ];
+    // ✅ limpiar grupo actual
+    $_SESSION['current_group'] = null;
 
-    // ✅ REDIRECCIÓN DIRECTA (SIN wizard_done)
-    header('Location: /addendas/frontend/render_instance_form.php');
+    // ✅ regresar a step4
+    header('Location: /addendas/frontend/wizard_step4.php?template_id=' . urlencode($templateId));
     exit;
 }
 
+// ===============================
+// ✅ CASO 2: FINALIZAR ADDENDA
+// ===============================
+
+$builder = new AddendaXmlBuilder();
+
+// ✅ generar XML base (TEMPLATE)
+$addendaXmlTemplate = $builder->build($template->structure);
+
+// ===============================
+// ✅ CONVERTIR A INSTANCE
+// ===============================
+function convertNode($node)
+{
+    if (($node['type'] ?? '') === 'field') {
+        return [
+            'type' => 'field',
+            'name' => $node['name']
+        ];
+    }
+
+    if (($node['type'] ?? '') === 'group') {
+        return [
+            'type' => 'node',
+            'name' => $node['name'],
+            'children' => array_values(array_filter(
+                array_map('convertNode', $node['children'] ?? [])
+            ))
+        ];
+    }
+
+    return null;
+}
+
+$root = $template->structure['root'] ?? [];
+
+$instanceStructure = [
+    'type' => 'node',
+    'name' => $root['name'] ?? 'Addenda',
+    'children' => array_values(array_filter(
+        array_map('convertNode', $root['children'] ?? [])
+    ))
+];
+
+// ===============================
+// ✅ GUARDAR INSTANCE EN SESSION
+// ===============================
+$_SESSION['addenda_instance'] = [
+    'structure' => $instanceStructure,
+    'addenda_xml_template' => $addendaXmlTemplate
+];
+
+// ===============================
+// ✅ REDIRIGIR A FORM FINAL
+// ===============================
+header('Location: /addendas/frontend/render_instance_form.php');
+exit;
