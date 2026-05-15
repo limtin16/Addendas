@@ -69,9 +69,10 @@ function normalizeCfdiPath(string $path): string
 function applyValues(DOMElement $element, array $inputValues, $resolver, string $path = '')
 {
     // construir path actual
+    $tag = preg_replace('/^.*:/', '', $element->nodeName);
     $currentPath = $path === ''
-        ? $element->nodeName
-        : $path . '.' . $element->nodeName;
+        ? $tag
+        : $path . '.' . $tag;
 
     // ===============================
     // ✅ ATRIBUTOS
@@ -82,7 +83,8 @@ function applyValues(DOMElement $element, array $inputValues, $resolver, string 
 
             if (!isset($attr->name)) continue;
 
-            $key = $currentPath . '.' . $attr->name;
+            $attrName = preg_replace('/^.*:/', '', $attr->name);
+            $key = $currentPath . '.' . $attrName;
 
             if (isset($inputValues[$key])) {
 
