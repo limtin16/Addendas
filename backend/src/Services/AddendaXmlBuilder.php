@@ -43,9 +43,13 @@ class AddendaXmlBuilder
         $namespace = $rootDef['namespace'];
         $children  = $rootDef['children'] ?? [];
 
+       $qualifiedName = $prefix
+        ? $prefix . ':' . $name
+        : $name;
+
         $root = $doc->createElementNS(
-            $namespace,
-            $prefix . ':' . $name
+            $namespace ?: null,
+            $qualifiedName
         );
 
         $doc->appendChild($root);
@@ -99,31 +103,77 @@ class AddendaXmlBuilder
         return $element;
     }
 
-    // =======================================
-    // ✅ LEGACY (no tocar)
-    // =======================================
-    private function buildNode(
-        DOMDocument $doc,
-        DOMElement $parent,
-        array $definition,
-        string $prefix,
-        string $namespace
-    ): void {
-        if (($definition['type'] ?? '') === 'field') {
-            $this->buildField($doc, $parent, $definition, $prefix, $namespace);
-        }
+private function buildNode(
+    DOMDocument $doc,
+    DOMElement $parent,
+    array $definition,
+    string $prefix,
+    string $namespace
+): void {
+
+    $type = $definition['type'] ?? '';
+
+    // =========================
+    // ✅ FIELD (atributo)
+    // =========================
+    if ($type === 'field') {
+        $this->buildField($doc, $parent, $definition, $prefix, $namespace);
+        return;
     }
 
-    private function buildField(
-        DOMDocument $doc,
-        DOMElement $parent,
-        array $field,
-        string $prefix,
-        string $namespace
-    ): void {
-        $name = $field['name'] ?? null;
+    // =========================
+    // ✅ NODE (elemento hijo)
+    // =========================
+    if ($type === 'node') {
+
+        $name = $definition['name'] ?? '';
         if (!$name) return;
 
-        $parent->setAttribute($name, '');
+        // limpiar name
+        if (strpos($name, ':') !== false) {
+            $name = explode(':', $name, 2)[1];
+        }
+
+        $qualifiedName = $prefix
+            ? $prefix . ':' . $name
+            : $name;
+
+        $element = $doc->createElementNS(
+            $namespace ?: null,
+            $qualifiedName
+        );
+
+        // agregar al padre
+        $parent->appendChild($element);
+
+        // recursividad
+        foreach ($definition['children'] ?? [] as $child) {
+            $this->buildNode($doc, $element, $child, $prefix, $namespace);
+        }
     }
+}
+
+private function buildField(
+    DOMDocument $doc,
+    DOMElement $parent,
+    array $field,
+    string $prefix,
+    string $namespace
+): void {
+    $name = $field['name'] ?? null;
+
+    if (!$name) return;
+
+    // ✅ limpiar nombre (remover @)
+    if (strpos($name, '@') === 0) {
+        $name = substr($name, 1);
+    }
+
+    // ✅ limpiar prefix accidental tipo cfdi:xxx
+    if (strpos($name, ':') !== false) {
+        $name = explode(':', $name, 2)[1];
+    }
+
+    $parent->setAttribute($name, '');
+}
 }

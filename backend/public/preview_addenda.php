@@ -80,7 +80,7 @@ function applyValues(DOMElement $element, array $inputValues, $resolver, string 
 
         foreach ($element->attributes as $attr) {
 
-            $key = $currentPath . '.' . $attr->name;
+            $key = $currentPath . '.@' . $attr->name;
 
             if (isset($inputValues[$key])) {
 
