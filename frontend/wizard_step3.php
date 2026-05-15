@@ -109,14 +109,6 @@ select.error {
     <option value="attribute">Como atributo</option>
 </select>
 
-<label>¿De dónde se obtiene el valor?</label>
-<select name="origin_type" class="origin_type" required>
-    <option value="">Selecciona...</option>
-    <option value="cfdi">Desde el CFDI</option>
-    <option value="fixed">Valor fijo</option>
-    <option value="calculation">Cálculo</option>
-</select>
-
 <!-- CFDI -->
 <div class="origin_cfdi" style="display:none">
     <label>Campo del CFDI</label>
@@ -182,74 +174,6 @@ select.error {
 document.addEventListener('DOMContentLoaded', function () {
 
 var form = document.querySelector('form[action*="save_template_step3"]');
-var origin = form.querySelector('.origin_type');
-
-/* Mostrar/ocultar origen */
-function toggleOrigin(val) {
-    form.querySelector('.origin_cfdi').style.display = val === 'cfdi' ? 'block' : 'none';
-    form.querySelector('.origin_fixed').style.display = val === 'fixed' ? 'block' : 'none';
-    form.querySelector('.origin_calc').style.display = val === 'calculation' ? 'block' : 'none';
-}
-
-origin.addEventListener('change', function () {
-    toggleOrigin(this.value);
-});
-
-/* UX error */
-function showError(el, msg) {
-    el.classList.add('error');
-    var box = el.parentNode.querySelector('.ux-error');
-    if (box) {
-        box.textContent = msg;
-        box.classList.add('visible');
-    }
-}
-function clearError(el) {
-    el.classList.remove('error');
-    var box = el.parentNode.querySelector('.ux-error');
-    if (box) box.classList.remove('visible');
-}
-
-/* Validación CFDI */
-function validateCfdi() {
-    var sel = form.querySelector('.cfdi_field');
-    if (!sel.value) {
-        showError(sel, 'Debes seleccionar un campo del CFDI');
-        return false;
-    }
-    clearError(sel);
-    return true;
-}
-
-/* Submit */
-form.addEventListener('submit', function (e) {
-    if (origin.value === 'cfdi' && !validateCfdi()) {
-        e.preventDefault();
-    }
-});
-
-/* Cargar campos CFDI */
-fetch('/addendas/backend/public/cfdi_fields.php')
-.then(r => r.json())
-.then(data => {
-    if (!data.fields) return;
-    var select = document.querySelector('.cfdi_field');
-    data.fields
-        .filter(f => f.scope === 'root')
-        .forEach(f => {
-            var opt = document.createElement('option');
-            opt.value = f.value;
-            opt.textContent = f.label;
-            select.appendChild(opt);
-        });
-});
-
-/* Preview */
-function decode(html) {
-    var t = document.createElement('textarea');
-    t.innerHTML = html;
-    return t.value;
-}
 
 fetch('/addendas/backend/public/preview_addenda_combined.php?template_id=<?= urlencode($templateId) ?>')
 .then(r => r.json())

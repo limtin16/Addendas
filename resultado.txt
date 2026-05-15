@@ -317,42 +317,43 @@ exit;
 
 
 ========================================
-Archivo: C:\xampp\htdocs\addendas\backend\public\analyze_addenda_xsd.php
+Archivo: C:\xampp\htdocs\addendas\backend\public\analyze_xsd.php
 ========================================
 <?php
 session_start();
 
+
 require_once dirname(__DIR__) . '/config.php';
-require_once BACKEND_ROOT . '/src/Services/XsdAddendaParserService.php';
+require_once BACKEND_ROOT . '/src/Services/XsdToArrayConverter.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
 
-use App\Services\XsdAddendaParserService;
+use App\Services\AddendaXmlBuilder;
+use App\Services\XsdToArrayConverter;
 
-if (
-    !isset($_FILES['addenda_xsd']) ||
-    $_FILES['addenda_xsd']['error'] !== UPLOAD_ERR_OK
-) {
-    die('Error al subir XSD');
+if (!isset($_FILES['xsd'])) {
+    die('No se subió archivo XSD');
 }
 
-$xsdContent = file_get_contents($_FILES['addenda_xsd']['tmp_name']);
-if (!$xsdContent) {
-    die('XSD vacío');
-}
+$xsd = file_get_contents($_FILES['xsd']['tmp_name']);
 
-$parser = new XsdAddendaParserService();
-$addendaXml = $parser->parse($xsdContent);
+$converter = new XsdToArrayConverter();
+$structure = $converter->convert($xsd);
 
-// Extraer namespace DEL XSD (obligatorio por elementFormDefault=qualified)
-if (!preg_match('/xmlns="([^"]+)"/', $addendaXml, $m)) {
-    die('El XSD no define namespace por defecto');
-}
+$builder = new AddendaXmlBuilder();
 
+// ✅ generar XML base desde estructura (FIX)
+$addendaXmlTemplate = $builder->build([
+    'children' => [$structure], // ✅ forzar modo XSD
+]);
+
+// ✅ guardar igual que flujo XML
 $_SESSION['addenda_instance'] = [
-    'origin'        => 'xsd',
-    'xsd_namespace' => $m[1],
-    'structure'     => $parser->getStructure()
+    'structure' => $structure,
+    'addenda_xml_template' => $addendaXmlTemplate,
+    'origin' => 'xsd'
 ];
 
+// ✅ redirigir
 header('Location: /addendas/frontend/render_instance_form.php');
 exit;
 
@@ -622,12 +623,8 @@ $addendaText =
     $newline .
     '</cfdi:Addenda>';
 
-// Indentar la Addenda con el mismo nivel del CFDI
-$addendaIndented = preg_replace(
-    '/^/m',
-    $baseIndent,
-    $addendaText
-);
+// NO forzar indentación global
+$addendaIndented = $newline . trim($addendaText) . $newline;
 
 // Asegurar saltos correctos alrededor
 $addendaIndented = $newline . rtrim($addendaIndented, "\r\n");
@@ -664,48 +661,6 @@ header('Content-Disposition: attachment; filename="cfdi_con_addenda.xml"');
 
 echo $finalCfdi;
 exit;
-
-
-
-========================================
-Archivo: C:\xampp\htdocs\addendas\backend\public\insert_addenda_form.html
-========================================
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Insertar Addenda en CFDI (Prueba)</title>
-</head>
-<body>
-
-<h2>Insertar Addenda en CFDI</h2>
-
-<form
-    action="insert_addenda_into_cfdi.php"
-    method="POST"
-    enctype="multipart/form-data"
->
-    <label>Template ID</label><br>
-    <input
-        type="text"
-        name="template_id"
-        value="tpl_69e78e047b53e4.56878003"
-        required
-    ><br><br>
-
-    <label>Archivo CFDI (XML)</label><br>
-    <input
-        type="file"
-        name="cfdi"
-        accept=".xml"
-        required
-    ><br><br>
-
-    <button type="submit">Insertar Addenda</button>
-</form>
-
-</body>
-</html>
 
 
 
@@ -875,96 +830,125 @@ require_once BACKEND_ROOT . '/src/Services/CfdiValueResolver.php';
 use App\Services\CFDIParserService;
 use App\Services\CfdiValueResolver;
 
-/* =======================================================
-   Validaciones básicas
-   ======================================================= */
-
-if (!isset($_SESSION['addenda_instance']['addenda_xml_template'])) {
+// ===============================
+// ✅ VALIDACIÓN SEGURA
+// ===============================
+if (
+    !isset($_SESSION['addenda_instance']) ||
+    !isset($_SESSION['addenda_instance']['addenda_xml_template'])
+) {
     http_response_code(400);
-    echo 'No addenda template';
+    echo '❌ No hay template de addenda disponible en sesión';
     exit;
 }
 
-if (!isset($_SESSION['original_cfdi_xml'])) {
-    http_response_code(400);
-    echo 'No CFDI loaded';
+$templateXml = $_SESSION['addenda_instance']['addenda_xml_template'];
+
+// ===============================
+// ✅ INPUT DEL FORM
+// ===============================
+$raw = file_get_contents('php://input');
+
+$input = json_decode($raw, true);
+
+if (!is_array($input)) {
+    $input = [];
+}
+
+// ===============================
+// ✅ CARGAR XML
+// ===============================
+$doc = new DOMDocument('1.0', 'UTF-8');
+$doc->preserveWhiteSpace = false;
+$doc->formatOutput = true;
+
+if (!$doc->loadXML($templateXml)) {
+    http_response_code(500);
+    echo '❌ Error al cargar XML template';
     exit;
 }
 
-/* =======================================================
-   Preparar datos base
-   ======================================================= */
+$resolver = null;
 
-// Addenda ORIGINAL como texto
-$xml = $_SESSION['addenda_instance']['addenda_xml_template'];
+if (isset($_SESSION['target_cfdi_xml'])) {
+    $parser = new CFDIParserService();
+    $cfdiMap = $parser->parse($_SESSION['target_cfdi_xml']);
+    $resolver = new CfdiValueResolver($cfdiMap);
+}
 
-// Valores enviados desde la UI
-$values = json_decode(file_get_contents('php://input'), true) ?? [];
+// ===============================
+// ✅ APLICAR VALORES
+// ===============================
+function applyValues(DOMElement $element, array $inputValues, $resolver, string $path = '')
+{
+    // construir path actual
+    $currentPath = $path === ''
+        ? $element->nodeName
+        : $path . '.' . $element->nodeName;
 
-// Preparar resolver CFDI
-$parser = new CFDIParserService();
-$cfdiMap = $parser->parse($_SESSION['original_cfdi_xml']);
-$resolver = new CfdiValueResolver($cfdiMap);
+    // ===============================
+    // ✅ ATRIBUTOS
+    // ===============================
+    if ($element->hasAttributes()) {
 
-/* =======================================================
-   Reemplazar atributos en Addenda
-   ======================================================= */
+        foreach ($element->attributes as $attr) {
 
-foreach ($values as $path => $data) {
+            $key = $currentPath . '.' . $attr->name;
 
-    // Solo nos interesan atributos (.@)
-    if (!str_contains($path, '.@')) {
-        continue;
-    }
+            if (isset($inputValues[$key])) {
 
-    [, $attr] = explode('.@', $path, 2);
+                $valueData = $inputValues[$key];
 
-    $value  = $data['value']  ?? null;
-    $source = $data['source'] ?? null;
+                $value = $valueData['value'] ?? '';
+                $source = $valueData['source'] ?? null;
 
-    // Si hay source, resolver desde CFDI
-    if ($source) {
-        try {
-            $resolved = $resolver->resolve($source);
-            if ($resolved !== null && $resolved !== '') {
-                $value = $resolved;
+                // ✅ si hay source CFDI → usar resolver
+                if ($source && $resolver) {
+                    try {
+                        $resolved = $resolver->resolve($source);
+
+                        if ($resolved !== null && $resolved !== '') {
+                            $value = $resolved;
+                        }
+                    } catch (\Throwable $e) {
+                        // fallback: deja valor manual
+                    }
+                }
+
+                // ✅ aplicar valor
+                $element->setAttribute(
+                    $attr->name,
+                    htmlspecialchars($value)
+                );
             }
-        } catch (\Throwable $e) {
-            // Si no se puede resolver, conservamos valor manual
         }
     }
 
-    if ($value === null) {
-        continue;
-    }
+    // ===============================
+    // ✅ HIJOS
+    // ===============================
+    foreach ($element->childNodes as $child) {
 
-    // Reemplazo tolerante de atributo (1 sola ocurrencia)
-    $xml = preg_replace(
-        '/\b' . preg_quote($attr, '/') . '="[^"]*"/',
-        $attr . '="' . htmlspecialchars((string)$value, ENT_XML1) . '"',
-        $xml,
-        1
-    );
+        if ($child instanceof DOMElement) {
+            applyValues($child, $inputValues, $resolver, $currentPath);
+        }
+    }
 }
 
-/* =======================================================
-   Output de preview
-   ======================================================= */
+// ===============================
+// ✅ APLICAR VALORES AL XML
+// ===============================
+applyValues($doc->documentElement, $input, $resolver);
 
-header('Content-Type: application/xml; charset=UTF-8');
+// ===============================
+// ✅ SALIDA (SOLO ADDENDA)
+// ===============================
+$output = $doc->saveXML($doc->documentElement);
 
-// Wrap the addenda XML with the proper CFDI root element
-$domCfdi = new DOMDocument();
-$domCfdi->loadXML($_SESSION['original_cfdi_xml']);
+// ✅ limpieza de espacios
+$output = trim($output);
 
-$cfdiNS = $domCfdi->documentElement->namespaceURI ?? 'http://www.sat.gob.mx/cfd/4';
-
-$wrapped_xml =
-    '<cfdi:Addenda xmlns:cfdi="' . $cfdiNS . '">' .
-    "\n\t" . trim($xml) . "\n" .
-    '</cfdi:Addenda>';
-
-echo $xml;
+echo $output;
 exit;
 
 
@@ -1956,32 +1940,42 @@ use DOMElement;
 
 class AddendaXmlBuilder
 {
-    /**
-     * Construye el XML de la Addenda a partir de la estructura del template
-     * DEVUELVE SOLO EL NODO RAÍZ (sin <?xml … ?>)
-     */
     public function build(array $structure): string
     {
+        $doc = new DOMDocument('1.0', 'UTF-8');
+        $doc->formatOutput = true;
+
+        // =======================================
+        // ✅ MODO XSD (detectar correctamente)
+        // =======================================
+        if (
+            isset($structure['children']) &&
+            isset($structure['children'][0]['type']) &&
+            $structure['children'][0]['type'] === 'node'
+        ) {
+            $rootNode = $structure['children'][0];
+
+            $rootElement = $this->buildNodeFromXsd($doc, $rootNode);
+
+            $doc->appendChild($rootElement);
+
+            return $doc->saveXML($doc->documentElement);
+        }
+
+        // =======================================
+        // ✅ MODO LEGACY (wizard)
+        // =======================================
         if (!isset($structure['root'])) {
-            throw new \InvalidArgumentException('Estructura inválida: no existe root');
+            throw new \InvalidArgumentException('Estructura inválida');
         }
 
         $rootDef = $structure['root'];
 
-        $name      = $rootDef['name'] ?? null;
-        $prefix    = $rootDef['prefix'] ?? null;
-        $namespace = $rootDef['namespace'] ?? null;
+        $name      = $rootDef['name'];
+        $prefix    = $rootDef['prefix'];
+        $namespace = $rootDef['namespace'];
         $children  = $rootDef['children'] ?? [];
 
-        if (!$name || !$prefix || !$namespace) {
-            throw new \InvalidArgumentException('Root incompleto: name, prefix o namespace faltante');
-        }
-
-        // Documento
-        $doc = new DOMDocument('1.0', 'UTF-8');
-        $doc->formatOutput = true;
-
-        // ROOT con namespace
         $root = $doc->createElementNS(
             $namespace,
             $prefix . ':' . $name
@@ -1989,18 +1983,58 @@ class AddendaXmlBuilder
 
         $doc->appendChild($root);
 
-        // Hijos
         foreach ($children as $child) {
             $this->buildNode($doc, $root, $child, $prefix, $namespace);
         }
 
-        // ✅ DEVOLVER SOLO EL ELEMENTO RAÍZ (sin XML declaration)
         return $doc->saveXML($doc->documentElement);
     }
 
-    /**
-     * Construye nodos (field / group)
-     */
+    private function cleanName(string $name): string
+{
+    // Si viene con prefix tipo ADD:Factura → dejar solo Factura
+    if (strpos($name, ':') !== false) {
+        return explode(':', $name, 2)[1];
+    }
+
+    return $name;
+}
+
+
+    // =======================================
+    // ✅ XSD BUILDER
+    // =======================================
+    private function buildNodeFromXsd(DOMDocument $doc, array $node): DOMElement
+    {
+        $name = $this->cleanName($node['name']);
+        $namespace = $node['namespace'] ?? null;
+
+        if ($namespace) {
+            $element = $doc->createElementNS($namespace, $name);
+        } else {
+            $element = $doc->createElement($name);
+        }
+
+        if (!empty($node['children'])) {
+            foreach ($node['children'] as $child) {
+
+                if ($child['type'] === 'field') {
+                    $element->setAttribute($this->cleanName($child['name']), '');
+                }
+
+                if ($child['type'] === 'node') {
+                    $childEl = $this->buildNodeFromXsd($doc, $child);
+                    $element->appendChild($childEl);
+                }
+            }
+        }
+
+        return $element;
+    }
+
+    // =======================================
+    // ✅ LEGACY (no tocar)
+    // =======================================
     private function buildNode(
         DOMDocument $doc,
         DOMElement $parent,
@@ -2008,24 +2042,11 @@ class AddendaXmlBuilder
         string $prefix,
         string $namespace
     ): void {
-        $type = $definition['type'] ?? 'field';
-
-        if ($type === 'field') {
+        if (($definition['type'] ?? '') === 'field') {
             $this->buildField($doc, $parent, $definition, $prefix, $namespace);
-            return;
         }
-
-        if ($type === 'group') {
-            $this->buildGroup($doc, $parent, $definition, $prefix, $namespace);
-            return;
-        }
-
-        throw new \InvalidArgumentException("Tipo de nodo desconocido: {$type}");
     }
 
-    /**
-     * Campo simple
-     */
     private function buildField(
         DOMDocument $doc,
         DOMElement $parent,
@@ -2034,65 +2055,9 @@ class AddendaXmlBuilder
         string $namespace
     ): void {
         $name = $field['name'] ?? null;
-        if (!$name) {
-            return;
-        }
+        if (!$name) return;
 
-        $representation = $field['representation'] ?? 'node';
-        $placeholder    = '{{' . $name . '}}';
-
-        // Atributo
-        if ($representation === 'attribute') {
-            $parent->setAttribute($name, $placeholder);
-            return;
-        }
-
-        // Nodo correctamente namespaced
-        $el = $doc->createElementNS(
-            $namespace,
-            $prefix . ':' . $name,
-            $placeholder
-        );
-
-        $parent->appendChild($el);
-    }
-
-    /**
-     * Grupo (Conceptos)
-     */
-    private function buildGroup(
-        DOMDocument $doc,
-        DOMElement $parent,
-        array $group,
-        string $prefix,
-        string $namespace
-    ): void {
-        $groupName = $group['name'] ?? null;
-        $itemName  = $group['itemName'] ?? 'Item';
-        $children  = $group['children'] ?? [];
-
-        if (!$groupName) {
-            return;
-        }
-
-        // Grupo
-        $groupEl = $doc->createElementNS(
-            $namespace,
-            $prefix . ':' . $groupName
-        );
-
-        // Item base
-        $itemEl = $doc->createElementNS(
-            $namespace,
-            $prefix . ':' . $itemName
-        );
-
-        foreach ($children as $childDef) {
-            $this->buildNode($doc, $itemEl, $childDef, $prefix, $namespace);
-        }
-
-        $groupEl->appendChild($itemEl);
-        $parent->appendChild($groupEl);
+        $parent->setAttribute($name, '');
     }
 }
 
@@ -2576,191 +2541,92 @@ private function normalizeStructure(array $structure): array
 
 
 ========================================
-Archivo: C:\xampp\htdocs\addendas\backend\src\Services\XsdAddendaParserService.php
+Archivo: C:\xampp\htdocs\addendas\backend\src\Services\XsdToArrayConverter.php
 ========================================
 <?php
 
 namespace App\Services;
 
 use DOMDocument;
-use DOMElement;
 use DOMXPath;
-use RuntimeException;
 
-class XsdAddendaParserService
+class XsdToArrayConverter
 {
-    private DOMXPath $xpath;
-    private DOMDocument $xsdDom;
-    private DOMDocument $xmlDom;
+    private string $namespace = '';
 
-    // ✅ Namespace default definido por el XSD
-    private ?string $targetNamespace = null;
-
-    /**
-     * Punto de entrada principal.
-     * Recibe el XSD como texto y devuelve XML vacío válido.
-     */
-    public function parse(string $xsdContent): string
+    public function convert(string $xsdXml): array
     {
-        $this->loadXsd($xsdContent);
-        $this->initXml();
+        $dom = new DOMDocument();
+        $dom->loadXML($xsdXml);
 
-        $rootElement = $this->getRootElement();
-        if (!$rootElement) {
-            throw new RuntimeException('No se encontró elemento raíz en XSD');
-        }
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace('xs', 'http://www.w3.org/2001/XMLSchema');
 
-        $xmlRoot = $this->parseElement($rootElement);
-        $this->xmlDom->appendChild($xmlRoot);
+        // ✅ namespace real del XSD
+        $schema = $dom->documentElement;
+        $this->namespace = $schema->getAttribute('targetNamespace') ?: '';
 
-        // ✅ Importante: devolver SOLO el nodo raíz (sin header XML)
-        return $this->xmlDom->saveXML($xmlRoot);
+        // ✅ root element
+        $root = $xpath->query('//xs:element')->item(0);
+
+        return [
+            'type' => 'node',
+            'name' => $root->getAttribute('name'), // ✅ SIN prefijo
+            'namespace' => $this->namespace,
+            'children' => $this->parseElementChildren($root, $xpath),
+        ];
     }
 
-    /* =====================================================
-       Cargar XSD
-       ===================================================== */
-
-    private function loadXsd(string $content): void
+    private function parseElementChildren($el, $xpath): array
     {
-        $this->xsdDom = new DOMDocument();
-        if (!$this->xsdDom->loadXML($content)) {
-            throw new RuntimeException('No se pudo cargar el XSD');
-        }
+        $children = [];
 
-        $this->xpath = new DOMXPath($this->xsdDom);
-        $this->xpath->registerNamespace(
-            'xs',
-            'http://www.w3.org/2001/XMLSchema'
-        );
+        // ===============================
+        // ✅ ATRIBUTOS → fields
+        // ===============================
+        foreach ($xpath->query('./xs:complexType/xs:attribute', $el) as $attr) {
 
-        // ✅ Leer targetNamespace del schema
-        $schema = $this->xpath->query('/xs:schema')->item(0);
-        if ($schema instanceof DOMElement) {
-            $this->targetNamespace = $schema->getAttribute('targetNamespace') ?: null;
-        }
-    }
+            $field = [
+                'type' => 'field',
+                'name' => $attr->getAttribute('name'),
+                'type_data' => 'string'
+            ];
 
-    /* =====================================================
-       Inicializar XML destino
-       ===================================================== */
+            // ===============================
+            // ✅ ENUMS
+            // ===============================
+            $restriction = $xpath->query('.//xs:restriction', $attr)->item(0);
 
-    private function initXml(): void
-    {
-        $this->xmlDom = new DOMDocument('1.0', 'UTF-8');
-        $this->xmlDom->formatOutput = true;
-    }
+            if ($restriction) {
 
-    /* =====================================================
-       Obtener elemento raíz del XSD
-       ===================================================== */
+                $options = [];
 
-    private function getRootElement(): ?DOMElement
-    {
-        return $this->xpath
-            ->query('/xs:schema/xs:element')
-            ->item(0);
-    }
-
-    /* =====================================================
-       Parseo recursivo de elementos
-       ===================================================== */
-
-    private function parseElement(DOMElement $xsdElement): DOMElement
-    {
-        $name = $xsdElement->getAttribute('name');
-        if (!$name) {
-            throw new RuntimeException('Elemento sin nombre');
-        }
-
-        // ✅ Crear elemento XML con namespace DEFAULT
-        $xmlElement = $this->createXmlElement($name);
-
-        // Atributos definidos directamente en el element
-        $this->parseAttributes($xsdElement, $xmlElement);
-
-        // ComplexType
-        $complexType = $this->xpath
-            ->query('xs:complexType', $xsdElement)
-            ->item(0);
-
-        if ($complexType instanceof DOMElement) {
-            $this->parseComplexType($complexType, $xmlElement);
-        }
-
-        return $xmlElement;
-    }
-
-    /* =====================================================
-       Parse complexType
-       ===================================================== */
-
-    private function parseComplexType(
-        DOMElement $complexType,
-        DOMElement $parentXml
-    ): void {
-        // Secuencia
-        $sequence = $this->xpath
-            ->query('xs:sequence', $complexType)
-            ->item(0);
-
-        if ($sequence instanceof DOMElement) {
-            foreach ($this->xpath->query('xs:element', $sequence) as $child) {
-                if (!$child instanceof DOMElement) {
-                    continue;
+                foreach ($xpath->query('.//xs:enumeration', $restriction) as $enum) {
+                    $options[] = $enum->getAttribute('value');
                 }
 
-                // ✅ Solo una instancia (aunque maxOccurs > 1)
-                $childXml = $this->parseElement($child);
-                $parentXml->appendChild($childXml);
+                if (!empty($options)) {
+                    $field['type_data'] = 'enum';
+                    $field['options'] = $options;
+                }
             }
+
+            $children[] = $field;
         }
 
-        // Atributos del complexType
-        $this->parseAttributes($complexType, $parentXml);
-    }
+        // ===============================
+        // ✅ ELEMENTOS HIJOS
+        // ===============================
+        foreach ($xpath->query('./xs:complexType/xs:sequence/xs:element', $el) as $child) {
 
-    /* =====================================================
-       Parse atributos
-       ===================================================== */
-
-    private function parseAttributes(
-        DOMElement $xsdNode,
-        DOMElement $xmlNode
-    ): void {
-        foreach ($this->xpath->query('xs:attribute', $xsdNode) as $attr) {
-            if (!$attr instanceof DOMElement) {
-                continue;
-            }
-
-            $name = $attr->getAttribute('name');
-            if ($name) {
-                $xmlNode->setAttribute($name, '');
-            }
-        }
-    }
-
-    /* =====================================================
-       Crear elemento XML con namespace default del XSD
-       ===================================================== */
-
-    private function createXmlElement(string $name): DOMElement
-    {
-        if ($this->targetNamespace) {
-            $element = $this->xmlDom->createElement($name);
-
-            // ⚠️ Forzar namespace default como atributo EXPLÍCITO
-            if ($this->targetNamespace) {
-                $element->setAttribute(
-                    'xmlns',
-                    $this->targetNamespace
-                );
-            }
-
-            return $element;
+            $children[] = [
+                'type' => 'node',
+                'name' => $child->getAttribute('name'), // ✅ SIN prefijo
+                'children' => $this->parseElementChildren($child, $xpath)
+            ];
         }
 
-        return $this->xmlDom->createElement($name);
+        return $children;
     }
 }
 
@@ -2834,24 +2700,63 @@ function renderFields(array $nodes, string $prefix = ''): void
         if ($node['type'] === 'node') {
             echo "<fieldset>";
             echo "<legend>" . htmlspecialchars($node['name']) . "</legend>";
-            renderFields($node['children'], $prefix . $node['name'] . '.');
+            $newPrefix = $prefix
+                ? $prefix . '.' . $node['name']
+                : $node['name'];
+
+            renderFields($node['children'], $newPrefix);
             echo "</fieldset>";
         }
 
         if ($node['type'] === 'field') {
-            $fieldKey = $prefix . $node['name'];
+            $fieldKey = $prefix
+            ? $prefix . '.' . $node['name']
+            : $node['name'];
             echo "<div style='margin-bottom:10px;'>";
             echo "<label>" . htmlspecialchars($node['name']) . "</label>";
 echo "<div class='field-row'>";
 
-echo "<input type='text'
-      class='addenda-input'
-      data-field='" . htmlspecialchars($fieldKey) . "'>";
+echo "<div class='field-row'>";
 
+// ===============================
+// ✅ INPUT / SELECT SEGÚN TIPO
+// ===============================
+if (isset($node['type_data']) && $node['type_data'] === 'enum') {
+
+    echo "<select
+            class='addenda-input'
+            data-field='" . htmlspecialchars($fieldKey) . "'>";
+
+    echo "<option value=''>-- Seleccionar --</option>";
+
+    // ✅ opciones del XSD
+    foreach ($node['options'] as $opt) {
+        echo "<option value='" . htmlspecialchars($opt) . "'>
+                " . htmlspecialchars($opt) . "
+              </option>";
+    }
+
+    // ✅ opción adicional manual
+    echo "<option value='__manual__'>Otro valor...</option>";
+
+    echo "</select>";
+
+} else {
+
+    echo "<input type='text'
+          class='addenda-input'
+          data-field='" . htmlspecialchars($fieldKey) . "'>";
+}
+
+// ===============================
+// ✅ SELECT CFDI (NO CAMBIA)
+// ===============================
 echo "<select class='cfdi-autofill'
       data-target='" . htmlspecialchars($fieldKey) . "'>
         <option value=''>— Tomar de CFDI —</option>
       </select>";
+
+echo "</div>";
 
 echo "</div>";
             echo "</div>";
@@ -3091,7 +2996,7 @@ input {
             </div>
 
             <form id="instanceForm">
-                <?php renderFields($structure['children']); ?>
+                <?php renderFields([$structure]); ?>
             </form>
 
         </div>
@@ -3154,8 +3059,13 @@ function getValues() {
     form.querySelectorAll('.addenda-input').forEach(input => {
         values[input.dataset.field] = {
             value: input.value,
-            source: input.dataset.source || null
+            source: input.getAttribute('data-source')
         };
+        console.log({
+        field: input.dataset.field,
+        value: input.value,
+        source: input.getAttribute('data-source')
+        });
     });
 
     return values;
@@ -3296,23 +3206,23 @@ function onAutofillSelect(event) {
 
     if (!path) return;
 
-    const input = document.querySelector(
-        `input[data-field="${select.dataset.target}"]`
+   const input = document.querySelector(
+    `.addenda-input[data-field="${select.dataset.target}"]`
     );
 
     const selectedOption = select.options[select.selectedIndex];
-    const value = selectedOption.dataset.value;
 
     if (!input) return;
 
-    input.value = value;
+    // ✅ NO confiar en dataset.value (puede venir vacío)
+    input.value = 'AUTO';
 
     setTimeout(() => {
         input.dispatchEvent(new Event('input', { bubbles: true }));
     }, 0);
 
-    // 3️⃣ Guardar source en dataset (para futuro uso)
-    input.dataset.source = path;
+    // ✅ guardar explícitamente en atributo HTML
+    input.setAttribute('data-source', path);
 }
 function updatePreview() {
 
@@ -3505,13 +3415,13 @@ h1 {
     </div>
 
     <!-- OPCIÓN 3: XSD (DESHABILITADA) -->
-    <div class="mode-card disabled">
-        <div class="mode-icon">📐</div>
-        <div class="mode-title">Subir XSD</div>
-        <div class="mode-desc">
-            Genera la addenda a partir de un esquema XSD. (Próximamente)
-        </div>
+    <div class="mode-card" onclick="goXsd()">
+    <div class="mode-icon">📐</div>
+    <div class="mode-title">Subir XSD</div>
+    <div class="mode-desc">
+        Genera la addenda automáticamente a partir de un archivo XSD.
     </div>
+</div>
 
 </div>
 
@@ -3526,6 +3436,9 @@ function goManual() {
 function goUpload() {
     // Nuevo flujo que implementaremos ahora
     window.location.href = '/addendas/frontend/upload_addenda.php';
+}
+function goXsd() {
+    window.location.href = '/addendas/frontend/upload_xsd.php';
 }
 </script>
 
@@ -3692,7 +3605,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 ========================================
-Archivo: C:\xampp\htdocs\addendas\frontend\upload_addenda_xsd.php
+Archivo: C:\xampp\htdocs\addendas\frontend\upload_xsd.php
 ========================================
 <!DOCTYPE html>
 <html lang="es">
@@ -3709,12 +3622,12 @@ Archivo: C:\xampp\htdocs\addendas\frontend\upload_addenda_xsd.php
     Se generará una estructura base que podrás completar después.
 </p>
 
-<form action="/addendas/backend/public/analyze_addenda_xsd.php"
+<form action="/addendas/backend/public/analyze_xsd.php"
       method="POST"
       enctype="multipart/form-data">
 
     <input type="file"
-           name="addenda_xsd"
+           name="xsd"
            accept=".xsd"
            required>
 

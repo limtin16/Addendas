@@ -8,94 +8,135 @@ require_once BACKEND_ROOT . '/src/Services/CfdiValueResolver.php';
 use App\Services\CFDIParserService;
 use App\Services\CfdiValueResolver;
 
-/* =======================================================
-   Validaciones básicas
-   ======================================================= */
-
-if (!isset($_SESSION['addenda_instance']['addenda_xml_template'])) {
+// ===============================
+// ✅ VALIDACIÓN SEGURA
+// ===============================
+if (
+    !isset($_SESSION['addenda_instance']) ||
+    !isset($_SESSION['addenda_instance']['addenda_xml_template'])
+) {
     http_response_code(400);
-    echo 'No addenda template';
+    echo '❌ No hay template de addenda disponible en sesión';
     exit;
 }
 
-if (!isset($_SESSION['original_cfdi_xml'])) {
-    http_response_code(400);
-    echo 'No CFDI loaded';
+$templateXml = $_SESSION['addenda_instance']['addenda_xml_template'];
+
+// ===============================
+// ✅ INPUT DEL FORM
+// ===============================
+$raw = file_get_contents('php://input');
+
+$input = json_decode($raw, true);
+
+if (!is_array($input)) {
+    $input = [];
+}
+
+// ===============================
+// ✅ CARGAR XML
+// ===============================
+$doc = new DOMDocument('1.0', 'UTF-8');
+$doc->preserveWhiteSpace = false;
+$doc->formatOutput = true;
+
+if (!$doc->loadXML($templateXml)) {
+    http_response_code(500);
+    echo '❌ Error al cargar XML template';
     exit;
 }
 
-/* =======================================================
-   Preparar datos base
-   ======================================================= */
+$resolver = null;
 
-// Addenda ORIGINAL como texto
-$xml = $_SESSION['addenda_instance']['addenda_xml_template'];
+if (isset($_SESSION['target_cfdi_xml'])) {
+    $parser = new CFDIParserService();
+    $cfdiMap = $parser->parse($_SESSION['target_cfdi_xml']);
+    $resolver = new CfdiValueResolver($cfdiMap);
+}
 
-// Valores enviados desde la UI
-$values = json_decode(file_get_contents('php://input'), true) ?? [];
-
-// Preparar resolver CFDI
-$parser = new CFDIParserService();
-$cfdiMap = $parser->parse($_SESSION['original_cfdi_xml']);
-$resolver = new CfdiValueResolver($cfdiMap);
-
-/* =======================================================
-   Reemplazar atributos en Addenda
-   ======================================================= */
-
-foreach ($values as $path => $data) {
-
-    // Solo nos interesan atributos (.@)
-    if (!str_contains($path, '.@')) {
-        continue;
+function normalizeCfdiPath(string $path): string
+{
+    // cfdi:Comprobante.@Moneda → moneda
+    if (preg_match('/@([A-Za-z0-9_]+)/', $path, $m)) {
+        return 'cfdi.' . strtolower($m[1]);
     }
 
-    [, $attr] = explode('.@', $path, 2);
+    return $path;
+}
+// ===============================
+// ✅ APLICAR VALORES
+// ===============================
+function applyValues(DOMElement $element, array $inputValues, $resolver, string $path = '')
+{
+    // construir path actual
+    $currentPath = $path === ''
+        ? $element->nodeName
+        : $path . '.' . $element->nodeName;
 
-    $value  = $data['value']  ?? null;
-    $source = $data['source'] ?? null;
+    // ===============================
+    // ✅ ATRIBUTOS
+    // ===============================
+    if ($element->hasAttributes()) {
 
-    // Si hay source, resolver desde CFDI
-    if ($source) {
-        try {
-            $resolved = $resolver->resolve($source);
-            if ($resolved !== null && $resolved !== '') {
-                $value = $resolved;
+        foreach ($element->attributes as $attr) {
+
+            $key = $currentPath . '.' . $attr->name;
+
+            if (isset($inputValues[$key])) {
+
+                $valueData = $inputValues[$key];
+
+                $value = $valueData['value'] ?? '';
+                $source = $valueData['source'] ?? null;
+
+                // ✅ si hay source CFDI → usar resolver
+                if ($source && $resolver) {
+                    try {
+                        // ✅ NORMALIZAR path tipo cfdi:Comprobante.@Moneda → cfdi.moneda
+                            $normalizedSource = normalizeCfdiPath($source);
+
+                            $resolved = $resolver->resolve($normalizedSource);
+
+                        if ($resolved !== null && $resolved !== '') {
+                            $value = $resolved;
+                        }
+                    } catch (\Throwable $e) {
+                        // fallback: deja valor manual
+                    }
+                }
+
+                // ✅ aplicar valor
+                $element->setAttribute(
+                    $attr->name,
+                    htmlspecialchars($value)
+                );
             }
-        } catch (\Throwable $e) {
-            // Si no se puede resolver, conservamos valor manual
         }
     }
 
-    if ($value === null) {
-        continue;
-    }
+    // ===============================
+    // ✅ HIJOS
+    // ===============================
+    foreach ($element->childNodes as $child) {
 
-    // Reemplazo tolerante de atributo (1 sola ocurrencia)
-    $xml = preg_replace(
-        '/\b' . preg_quote($attr, '/') . '="[^"]*"/',
-        $attr . '="' . htmlspecialchars((string)$value, ENT_XML1) . '"',
-        $xml,
-        1
-    );
+        if ($child instanceof DOMElement) {
+            applyValues($child, $inputValues, $resolver, $currentPath);
+        }
+    }
 }
 
-/* =======================================================
-   Output de preview
-   ======================================================= */
+// ===============================
+// ✅ APLICAR VALORES AL XML
+// ===============================
+applyValues($doc->documentElement, $input, $resolver);
 
-header('Content-Type: application/xml; charset=UTF-8');
+// ===============================
+// ✅ SALIDA (SOLO ADDENDA)
+// ===============================
+$output = $doc->saveXML($doc->documentElement);
 
-// Wrap the addenda XML with the proper CFDI root element
-$domCfdi = new DOMDocument();
-$domCfdi->loadXML($_SESSION['original_cfdi_xml']);
+// ✅ limpieza de espacios
+$output = trim($output);
 
-$cfdiNS = $domCfdi->documentElement->namespaceURI ?? 'http://www.sat.gob.mx/cfd/4';
-
-$wrapped_xml =
-    '<cfdi:Addenda xmlns:cfdi="' . $cfdiNS . '">' .
-    "\n\t" . trim($xml) . "\n" .
-    '</cfdi:Addenda>';
-
-echo $xml;
+echo $output;
 exit;

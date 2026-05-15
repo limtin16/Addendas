@@ -7,32 +7,42 @@ use DOMElement;
 
 class AddendaXmlBuilder
 {
-    /**
-     * Construye el XML de la Addenda a partir de la estructura del template
-     * DEVUELVE SOLO EL NODO RAÍZ (sin <?xml … ?>)
-     */
     public function build(array $structure): string
     {
+        $doc = new DOMDocument('1.0', 'UTF-8');
+        $doc->formatOutput = true;
+
+        // =======================================
+        // ✅ MODO XSD (detectar correctamente)
+        // =======================================
+        if (
+            isset($structure['children']) &&
+            isset($structure['children'][0]['type']) &&
+            $structure['children'][0]['type'] === 'node'
+        ) {
+            $rootNode = $structure['children'][0];
+
+            $rootElement = $this->buildNodeFromXsd($doc, $rootNode);
+
+            $doc->appendChild($rootElement);
+
+            return $doc->saveXML($doc->documentElement);
+        }
+
+        // =======================================
+        // ✅ MODO LEGACY (wizard)
+        // =======================================
         if (!isset($structure['root'])) {
-            throw new \InvalidArgumentException('Estructura inválida: no existe root');
+            throw new \InvalidArgumentException('Estructura inválida');
         }
 
         $rootDef = $structure['root'];
 
-        $name      = $rootDef['name'] ?? null;
-        $prefix    = $rootDef['prefix'] ?? null;
-        $namespace = $rootDef['namespace'] ?? null;
+        $name      = $rootDef['name'];
+        $prefix    = $rootDef['prefix'];
+        $namespace = $rootDef['namespace'];
         $children  = $rootDef['children'] ?? [];
 
-        if (!$name || !$prefix || !$namespace) {
-            throw new \InvalidArgumentException('Root incompleto: name, prefix o namespace faltante');
-        }
-
-        // Documento
-        $doc = new DOMDocument('1.0', 'UTF-8');
-        $doc->formatOutput = true;
-
-        // ROOT con namespace
         $root = $doc->createElementNS(
             $namespace,
             $prefix . ':' . $name
@@ -40,18 +50,58 @@ class AddendaXmlBuilder
 
         $doc->appendChild($root);
 
-        // Hijos
         foreach ($children as $child) {
             $this->buildNode($doc, $root, $child, $prefix, $namespace);
         }
 
-        // ✅ DEVOLVER SOLO EL ELEMENTO RAÍZ (sin XML declaration)
         return $doc->saveXML($doc->documentElement);
     }
 
-    /**
-     * Construye nodos (field / group)
-     */
+    private function cleanName(string $name): string
+{
+    // Si viene con prefix tipo ADD:Factura → dejar solo Factura
+    if (strpos($name, ':') !== false) {
+        return explode(':', $name, 2)[1];
+    }
+
+    return $name;
+}
+
+
+    // =======================================
+    // ✅ XSD BUILDER
+    // =======================================
+    private function buildNodeFromXsd(DOMDocument $doc, array $node): DOMElement
+    {
+        $name = $this->cleanName($node['name']);
+        $namespace = $node['namespace'] ?? null;
+
+        if ($namespace) {
+            $element = $doc->createElementNS($namespace, $name);
+        } else {
+            $element = $doc->createElement($name);
+        }
+
+        if (!empty($node['children'])) {
+            foreach ($node['children'] as $child) {
+
+                if ($child['type'] === 'field') {
+                    $element->setAttribute($this->cleanName($child['name']), '');
+                }
+
+                if ($child['type'] === 'node') {
+                    $childEl = $this->buildNodeFromXsd($doc, $child);
+                    $element->appendChild($childEl);
+                }
+            }
+        }
+
+        return $element;
+    }
+
+    // =======================================
+    // ✅ LEGACY (no tocar)
+    // =======================================
     private function buildNode(
         DOMDocument $doc,
         DOMElement $parent,
@@ -59,24 +109,11 @@ class AddendaXmlBuilder
         string $prefix,
         string $namespace
     ): void {
-        $type = $definition['type'] ?? 'field';
-
-        if ($type === 'field') {
+        if (($definition['type'] ?? '') === 'field') {
             $this->buildField($doc, $parent, $definition, $prefix, $namespace);
-            return;
         }
-
-        if ($type === 'group') {
-            $this->buildGroup($doc, $parent, $definition, $prefix, $namespace);
-            return;
-        }
-
-        throw new \InvalidArgumentException("Tipo de nodo desconocido: {$type}");
     }
 
-    /**
-     * Campo simple
-     */
     private function buildField(
         DOMDocument $doc,
         DOMElement $parent,
@@ -85,64 +122,8 @@ class AddendaXmlBuilder
         string $namespace
     ): void {
         $name = $field['name'] ?? null;
-        if (!$name) {
-            return;
-        }
+        if (!$name) return;
 
-        $representation = $field['representation'] ?? 'node';
-        $placeholder    = '{{' . $name . '}}';
-
-        // Atributo
-        if ($representation === 'attribute') {
-            $parent->setAttribute($name, $placeholder);
-            return;
-        }
-
-        // Nodo correctamente namespaced
-        $el = $doc->createElementNS(
-            $namespace,
-            $prefix . ':' . $name,
-            $placeholder
-        );
-
-        $parent->appendChild($el);
-    }
-
-    /**
-     * Grupo (Conceptos)
-     */
-    private function buildGroup(
-        DOMDocument $doc,
-        DOMElement $parent,
-        array $group,
-        string $prefix,
-        string $namespace
-    ): void {
-        $groupName = $group['name'] ?? null;
-        $itemName  = $group['itemName'] ?? 'Item';
-        $children  = $group['children'] ?? [];
-
-        if (!$groupName) {
-            return;
-        }
-
-        // Grupo
-        $groupEl = $doc->createElementNS(
-            $namespace,
-            $prefix . ':' . $groupName
-        );
-
-        // Item base
-        $itemEl = $doc->createElementNS(
-            $namespace,
-            $prefix . ':' . $itemName
-        );
-
-        foreach ($children as $childDef) {
-            $this->buildNode($doc, $itemEl, $childDef, $prefix, $namespace);
-        }
-
-        $groupEl->appendChild($itemEl);
-        $parent->appendChild($groupEl);
+        $parent->setAttribute($name, '');
     }
 }

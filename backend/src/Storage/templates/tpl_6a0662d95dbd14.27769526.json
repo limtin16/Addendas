@@ -1,24 +1,17 @@
 {
-    "id": "tpl_69fcc7453dd892.39415962",
+    "id": "tpl_6a0662d95dbd14.27769526",
     "name": "test",
     "location": "ADDENDA",
     "structure": {
         "root": {
             "name": "Factura",
             "prefix": "THY",
-            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
             "children": [
                 {
                     "type": "field",
                     "name": "NumeroDeFacturaDelProveedor",
-                    "representation": "attribute",
-                    "value": "17"
-                },
-                {
-                    "type": "field",
-                    "name": "FechaDeFactura",
-                    "representation": "attribute",
-                    "value": "17\/06\/2025"
+                    "representation": "attribute"
                 },
                 {
                     "type": "group",
@@ -29,15 +22,13 @@
                     "children": [
                         {
                             "type": "field",
-                            "name": "NumeroDeOrdenDeCompra",
-                            "representation": "attribute",
-                            "value": "4500078412"
+                            "name": "NumeroDeFacturaDelProveedor",
+                            "representation": "attribute"
                         },
                         {
                             "type": "field",
-                            "name": "PosicionDeOrdenDeCompra",
-                            "representation": "attribute",
-                            "value": "10"
+                            "name": "NumeroDeOrdenDeCompra",
+                            "representation": "attribute"
                         }
                     ]
                 }

@@ -95,13 +95,13 @@ h1 {
     </div>
 
     <!-- OPCIÓN 3: XSD (DESHABILITADA) -->
-    <div class="mode-card disabled">
-        <div class="mode-icon">📐</div>
-        <div class="mode-title">Subir XSD</div>
-        <div class="mode-desc">
-            Genera la addenda a partir de un esquema XSD. (Próximamente)
-        </div>
+    <div class="mode-card" onclick="goXsd()">
+    <div class="mode-icon">📐</div>
+    <div class="mode-title">Subir XSD</div>
+    <div class="mode-desc">
+        Genera la addenda automáticamente a partir de un archivo XSD.
     </div>
+</div>
 
 </div>
 
@@ -116,6 +116,9 @@ function goManual() {
 function goUpload() {
     // Nuevo flujo que implementaremos ahora
     window.location.href = '/addendas/frontend/upload_addenda.php';
+}
+function goXsd() {
+    window.location.href = '/addendas/frontend/upload_xsd.php';
 }
 </script>
 

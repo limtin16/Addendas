@@ -14,24 +14,63 @@ function renderFields(array $nodes, string $prefix = ''): void
         if ($node['type'] === 'node') {
             echo "<fieldset>";
             echo "<legend>" . htmlspecialchars($node['name']) . "</legend>";
-            renderFields($node['children'], $prefix . $node['name'] . '.');
+            $newPrefix = $prefix
+                ? $prefix . '.' . $node['name']
+                : $node['name'];
+
+            renderFields($node['children'], $newPrefix);
             echo "</fieldset>";
         }
 
         if ($node['type'] === 'field') {
-            $fieldKey = $prefix . $node['name'];
+            $fieldKey = $prefix
+            ? $prefix . '.' . $node['name']
+            : $node['name'];
             echo "<div style='margin-bottom:10px;'>";
             echo "<label>" . htmlspecialchars($node['name']) . "</label>";
 echo "<div class='field-row'>";
 
-echo "<input type='text'
-      class='addenda-input'
-      data-field='" . htmlspecialchars($fieldKey) . "'>";
+echo "<div class='field-row'>";
 
+// ===============================
+// ✅ INPUT / SELECT SEGÚN TIPO
+// ===============================
+if (isset($node['type_data']) && $node['type_data'] === 'enum') {
+
+    echo "<select
+            class='addenda-input'
+            data-field='" . htmlspecialchars($fieldKey) . "'>";
+
+    echo "<option value=''>-- Seleccionar --</option>";
+
+    // ✅ opciones del XSD
+    foreach ($node['options'] as $opt) {
+        echo "<option value='" . htmlspecialchars($opt) . "'>
+                " . htmlspecialchars($opt) . "
+              </option>";
+    }
+
+    // ✅ opción adicional manual
+    echo "<option value='__manual__'>Otro valor...</option>";
+
+    echo "</select>";
+
+} else {
+
+    echo "<input type='text'
+          class='addenda-input'
+          data-field='" . htmlspecialchars($fieldKey) . "'>";
+}
+
+// ===============================
+// ✅ SELECT CFDI (NO CAMBIA)
+// ===============================
 echo "<select class='cfdi-autofill'
       data-target='" . htmlspecialchars($fieldKey) . "'>
         <option value=''>— Tomar de CFDI —</option>
       </select>";
+
+echo "</div>";
 
 echo "</div>";
             echo "</div>";
@@ -271,7 +310,7 @@ input {
             </div>
 
             <form id="instanceForm">
-                <?php renderFields($structure['children']); ?>
+                <?php renderFields([$structure]); ?>
             </form>
 
         </div>
@@ -334,8 +373,13 @@ function getValues() {
     form.querySelectorAll('.addenda-input').forEach(input => {
         values[input.dataset.field] = {
             value: input.value,
-            source: input.dataset.source || null
+            source: input.getAttribute('data-source')
         };
+        console.log({
+        field: input.dataset.field,
+        value: input.value,
+        source: input.getAttribute('data-source')
+        });
     });
 
     return values;
@@ -377,7 +421,7 @@ document.getElementById('generateBtn').addEventListener('click', function () {
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.name = 'target_cfdi';
+    fileInput.name = 'cfdi';    
 
     // Truco: reasignar archivos
     const dataTransfer = new DataTransfer();
@@ -476,23 +520,23 @@ function onAutofillSelect(event) {
 
     if (!path) return;
 
-    const input = document.querySelector(
-        `input[data-field="${select.dataset.target}"]`
+   const input = document.querySelector(
+    `.addenda-input[data-field="${select.dataset.target}"]`
     );
 
     const selectedOption = select.options[select.selectedIndex];
-    const value = selectedOption.dataset.value;
 
     if (!input) return;
 
-    input.value = value;
+    // ✅ NO confiar en dataset.value (puede venir vacío)
+    input.value = 'AUTO';
 
     setTimeout(() => {
         input.dispatchEvent(new Event('input', { bubbles: true }));
     }, 0);
 
-    // 3️⃣ Guardar source en dataset (para futuro uso)
-    input.dataset.source = path;
+    // ✅ guardar explícitamente en atributo HTML
+    input.setAttribute('data-source', path);
 }
 function updatePreview() {
 

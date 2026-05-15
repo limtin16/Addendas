@@ -13,12 +13,12 @@
     Se generará una estructura base que podrás completar después.
 </p>
 
-<form action="/addendas/backend/public/analyze_addenda_xsd.php"
+<form action="/addendas/backend/public/analyze_xsd.php"
       method="POST"
       enctype="multipart/form-data">
 
     <input type="file"
-           name="addenda_xsd"
+           name="xsd"
            accept=".xsd"
            required>
 

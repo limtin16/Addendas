@@ -35,9 +35,16 @@ $fieldNode = [
 switch ($_POST['origin_type'] ?? null) {
 
     case 'cfdi':
-        // UI: "Cantidad" → backend: cfdi.cantidad
-        $fieldNode['source'] = 'cfdi.' . strtolower(trim($_POST['cfdi_field']));
+
+    $cfdiField = trim($_POST['cfdi_field'] ?? '');
+
+    if ($cfdiField === '') {
+        // ✅ NO guardar source inválido
         break;
+    }
+
+    $fieldNode['source'] = 'cfdi.' . strtolower($cfdiField);
+    break;
 
     case 'fixed':
         $fieldNode['value'] = $_POST['fixed_value'];

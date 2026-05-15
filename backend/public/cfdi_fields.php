@@ -6,17 +6,16 @@ header('Content-Type: application/json');
 // ====================================================
 // CFDI REAL (ajusta esta ruta si es necesario)
 // ====================================================
-$cfdiPath = BACKEND_ROOT . '/src/storage/cfdi/ejemplo.xml';
+session_start();
 
-if (!file_exists($cfdiPath)) {
+if (!isset($_SESSION['target_cfdi_xml'])) {
     echo json_encode([
-        'error' => 'CFDI de ejemplo no encontrado',
-        'path' => $cfdiPath
+        'error' => 'No CFDI loaded'
     ]);
     exit;
 }
 
-$xml = file_get_contents($cfdiPath);
+$xml = $_SESSION['target_cfdi_xml'];
 
 $dom = new DOMDocument();
 $dom->loadXML($xml);
