@@ -44,7 +44,11 @@ $field = [
 // ===============================
 // AGREGAR AL GRUPO EN SESSION
 // ===============================
-$_SESSION['current_group']['children'][] = $field;
+$_SESSION['current_group']['children'][] = [
+    'type' => 'field',
+    'name' => $fieldName,
+    'representation' => $representation
+];
 
 // ===============================
 // REGRESAR A STEP 4

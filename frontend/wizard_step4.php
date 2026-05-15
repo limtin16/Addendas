@@ -178,10 +178,6 @@ select.error {
         <h4>Estructura</h4>
         <pre id="xmlStructure" class="xml-preview">Cargando…</pre>
     </div>
-    <div class="preview-box">
-        <h4>Autofill simulado</h4>
-        <pre id="xmlSimulated" class="xml-preview">Cargando…</pre>
-    </div>
 </div>
 
 </div>
@@ -200,29 +196,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updatePreview() {
         var structure = document.getElementById('xmlStructure');
-        var simulated = document.getElementById('xmlSimulated');
-        if (!structure || !simulated) return;
+        if (!structure) return;
 
         var container = document.querySelector('.card');
         if (!container) return;
 
         var templateId = container.dataset.templateId;
         if (!templateId) return;
-
         fetch(
             '/addendas/backend/public/preview_addenda_combined.php?template_id=' +
-            encodeURIComponent(templateId)
+            encodeURIComponent(templateId) +
+            '&_=' + Date.now()
         )
         .then(function (r) {
             return r.json();
         })
         .then(function (d) {
-            structure.textContent = decodeHtml(d.structurePreview);
-            simulated.textContent = decodeHtml(d.simulatedPreview);
+            if (d.structurePreview) {
+             structure.textContent = decodeHtml(d.structurePreview);
+            } else {
+                structure.textContent = '⚠️ Sin estructura aún';
+            }
         })
         .catch(function () {
             structure.textContent = 'Error cargando preview';
-            simulated.textContent = '';
         });
     }
 

@@ -11,68 +11,103 @@ function renderFields(array $nodes, string $prefix = ''): void
 {
     foreach ($nodes as $node) {
 
-        if ($node['type'] === 'node') {
+        if (!is_array($node)) continue;
+
+        $type = $node['type'] ?? '';
+
+        // =========================
+        // ✅ NODO CONTENEDOR
+        // =========================
+        if ($type === 'node') {
+
             echo "<fieldset>";
             echo "<legend>" . htmlspecialchars($node['name']) . "</legend>";
+
             $newPrefix = $prefix
                 ? $prefix . '.' . $node['name']
                 : $node['name'];
 
-            renderFields($node['children'], $newPrefix);
+            renderFields($node['children'] ?? [], $newPrefix);
+
             echo "</fieldset>";
         }
 
-        if ($node['type'] === 'field') {
+        // =========================
+        // ✅ GROUP (🔥 NUEVO)
+        // =========================
+        elseif ($type === 'group') {
+
+            echo "<fieldset>";
+            echo "<legend>Grupo: " . htmlspecialchars($node['name']) . "</legend>";
+
+            $groupPrefix = $prefix
+                ? $prefix . '.' . $node['name']
+                : $node['name'];
+
+            // ✅ item
+            echo "<div style='padding:10px; border:1px dashed #ccc;'>";
+            echo "<strong>" . htmlspecialchars($node['item_name'] ?? 'Item') . "</strong>";
+            // ✅ NO agregar item_name al path
+            $itemPrefix = $groupPrefix . '.' . ($node['item_name'] ?? 'Item');
+            renderFields($node['children'] ?? [], $itemPrefix);
+            echo "</div>";
+            echo "</fieldset>";
+        }
+
+        // =========================
+        // ✅ FIELD
+        // =========================
+        elseif ($type === 'field') {
+
+            if (!isset($node['name'])) continue;
+
             $fieldKey = $prefix
-            ? $prefix . '.' . $node['name']
-            : $node['name'];
+                ? $prefix . '.' . $node['name']
+                : $node['name'];
+
             echo "<div style='margin-bottom:10px;'>";
+
             echo "<label>" . htmlspecialchars($node['name']) . "</label>";
-echo "<div class='field-row'>";
 
-echo "<div class='field-row'>";
+            echo "<div class='field-row'>";
 
-// ===============================
-// ✅ INPUT / SELECT SEGÚN TIPO
-// ===============================
-if (isset($node['type_data']) && $node['type_data'] === 'enum') {
+            // =========================
+            // ✅ INPUT / SELECT
+            // =========================
+            if (($node['type_data'] ?? '') === 'enum') {
 
-    echo "<select
-            class='addenda-input'
-            data-field='" . htmlspecialchars($fieldKey) . "'>";
+                echo "<select
+                        class='addenda-input'
+                        data-field='" . htmlspecialchars($fieldKey) . "'>";
 
-    echo "<option value=''>-- Seleccionar --</option>";
+                echo "<option value=''>-- Seleccionar --</option>";
 
-    // ✅ opciones del XSD
-    foreach ($node['options'] as $opt) {
-        echo "<option value='" . htmlspecialchars($opt) . "'>
-                " . htmlspecialchars($opt) . "
-              </option>";
-    }
+                foreach ($node['options'] ?? [] as $opt) {
+                    echo "<option value='" . htmlspecialchars($opt) . "'>
+                            " . htmlspecialchars($opt) . "
+                          </option>";
+                }
 
-    // ✅ opción adicional manual
-    echo "<option value='__manual__'>Otro valor...</option>";
+                echo "<option value='__manual__'>Otro valor...</option>";
 
-    echo "</select>";
+                echo "</select>";
 
-} else {
+            } else {
 
-    echo "<input type='text'
-          class='addenda-input'
-          data-field='" . htmlspecialchars($fieldKey) . "'>";
-}
+                echo "<input type='text'
+                        class='addenda-input'
+                        data-field='" . htmlspecialchars($fieldKey) . "'>";
+            }
 
-// ===============================
-// ✅ SELECT CFDI (NO CAMBIA)
-// ===============================
-echo "<select class='cfdi-autofill'
-      data-target='" . htmlspecialchars($fieldKey) . "'>
-        <option value=''>— Tomar de CFDI —</option>
-      </select>";
+            // =========================
+            // ✅ CFDI AUTOFILL
+            // =========================
+            echo "<select class='cfdi-autofill'
+                    data-target='" . htmlspecialchars($fieldKey) . "'>
+                    <option value=''>— Tomar de CFDI —</option>
+                  </select>";
 
-echo "</div>";
-
-echo "</div>";
+            echo "</div>"; // field-row
             echo "</div>";
         }
     }
@@ -310,7 +345,7 @@ input {
             </div>
 
             <form id="instanceForm">
-                <?php renderFields([$structure]); ?>
+                <?php renderFields([$structure], ''); ?>
             </form>
 
         </div>

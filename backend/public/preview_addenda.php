@@ -80,7 +80,9 @@ function applyValues(DOMElement $element, array $inputValues, $resolver, string 
 
         foreach ($element->attributes as $attr) {
 
-            $key = $currentPath . '.@' . $attr->name;
+            if (!isset($attr->name)) continue;
+
+            $key = $currentPath . '.' . $attr->name;
 
             if (isset($inputValues[$key])) {
 
@@ -117,12 +119,12 @@ function applyValues(DOMElement $element, array $inputValues, $resolver, string 
     // ===============================
     // ✅ HIJOS
     // ===============================
-    foreach ($element->childNodes as $child) {
+        foreach ($element->childNodes as $child) {
 
-        if ($child instanceof DOMElement) {
+            if (!$child instanceof DOMElement) continue;
+
             applyValues($child, $inputValues, $resolver, $currentPath);
         }
-    }
 }
 
 // ===============================

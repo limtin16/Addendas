@@ -68,6 +68,27 @@ if (!$isFinalizing) {
     header('Location: /addendas/frontend/wizard_step4.php?template_id=' . urlencode($templateId));
     exit;
 }
+// ✅ ASEGURAR QUE EL GRUPO ACTIVO TAMBIÉN SE GUARDE
+if (
+    isset($_SESSION['current_group']) &&
+    is_array($_SESSION['current_group']) &&
+    !empty($_SESSION['current_group'])
+) {
+    if (!isset($template->structure['root']['children'])) {
+        $template->structure['root']['children'] = [];
+    }
+
+    $template->structure['root']['children'][] = $_SESSION['current_group'];
+
+    // ✅ guardar en BD
+    $service->update($templateId, $template->structure);
+
+    // ✅ limpiar sesión
+    $_SESSION['current_group'] = null;
+
+    // ✅ MUY IMPORTANTE: recargar template actualizado
+    $template = $service->get($templateId);
+}
 
 // ===============================
 // ✅ CASO 2: FINALIZAR ADDENDA
@@ -83,17 +104,41 @@ $addendaXmlTemplate = $builder->build($template->structure);
 // ===============================
 function convertNode($node)
 {
-    if (($node['type'] ?? '') === 'field') {
+    if (!is_array($node)) return null;
+
+    $type = $node['type'] ?? '';
+
+    // =========================
+    // ✅ FIELD
+    // =========================
+    if ($type === 'field') {
         return [
             'type' => 'field',
-            'name' => $node['name']
+            'name' => $node['name'] ?? ''
         ];
     }
 
-    if (($node['type'] ?? '') === 'group') {
+    // =========================
+    // ✅ GROUP (🔥 CORREGIDO)
+    // =========================
+    if ($type === 'group') {
+        return [
+            'type' => 'group', // ✅ YA NO node
+            'name' => $node['name'] ?? '',
+            'item_name' => $node['item_name'] ?? 'Item',
+            'children' => array_values(array_filter(
+                array_map('convertNode', $node['children'] ?? [])
+            ))
+        ];
+    }
+
+    // =========================
+    // ✅ NODE NORMAL (ROOT)
+    // =========================
+    if ($type === 'node') {
         return [
             'type' => 'node',
-            'name' => $node['name'],
+            'name' => $node['name'] ?? '',
             'children' => array_values(array_filter(
                 array_map('convertNode', $node['children'] ?? [])
             ))

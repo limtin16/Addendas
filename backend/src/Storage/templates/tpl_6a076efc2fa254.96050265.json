@@ -1,5 +1,5 @@
 {
-    "id": "tpl_6a0757c073cb05.93496675",
+    "id": "tpl_6a076efc2fa254.96050265",
     "name": "test",
     "location": "ADDENDA",
     "structure": {
@@ -9,20 +9,6 @@
             "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
             "children": [
                 {
-                    "type": "group",
-                    "name": "Conceptos",
-                    "itemName": "part",
-                    "repeatable": true,
-                    "source": null,
-                    "children": [
-                        {
-                            "type": "field",
-                            "name": "NumeroDeFacturaDelProveedor",
-                            "representation": "attribute"
-                        }
-                    ]
-                },
-                {
                     "type": "field",
                     "name": "NumeroDeFacturaDelProveedor",
                     "representation": "attribute"
@@ -30,15 +16,10 @@
                 {
                     "type": "group",
                     "name": "Conceptos",
-                    "itemName": "part",
+                    "item_name": "part",
                     "repeatable": true,
                     "source": null,
                     "children": [
-                        {
-                            "type": "field",
-                            "name": "NumeroDeFacturaDelProveedor",
-                            "representation": "attribute"
-                        },
                         {
                             "type": "field",
                             "name": "NumeroDeOrdenDeCompra",

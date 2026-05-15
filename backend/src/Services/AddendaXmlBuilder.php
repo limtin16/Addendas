@@ -122,6 +122,56 @@ private function buildNode(
     }
 
     // =========================
+// ✅ GROUP (🔥 FIX FINAL)
+// =========================
+if ($type === 'group') {
+
+    $name = $definition['name'] ?? '';
+    if (!$name) return;
+
+    // limpiar nombre
+    if (strpos($name, ':') !== false) {
+        $name = explode(':', $name, 2)[1];
+    }
+
+    $qualifiedName = $prefix
+        ? $prefix . ':' . $name
+        : $name;
+
+    $groupElement = $doc->createElementNS(
+        $namespace ?: null,
+        $qualifiedName
+    );
+
+    $parent->appendChild($groupElement);
+
+    // ✅ crear item
+    $itemName = $definition['item_name'] ?? 'Item';
+
+    if (strpos($itemName, ':') !== false) {
+        $itemName = explode(':', $itemName, 2)[1];
+    }
+
+    $itemQName = $prefix
+        ? $prefix . ':' . $itemName
+        : $itemName;
+
+    $itemElement = $doc->createElementNS(
+        $namespace ?: null,
+        $itemQName
+    );
+
+    $groupElement->appendChild($itemElement);
+
+    // ✅ hijos del item
+    foreach ($definition['children'] ?? [] as $child) {
+        $this->buildNode($doc, $itemElement, $child, $prefix, $namespace);
+    }
+
+    return;
+}
+
+    // =========================
     // ✅ NODE (elemento hijo)
     // =========================
     if ($type === 'node') {

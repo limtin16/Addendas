@@ -4,7 +4,7 @@ session_start();
 $_SESSION['current_group'] = [
     'type' => 'group',
     'name' => $_POST['group_name'],
-    'itemName' => $_POST['item_name'],
+    'item_name' => $_POST['item_name'], // ✅ CORRECTO
     'repeatable' => true,
     'source' => $_POST['source'] ?? null,
     'children' => []

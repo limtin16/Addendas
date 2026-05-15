@@ -137,21 +137,20 @@ select.error {
 <hr>
 
 <h3>👁 Vista previa de la addenda</h3>
-
 <div class="preview-container">
     <div class="preview-box">
-        <h4>Estructura</h4>
+        <h4>Vista previa</h4>
         <pre id="xmlStructure" class="xml-preview">Cargando…</pre>
-    </div>
-    <div class="preview-box">
-        <h4>Autofill simulado</h4>
-        <pre id="xmlSimulated" class="xml-preview">Cargando…</pre>
     </div>
 </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    const structure = document.getElementById('xmlStructure');
+
+    if (!structure) return;
 
     function decode(html) {
         const t = document.createElement('textarea');
@@ -160,10 +159,29 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     fetch('/addendas/backend/public/preview_addenda_combined.php?template_id=<?= urlencode($templateId) ?>')
-    .then(r => r.json())
-    .then(d => {
-        document.getElementById('xmlStructure').textContent = decode(d.structurePreview);
-        document.getElementById('xmlSimulated').textContent = decode(d.simulatedPreview);
+    .then(function (r) {
+        return r.text(); // 👈 importante para debug
+    })
+    .then(function (text) {
+
+        try {
+            const d = JSON.parse(text);
+
+            if (d.structurePreview) {
+                structure.textContent = decode(d.structurePreview);
+            } else {
+                structure.textContent = '⚠️ Sin estructura aún';
+            }
+
+        } catch (e) {
+            structure.textContent = '❌ Error en preview:\n' + text;
+            console.error('Preview JSON error:', e);
+        }
+
+    })
+    .catch(function (error) {
+        structure.textContent = '❌ Error cargando preview';
+        console.error(error);
     });
 
 });
