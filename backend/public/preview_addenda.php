@@ -143,4 +143,5 @@ $output = $doc->saveXML($doc->documentElement);
 $output = trim($output);
 
 echo $output;
+
 exit;
