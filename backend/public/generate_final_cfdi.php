@@ -30,6 +30,16 @@ if (isset($_FILES['cfdi']) && $_FILES['cfdi']['error'] === UPLOAD_ERR_OK) {
 
 $originalCfdi = $_SESSION['original_cfdi_xml'];
 
+// =======================================
+// ✅ DETECTAR NAMESPACE cfdi DINÁMICAMENTE
+// =======================================
+
+$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4'; // fallback
+
+if (preg_match('/xmlns:cfdi="([^"]+)"/', $originalCfdi, $matches)) {
+    $cfdiNamespace = $matches[1];
+}
+
 if (trim($originalCfdi) === '') {
     die('❌ El CFDI original está vacío en sesión');
 }
@@ -65,7 +75,7 @@ $addendaIndented = $newline . rtrim($addendaIndented, "\r\n");
 // ✅ ENVOLVER EN cfdi:Addenda
 $addendaWrapped =
     $newline .
-    $baseIndent . '<cfdi:Addenda>' .
+    $baseIndent . '<cfdi:Addenda xmlns:cfdi="' . $cfdiNamespace . '">'.
     $addendaIndented .
     $newline .
     $baseIndent . '</cfdi:Addenda>' .
