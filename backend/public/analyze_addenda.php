@@ -84,13 +84,11 @@ function parseAddendaNode(DOMElement $element): array
 {
     $node = [
         'type' => 'node',
-        'name' => $element->nodeName,
+        'name' => $element->localName, // ✅ importante
         'children' => []
     ];
 
-    /* =========================
-       1. NAMESPACES
-       ========================= */
+    // ✅ 1. NAMESPACES (solo guardar)
     if ($element->hasAttributes()) {
         foreach ($element->attributes as $attr) {
             if (strpos($attr->nodeName, 'xmlns') === 0) {
@@ -99,24 +97,28 @@ function parseAddendaNode(DOMElement $element): array
         }
     }
 
-    /* =========================
-       2. ATRIBUTOS (SIN VALOR)
-       ========================= */
+    // ✅ 2. ATRIBUTOS (CORRECTO)
     if ($element->hasAttributes()) {
         foreach ($element->attributes as $attr) {
-            if (strpos($attr->nodeName, 'xmlns') !== 0) {
-                $node['children'][] = [
-                    'type' => 'field',
-                    'name' => '@' . $attr->name
-                    // ✅ sin value
-                ];
+
+            // ❌ ignorar xmlns
+            if (strpos($attr->nodeName, 'xmlns') === 0) {
+                continue;
             }
+
+            $node['children'][] = [
+                'type' => 'field',
+                'name' => $attr->localName, // ✅ SIN @
+                'origin' => [
+                    'type' => 'fixed',
+                    'value' => ''
+                ],
+                'representation' => 'attribute'
+            ];
         }
     }
 
-    /* =========================
-       3. HIJOS
-       ========================= */
+    // ✅ 3. HIJOS RECURSIVOS
     foreach ($element->childNodes as $child) {
         if ($child instanceof DOMElement) {
             $node['children'][] = parseAddendaNode($child);
