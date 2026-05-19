@@ -448,6 +448,10 @@ document.getElementById('generateBtn').addEventListener('click', function () {
     form.method = 'POST';
     form.action = '/addendas/backend/public/generate_final_cfdi.php';
     form.enctype = 'multipart/form-data';
+    
+  // ✅ ocultar completamente
+    form.style.display = 'none';
+
 
     const addendaInput = document.createElement('input');
     addendaInput.type = 'hidden';
@@ -467,6 +471,10 @@ document.getElementById('generateBtn').addEventListener('click', function () {
     form.appendChild(fileInput);
     document.body.appendChild(form);
     form.submit();
+    
+// ✅ limpiar después
+    setTimeout(() => form.remove(), 1000)
+
 });
 
 const targetCfdiInput = document.getElementById('targetCfdi');
