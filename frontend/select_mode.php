@@ -1,5 +1,7 @@
 <?php
 // select_mode.php
+session_start();
+unset($_SESSION['using_template']);
 ?>
 <!DOCTYPE html>
 <html lang="es">

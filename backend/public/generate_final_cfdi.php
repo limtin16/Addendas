@@ -4,11 +4,16 @@ session_start();
 /* =======================================================
    1. Validaciones básicas
    ======================================================= */
-
-if (!isset($_SESSION['original_cfdi_xml'])) {
-    die('❌ No se encontró el CFDI original en sesión.');
+   
+if (!isset($_FILES['cfdi']) || $_FILES['cfdi']['error'] !== UPLOAD_ERR_OK) {
+    die('❌ Debes subir un CFDI válido');
 }
 
+$originalCfdi = file_get_contents($_FILES['cfdi']['tmp_name']);
+
+if (!$originalCfdi || trim($originalCfdi) === '') {
+    die('❌ El CFDI está vacío');
+}
 if (!isset($_POST['addenda_xml']) || trim($_POST['addenda_xml']) === '') {
     die('❌ No se recibió la Addenda generada.');
 }
@@ -16,19 +21,11 @@ if (!isset($_POST['addenda_xml']) || trim($_POST['addenda_xml']) === '') {
 /* =======================================================
    2. Cargar CFDI desde form (si viene)
    ======================================================= */
+$originalCfdi = file_get_contents($_FILES['cfdi']['tmp_name']);
 
-if (isset($_FILES['cfdi']) && $_FILES['cfdi']['error'] === UPLOAD_ERR_OK) {
-
-    $xml = file_get_contents($_FILES['cfdi']['tmp_name']);
-
-    if (!$xml || trim($xml) === '') {
-        die('❌ El CFDI subido está vacío');
-    }
-
-    $_SESSION['original_cfdi_xml'] = $xml;
+if (!$originalCfdi || trim($originalCfdi) === '') {
+    die('❌ El CFDI está vacío');
 }
-
-$originalCfdi = $_SESSION['original_cfdi_xml'];
 
 // =======================================
 // ✅ DETECTAR NAMESPACE cfdi DINÁMICAMENTE
@@ -62,15 +59,7 @@ if (preg_match('/\n([ \t]+)<cfdi:/', $originalCfdi, $m)) {
    4. Preparar Addenda respetando el formato original
    ======================================================= */
 
-$addendaText = str_replace(["\r\n", "\r", "\n"], $newline, $newAddendaXml);
-
-$addendaIndented = preg_replace(
-    '/^/m',
-    $baseIndent,
-    $addendaText
-);
-
-$addendaIndented = $newline . rtrim($addendaIndented, "\r\n");
+$addendaIndented = $newline . $newAddendaXml . $newline;
 
 // ✅ ENVOLVER EN cfdi:Addenda
 $addendaWrapped =
@@ -84,38 +73,35 @@ $addendaWrapped =
 /* =======================================================
    5. Insertar Addenda sin tocar el resto del CFDI
    ======================================================= */
+$doc = new DOMDocument();
+$doc->loadXML($originalCfdi);
 
-if (strpos($originalCfdi, '</cfdi:Complemento>') !== false) {
+// crear nodo Addenda
+$addendaNode = $doc->createElementNS($cfdiNamespace, 'cfdi:Addenda');
 
-    $finalCfdi = str_replace(
-        '</cfdi:Complemento>',
-        "</cfdi:Complemento>{$addendaWrapped}",
-        $originalCfdi
-    );
+// ✅ usar fragmento XML
+$fragment = $doc->createDocumentFragment();
 
-} elseif (strpos($originalCfdi, '</cfdi:Comprobante>') !== false) {
-
-    $finalCfdi = str_replace(
-        '</cfdi:Comprobante>',
-        "{$addendaWrapped}</cfdi:Comprobante>",
-        $originalCfdi
-    );
-
-} else {
-
-    // ✅ Caso: comprobante autocerrado
-    if (preg_match('/<cfdi:Comprobante[^>]*\/>/', $originalCfdi)) {
-
-        $finalCfdi = preg_replace(
-            '/(<cfdi:Comprobante[^>]*?)\/>/',
-            "$1>{$addendaWrapped}</cfdi:Comprobante>",
-            $originalCfdi
-        );
-
-    } else {
-        die('❌ No se pudo insertar la Addenda: formato de CFDI desconocido');
-    }
+if (!$fragment->appendXML($newAddendaXml)) {
+    die('❌ Error al insertar XML de addenda');
 }
+
+$addendaNode->appendChild($fragment);
+
+// obtener comprobante
+$xpath = new DOMXPath($doc);
+$xpath->registerNamespace('cfdi', $cfdiNamespace);
+
+$comprobante = $xpath->query('//cfdi:Comprobante')->item(0);
+
+if (!$comprobante) {
+    die('❌ No se encontró Comprobante');
+}
+
+// insertar correctamente
+$comprobante->appendChild($addendaNode);
+
+$finalCfdi = $doc->saveXML();
 
 /* =======================================================
    6. Salida del CFDI final

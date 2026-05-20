@@ -21,7 +21,7 @@ if ($user && password_verify($password, $user['password'])) {
     $_SESSION['user_id'] = $user['id'];
 
     // ✅ redirige al sistema
-    header("Location: /addendas/frontend/select_mode.php");
+    header("Location: /addendas/frontend/dashboard.php");
     exit;
 
 } else {

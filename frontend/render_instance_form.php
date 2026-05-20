@@ -434,47 +434,56 @@ function escapeXml(str = '') {
 form.addEventListener('input', updatePreview);
 updatePreview();
 
-document.getElementById('generateBtn').addEventListener('click', function () {
+document.getElementById('generateBtn').addEventListener('click', async function () {
 
     if (!targetCfdiLoaded) {
         alert('Debes subir primero la factura destino.');
         return;
     }
 
-    const xmlAddenda = previewBox.textContent;
+    const xmlAddenda = previewBox.textContent.trim();
+
+    // 🚨 VALIDACIÓN CRÍTICA
+    if (
+        !xmlAddenda ||
+        xmlAddenda.startsWith('❌') ||
+        !xmlAddenda.startsWith('<')
+    ) {
+        alert('El preview no es válido. Revisa los datos antes de generar.');
+        return;
+    }
     const targetFile = targetCfdiInput.files[0];
 
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/addendas/backend/public/generate_final_cfdi.php';
-    form.enctype = 'multipart/form-data';
-    
-  // ✅ ocultar completamente
-    form.style.display = 'none';
+    const formData = new FormData();
+    formData.append('addenda_xml', xmlAddenda);
+    formData.append('cfdi', targetFile);
 
+    const res = await fetch('/addendas/backend/public/generate_final_cfdi.php', {
+        method: 'POST',
+        body: formData
+    });
 
-    const addendaInput = document.createElement('input');
-    addendaInput.type = 'hidden';
-    addendaInput.name = 'addenda_xml';
-    addendaInput.value = xmlAddenda;
+    if (!res.ok) {
+        alert('Error generando CFDI');
+        return;
+    }
 
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.name = 'cfdi';    
+    const xml = await res.text();
 
-    // Truco: reasignar archivos
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(targetFile);
-    fileInput.files = dataTransfer.files;
+    // ✅ guardar en sesión (nuevo endpoint)
+    const fdStore = new FormData();
+    fdStore.append('xml', xml);
 
-    form.appendChild(addendaInput);
-    form.appendChild(fileInput);
-    document.body.appendChild(form);
-    form.submit();
-    
-// ✅ limpiar después
-    setTimeout(() => form.remove(), 1000)
+    const storeRes = await fetch('/addendas/backend/public/store_generated_cfdi.php', {
+        method: 'POST',
+        body: fdStore
+    });
 
+    const storeText = await storeRes.text();
+    console.log("STORE:", storeText);
+
+    // ✅ redirigir a página final
+    window.location.href = '/addendas/frontend/cfdi_success.php';
 });
 
 const targetCfdiInput = document.getElementById('targetCfdi');

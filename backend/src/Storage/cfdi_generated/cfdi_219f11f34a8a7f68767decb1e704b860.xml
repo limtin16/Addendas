@@ -1,0 +1,17 @@
+array(1) {
+  ["cfdi"]=>
+  array(6) {
+    ["name"]=>
+    string(18) "ejemplo Thysen.xml"
+    ["full_path"]=>
+    string(18) "ejemplo Thysen.xml"
+    ["type"]=>
+    string(8) "text/xml"
+    ["tmp_name"]=>
+    string(24) "C:\xampp\tmp\phpC82C.tmp"
+    ["error"]=>
+    int(0)
+    ["size"]=>
+    int(5139)
+  }
+}
