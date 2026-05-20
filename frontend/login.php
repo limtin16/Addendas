@@ -93,6 +93,12 @@
         <a href="/addendas/frontend/register.php">Crear cuenta</a>
     </div>
 
+    <div class="links">
+        <a href="/addendas/frontend/forgot_password.php">
+        ¿Olvidaste tu contraseña?
+        </a>
+    </div>
+
     <div class="guest">
         <a href="/addendas/frontend/select_mode.php">Entrar como visitante</a>
     </div>
