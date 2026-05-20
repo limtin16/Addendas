@@ -30,70 +30,7 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
 <html>
 <head>
     <title>Mis Templates</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            background: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            padding-top: 50px;
-        }
-
-        .container {
-            width: 500px;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .template {
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-
-        .name {
-            font-weight: bold;
-        }
-
-        .date {
-            font-size: 12px;
-            color: gray;
-        }
-
-        .btn {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 6px 10px;
-            background: #007bff;
-            color: white;
-            border-radius: 4px;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            background: #0056b3;
-        }
-
-        .empty {
-            text-align: center;
-            color: gray;
-        }
-
-        .back {
-            margin-top: 20px;
-            display: block;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -108,13 +45,25 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
 
         <?php foreach ($templates as $tpl): ?>
             <div class="template">
-                <div class="name"><?= htmlspecialchars($tpl['name']) ?></div>
-                <div class="date">Creado: <?= $tpl['created_at'] ?></div>
+            <div class="name"><?= htmlspecialchars($tpl['name']) ?></div>
+            <div class="date">Creado: <?= $tpl['created_at'] ?></div>
 
-                <a class="btn" href="/addendas/backend/public/load_template.php?id=<?= $tpl['id'] ?>">
-                    Usar template
-                </a>
-            </div>
+            <div class="actions">
+
+            <a href="/addendas/backend/public/load_template.php?id=<?= $tpl['id'] ?>" class="btn blue">
+                Usar template
+            </a>
+
+            <form method="POST" action="/addendas/backend/public/delete_template.php">
+
+                <input type="hidden" name="id" value="<?= $tpl['id'] ?>">
+
+                <button class="btn delete">Eliminar</button>
+            </form>
+
+        </div>
+
+        </div>
         <?php endforeach; ?>
 
     <?php endif; ?>
