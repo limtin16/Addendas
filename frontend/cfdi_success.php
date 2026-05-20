@@ -78,7 +78,12 @@ if (!isset($_SESSION['generated_cfdi_xml'])) {
 
     <?php endif; ?>
 
+    <a href="/addendas/frontend/dashboard.php">
+        ⬅ Volver al dashboard
+    </a>
+
 </div>
+
  <?php unset($_SESSION['using_template']); ?>
 
 </body>
