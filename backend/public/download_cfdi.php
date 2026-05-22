@@ -1,20 +1,33 @@
 <?php
 session_start();
+require_once dirname(__DIR__) . '/db.php';
 
-$filename = $_SESSION['generated_cfdi_file'] ?? null;
-
-if (!$filename) {
-    die("No hay CFDI");
+// ✅ validar login
+if (!isset($_SESSION['user_id'])) {
+    die("No autorizado");
 }
 
-$path = dirname(__DIR__) . "/src/storage/cfdi_generated/" . $filename;
+$id = $_GET['id'] ?? 0;
+$userId = $_SESSION['user_id'];
 
-if (!file_exists($path)) {
-    die("Archivo no encontrado");
+// ✅ obtener XML desde BD
+$stmt = $conn->prepare("
+    SELECT filename, xml 
+    FROM generated_cfdis
+    WHERE id = ? AND user_id = ?
+");
+$stmt->bind_param("ii", $id, $userId);
+$stmt->execute();
+
+$res = $stmt->get_result()->fetch_assoc();
+
+if (!$res) {
+    die("CFDI no encontrado");
 }
 
+// ✅ descargar DIRECTO desde BD
 header('Content-Type: application/xml');
-header('Content-Disposition: attachment; filename="' . $filename . '"');
+header('Content-Disposition: attachment; filename="' . $res['filename'] . '"');
 
-readfile($path);
+echo $res['xml'];
 exit;

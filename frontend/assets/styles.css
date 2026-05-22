@@ -36,11 +36,6 @@ form {
     flex-direction: column;
 }
 
-.actions a,
-.actions button {
-    margin-right: 5px;
-}
-
 .logo {
     margin-bottom: 25px;
 }
@@ -79,9 +74,8 @@ form {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1000px;
     margin: auto;
-    text-align: center;
 }
 
 /* =========================
@@ -189,7 +183,6 @@ form {
 .green { background: #28a745; }
 .gray { background: #6c757d; }
 
-/* BOTON ELIMINAR */
 .delete {
     background: #dc3545;
 }
@@ -206,9 +199,372 @@ form {
     justify-content: space-between;
     align-items: center;
     margin-top: 10px;
+    gap: 10px;
 }
 
-/* evita romper layout */
 .actions form {
     margin: 0;
+}
+
+/* =========================
+   SELECT MODE (NUEVO)
+========================= */
+.mode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    margin-top: 40px;
+}
+
+.main h2 {
+    text-align: center;
+}
+
+.mode-card {
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-height: 200px; /* 🔥 evita colapso visual */
+}
+
+.mode-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+}
+
+.mode-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.mode-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.mode-title {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.mode-desc {
+    font-size: 14px;
+    color: #555;
+}
+
+/* =========================
+   FORM / SIMPLE PAGES
+========================= */
+
+.simple-box {
+    max-width: 600px;
+    margin: auto;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: left;
+}
+
+/* =========================
+   WIZARD
+========================= */
+
+.field-row {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.field-row label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.field-row input,
+.field-row select {
+    width: 100%;
+}
+
+.preview-box {
+    background: #111;
+    color: #0f0;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    overflow: auto;
+}
+
+.main-wide {
+    flex: 1;
+    padding: 20px 40px;
+}
+
+/* =========================
+   PREVIEW FULL WIDTH
+========================= */
+
+.preview-full {
+    margin-top: 30px;
+}
+
+/* el contenedor ocupa todo el ancho disponible */
+.preview-full .card {
+    width: 100%;
+}
+
+/* caja del preview GRANDE */
+.preview-box {
+    height: 40vh;
+    max-height: 400px;
+    overflow: auto;
+    text-align: left; /* 🔥 clave */
+}
+
+/* texto XML */
+.xml-preview {
+    text-align: left;   /* 🔥 asegura alineación */
+    white-space: pre;   /* formato XML correcto */
+}
+
+.form-centered {
+    display: flex;
+    justify-content: center; /* 🔥 centra horizontal */
+}
+
+/* limita ancho del formulario */
+.form-centered .card {
+    width: 100%;
+    max-width: 700px; /* 🔥 tamaño ideal */
+}
+/* =========================
+   INSTANCE FORM (CRÍTICO)
+========================= */
+
+.instance-layout {
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* FORMULARIO */
+.form-column {
+    text-align: left;
+}
+
+/* PREVIEW */
+.preview-column {
+    text-align: left;
+}
+
+/* PREVIEW (recuperar estilo original) */
+.preview {
+    background: #111;
+    color: #9ef;
+    padding: 15px;
+    border-radius: 6px;
+    max-height: 500px;
+    overflow: auto;
+    font-family: monospace;
+    font-size: 13px;
+    white-space: pre-wrap;
+}
+
+/* BOTÓN FINAL */
+.preview-column #generateBtn {
+    margin-top: 20px;
+    padding: 14px;
+    width: 100%;
+    font-size: 16px;
+    background: #0067c0;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.preview-column #generateBtn:hover {
+    background: #0053a0;
+}
+
+/* DESHABILITADO */
+#generateBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+/* FACTURA DESTINO */
+.target-invoice {
+    padding: 15px;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    background: #fafafa;
+    margin-bottom: 20px;
+}
+
+.file-status {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* EXPANDIBLE */
+.preview-wrapper {
+    position: relative;
+}
+
+.preview-expand {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 10;
+}
+
+/* FULLSCREEN */
+.preview-wrapper.fullscreen {
+    position: fixed;
+    inset: 0;
+    background: #111;
+    z-index: 9999;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-wrapper.fullscreen .preview {
+    flex: 1;
+    max-height: none;
+}
+
+.instance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.instance-layout .form-column,
+.instance-layout .preview-column {
+    width: 100%;
+}
+
+/* =========================
+   CFDI SUCCESS
+========================= */
+
+.success-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+.success-box {
+    max-width: 450px;
+    width: 100%;
+    text-align: center;
+}
+
+.success-box h2 {
+    margin-bottom: 10px;
+}
+
+.success-box .note {
+    color: #666;
+    font-size: 14px;
+}
+
+.success-box hr {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid #eee;
+}
+
+/* =========================
+   UPLOAD ADDENDA
+========================= */
+
+.upload-card {
+    max-width: 500px;
+    margin: auto;
+    text-align: center;
+}
+
+.upload-card h2 {
+    margin-bottom: 10px;
+}
+
+.upload-card .description {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+/* CONTENEDOR */
+.upload-area {
+    margin-bottom: 20px;
+}
+
+/* ocultar input real */
+.upload-area input[type="file"] {
+    display: none;
+}
+
+/* botón visual */
+.upload-button {
+    display: inline-block;
+    padding: 12px 20px;
+    background: #e2e8f0;
+    border: 1px dashed #94a3b8;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.upload-button:hover {
+    background: #cbd5e1;
+}
+
+/* nombre archivo */
+.file-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+/* error */
+.error {
+    margin-top: 8px;
+    color: #dc3545;
+    font-size: 13px;
+    display: none;
+}
+
+.error.visible {
+    display: block;
+}
+
+/* botón full width */
+.btn.full {
+    width: 100%;
+}
+
+/* nota */
+.note {
+    margin-top: 15px;
+    font-size: 13px;
+    color: #777;
 }

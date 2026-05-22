@@ -1,29 +1,105 @@
 <?php
 session_start();
 
-// 🔁 copia TODO tu código de generate_final_cfdi.php
-// PERO elimina headers de descarga
-
-if (!isset($_SESSION['original_cfdi_xml'])) {
-    die('Error');
-}
-
-if (!isset($_POST['addenda_xml'])) {
-    die('Error');
-}
-
-$originalCfdi = $_SESSION['original_cfdi_xml'];
-$newAddendaXml = trim($_POST['addenda_xml']);
-
-// 👉 usa EXACTAMENTE tu mismo código de inserción aquí
-
-// RESULTADO FINAL:
-$finalCfdi = "..."; // (tu lógica actual)
-
-
-// ✅ IMPORTANTE: NO headers descarga
 header('Content-Type: application/json');
 
+// ===============================
+// ✅ VALIDAR CFDI
+// ===============================
+if (
+    !isset($_FILES['cfdi']) ||
+    $_FILES['cfdi']['error'] !== UPLOAD_ERR_OK
+) {
+    echo json_encode([
+        'error' => 'CFDI no proporcionado'
+    ]);
+    exit;
+}
+
+$originalCfdi = file_get_contents($_FILES['cfdi']['tmp_name']);
+
+if (!$originalCfdi || trim($originalCfdi) === '') {
+    echo json_encode([
+        'error' => 'CFDI vacío'
+    ]);
+    exit;
+}
+
+// ===============================
+// ✅ VALIDAR ADDENDA
+// ===============================
+if (
+    !isset($_POST['addenda_xml']) ||
+    trim($_POST['addenda_xml']) === ''
+) {
+    echo json_encode([
+        'error' => 'Addenda no recibida'
+    ]);
+    exit;
+}
+
+$newAddendaXml = trim($_POST['addenda_xml']);
+
+// ===============================
+// ✅ DETECTAR NAMESPACE CFDI
+// ===============================
+$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4';
+
+if (preg_match('/xmlns:cfdi="([^"]+)"/', $originalCfdi, $matches)) {
+    $cfdiNamespace = $matches[1];
+}
+
+// ===============================
+// ✅ INSERTAR ADDENDA CON DOM
+// ===============================
+libxml_use_internal_errors(true);
+
+$doc = new DOMDocument('1.0', 'UTF-8');
+
+if (!$doc->loadXML($originalCfdi)) {
+    echo json_encode([
+        'error' => 'CFDI inválido'
+    ]);
+    exit;
+}
+
+// crear nodo Addenda
+$addendaNode = $doc->createElementNS($cfdiNamespace, 'cfdi:Addenda');
+
+// insertar XML como fragmento
+$fragment = $doc->createDocumentFragment();
+
+if (!$fragment->appendXML($newAddendaXml)) {
+    echo json_encode([
+        'error' => 'Addenda XML inválido'
+    ]);
+    exit;
+}
+
+$addendaNode->appendChild($fragment);
+
+// ubicar comprobante
+$xpath = new DOMXPath($doc);
+$xpath->registerNamespace('cfdi', $cfdiNamespace);
+
+$comprobante = $xpath->query('//cfdi:Comprobante')->item(0);
+
+if (!$comprobante) {
+    echo json_encode([
+        'error' => 'Comprobante no encontrado'
+    ]);
+    exit;
+}
+
+// insertar
+$comprobante->appendChild($addendaNode);
+
+$finalCfdi = $doc->saveXML();
+
+// ===============================
+// ✅ RESPUESTA JSON
+// ===============================
 echo json_encode([
     'xml' => $finalCfdi
 ]);
+exit;

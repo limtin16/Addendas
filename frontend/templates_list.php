@@ -23,9 +23,7 @@ $stmt->execute();
 
 $result = $stmt->get_result();
 $templates = $result->fetch_all(MYSQLI_ASSOC);
-
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -34,44 +32,46 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
 </head>
 
 <body>
+<?php include __DIR__ . '/partials/sidebar.php'; ?>
+<div class="main">
+    <div class="container">
 
-<div class="container">
+        <h2>Mis Templates</h2>
 
-    <h2>Mis Templates</h2>
+        <?php if (empty($templates)): ?>
+            <p class="empty">No tienes templates guardados aún.</p>
+        <?php else: ?>
 
-    <?php if (empty($templates)): ?>
-        <p class="empty">No tienes templates guardados aún.</p>
-    <?php else: ?>
+            <?php foreach ($templates as $tpl): ?>
+                <div class="template">
+                <div class="name"><?= htmlspecialchars($tpl['name']) ?></div>
+                <div class="date">Creado: <?= $tpl['created_at'] ?></div>
 
-        <?php foreach ($templates as $tpl): ?>
-            <div class="template">
-            <div class="name"><?= htmlspecialchars($tpl['name']) ?></div>
-            <div class="date">Creado: <?= $tpl['created_at'] ?></div>
+                <div class="actions">
 
-            <div class="actions">
+                <a href="/addendas/backend/public/load_template.php?id=<?= $tpl['id'] ?>" class="btn blue">
+                    Usar template
+                </a>
 
-            <a href="/addendas/backend/public/load_template.php?id=<?= $tpl['id'] ?>" class="btn blue">
-                Usar template
+                <form method="POST" action="/addendas/backend/public/delete_template.php">
+
+                    <input type="hidden" name="id" value="<?= $tpl['id'] ?>">
+
+                    <button class="btn delete">Eliminar</button>
+                </form>
+
+            </div>
+
+            </div>
+            <?php endforeach; ?>
+
+        <?php endif; ?>
+
+            <a class="back" href="/addendas/frontend/dashboard.php">
+                ⬅ Volver
             </a>
 
-            <form method="POST" action="/addendas/backend/public/delete_template.php">
-
-                <input type="hidden" name="id" value="<?= $tpl['id'] ?>">
-
-                <button class="btn delete">Eliminar</button>
-            </form>
-
-        </div>
-
-        </div>
-        <?php endforeach; ?>
-
-    <?php endif; ?>
-
-        <a class="back" href="/addendas/frontend/dashboard.php">
-            ⬅ Volver
-        </a>
-
+    </div>
 </div>
 
 </body>

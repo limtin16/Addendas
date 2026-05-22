@@ -9,14 +9,14 @@ use App\Services\TemplateService;
 $templateId = $_GET['template_id'] ?? $_POST['template_id'] ?? null;
 
 if (!$templateId) {
-    header('Location: wizard_step1.html');
+    header('Location: wizard_step1.php');
     exit;
 }
 
 $service = new TemplateService();
 $template = $service->get($templateId);
 if (!$template) {
-    header('Location: wizard_step1.html');
+    header('Location: wizard_step1.php');
     exit;
 }
 
@@ -30,156 +30,102 @@ if (!isset($_SESSION['current_group'])) {
 <head>
 <meta charset="UTF-8">
 <title>Crear addenda – Paso 4</title>
-
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    padding: 40px;
-}
-.card {
-    background: #fff;
-    max-width: 700px;
-    margin: auto;
-    padding: 25px;
-    border-radius: 6px;
-}
-label {
-    display: block;
-    margin-top: 15px;
-    font-weight: bold;
-}
-input, select, button {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-}
-button {
-    margin-top: 15px;
-    cursor: pointer;
-}
-ul {
-    margin-top: 10px;
-}
-hr {
-    margin: 30px 0;
-}
-
-/* UX errors */
-.ux-error {
-    color: #b00020;
-    font-size: 13px;
-    display: none;
-}
-.ux-error.visible {
-    display: block;
-}
-select.error {
-    border: 1px solid #b00020;
-}
-
-/* Preview */
-.preview-container {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-.preview-box {
-    flex: 1 1 0;
-    min-width: 0;
-}
-.xml-preview {
-    background: #111;
-    color: #6cf;
-    padding: 10px;
-    max-height: 300px;
-    overflow: auto;
-    white-space: pre-wrap;
-    font-size: 13px;
-}
-</style>
+<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 </head>
 
 <body>
-<div class="card" data-template-id="<?= htmlspecialchars($templateId) ?>">
 
-<h2>Crear addenda – Paso 4</h2>
-<p>Agrega grupos repetibles y sus campos.</p>
+<?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-<?php if ($_SESSION['current_group'] === null): ?>
+<div class="main">
 
-<h3>Nuevo grupo</h3>
+    <div class="container">
+    <div class="form-centered">
+            <div class="card" data-template-id="<?= htmlspecialchars($templateId) ?>">
 
-<form method="post" action="/addendas/backend/public/start_group_step4.php">
-    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+                <h2>Crear addenda – Paso 4</h2>
+                <p>Agrega grupos repetibles y sus campos.</p>
 
-    <label>Nombre del grupo</label>
-    <input type="text" name="group_name" required>
+                <?php if ($_SESSION['current_group'] === null): ?>
 
-    <label>Nombre de cada elemento</label>
-    <input type="text" name="item_name" required>
+                <h3>Nuevo grupo</h3>
 
-    <button type="submit">Crear grupo</button>
-</form>
+                <form method="post" action="/addendas/backend/public/start_group_step4.php">
+                    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
 
-<?php else: ?>
+                    <label>Nombre del grupo</label>
+                    <input type="text" name="group_name" required>
 
-<h3>Grupo: <?= htmlspecialchars($_SESSION['current_group']['name']) ?></h3>
+                    <label>Nombre de cada elemento</label>
+                    <input type="text" name="item_name" required>
 
-<p>Campos del grupo:</p>
-<ul>
-<?php foreach ($_SESSION['current_group']['children'] as $field): ?>
-    <li><?= htmlspecialchars($field['name']) ?> (<?= htmlspecialchars($field['representation']) ?>)</li>
-<?php endforeach; ?>
-</ul>
+                    <button type="submit">Crear grupo</button>
+                </form>
 
-<hr>
+                <?php else: ?>
 
-<h4>Agregar campo al grupo</h4>
+                <h3>Grupo: <?= htmlspecialchars($_SESSION['current_group']['name']) ?></h3>
 
-<form method="post" action="/addendas/backend/public/add_field_to_group_step4.php">
-    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+                <p>Campos del grupo:</p>
+                <ul>
+                <?php foreach ($_SESSION['current_group']['children'] as $field): ?>
+                    <li><?= htmlspecialchars($field['name']) ?> (<?= htmlspecialchars($field['representation']) ?>)</li>
+                <?php endforeach; ?>
+                </ul>
 
-    <label>Nombre del campo</label>
-    <input type="text" name="field_name" required>
+                <hr>
 
-    <label>Representación</label>
-    <select name="representation" required>
-        <option value="attribute">Como atributo</option>
-        <option value="node">Como nodo</option>
-    </select>
+                <h4>Agregar campo al grupo</h4>
 
-    <button type="submit">Agregar campo</button>
-</form>
+                <form method="post" action="/addendas/backend/public/add_field_to_group_step4.php">
+                    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
 
-<hr>
+                    <label>Nombre del campo</label>
+                    <input type="text" name="field_name" required>
 
-<form method="post" action="/addendas/backend/public/save_group_step4.php">
-    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
-    <button type="submit">Guardar grupo</button>
-</form>
+                    <label>Representación</label>
+                    <select name="representation" required>
+                        <option value="attribute">Como atributo</option>
+                        <option value="node">Como nodo</option>
+                    </select>
 
-<?php endif; ?>
+                    <button type="submit">Agregar campo</button>
+                </form>
 
-<hr>
+                <hr>
 
-<form method="post" action="/addendas/backend/public/save_group_step4.php">
-    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
-    <input type="hidden" name="redirect_done" value="1">
-    <button type="submit">Finalizar addenda ✅</button>
-</form>
+                <form method="post" action="/addendas/backend/public/save_group_step4.php">
+                    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+                    <button type="submit">Guardar grupo</button>
+                </form>
 
-<hr>
+                <?php endif; ?>
 
-<h3>👁 Vista previa de la addenda</h3>
+                <hr>
 
-<div class="preview-container">
-    <div class="preview-box">
-        <h4>Estructura</h4>
-        <pre id="xmlStructure" class="xml-preview">Cargando…</pre>
+                <form method="post" action="/addendas/backend/public/save_group_step4.php">
+                    <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+                    <input type="hidden" name="redirect_done" value="1">
+                    <button type="submit">Finalizar addenda ✅</button>
+                </form>
+
+                <hr>
+            </div> <!-- fin card formulario -->
     </div>
-</div>
+            <!-- 🔥 PREVIEW SEPARADO -->
+            <div class="preview-full">
 
+                <div class="card">
+                    <h3>👁 Vista previa de la addenda</h3>
+
+                    <div class="preview-box">
+                        <pre id="xmlStructure" class="xml-preview">Cargando…</pre>
+                    </div>
+                </div>
+
+            </div>
+    
+    </div>
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

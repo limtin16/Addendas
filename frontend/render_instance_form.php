@@ -118,280 +118,56 @@ function renderFields(array $nodes, string $prefix = ''): void
 <head>
 <meta charset="UTF-8">
 <title>Rellenar Addenda</title>
-
-<style>
-body {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #f5f6f8;
-    padding: 30px;
-    margin: 0;
-}
-
-.container {
-    max-width: 1200px;
-    margin: auto;
-    background: #fff;
-    padding: 30px;
-    border-radius: 10px;
-}
-
-.header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.note {
-    color: #555;
-    margin-top: 10px;
-    font-size: 14px;
-}
-
-.main {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    align-items: flex-start;
-}
-
-/* =======================
-   FORMULARIO
-======================= */
-.form-column fieldset {
-    border: 1px solid #ddd;
-    padding: 15px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-}
-
-legend {
-    padding: 0 8px;
-    font-weight: 600;
-}
-
-label {
-    font-size: 13px;
-    font-weight: 600;
-    margin-bottom: 4px;
-    display: block;
-}
-
-input {
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-/* =======================
-   PREVIEW
-======================= */
-.preview-column h3 {
-    margin-top: 0;
-}
-
-.preview {
-    background: #111;
-    color: #9ef;
-    padding: 15px;
-    border-radius: 6px;
-    max-height: 500px;
-    overflow: auto;
-    font-family: monospace;
-    font-size: 13px;
-    white-space: pre-wrap;
-}
-
-/* =======================
-   BOTÓN FINAL (SOLO ESTE)
-======================= */
-.preview-column #generateBtn {
-    margin-top: 20px;
-    padding: 14px;
-    width: 100%;
-    font-size: 16px;
-    background: #0067c0;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.preview-column #generateBtn:hover {
-    background: #0053a0;
-}
-
-/* Botón deshabilitado */
-#generateBtn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
-
-/* =======================
-   FACTURA DESTINO
-======================= */
-.target-invoice {
-    padding: 15px;
-    border: 1px dashed #ccc;
-    border-radius: 6px;
-    background: #fafafa;
-    margin-bottom: 20px;
-}
-
-.target-invoice input[type="file"] {
-    margin-top: 10px;
-}
-
-.file-status {
-    margin-top: 8px;
-    font-size: 13px;
-    color: #666;
-}
-
-/* =======================
-   PREVIEW EXPANDIBLE
-======================= */
-.preview-wrapper {
-    position: relative;
-}
-
-/* Botón expandir (⛶) */
-.preview-expand {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    background: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 8px;
-    cursor: pointer;
-    font-size: 14px;
-    z-index: 10;
-    width: auto;
-    margin: 0;
-}
-
-.preview-expand:hover {
-    background: rgba(0, 0, 0, 0.8);
-}
-
-/* ===== MODO PANTALLA COMPLETA ===== */
-.preview-wrapper.fullscreen {
-    position: fixed;
-    inset: 0;
-    background: #111;
-    z-index: 9999;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-.preview-wrapper.fullscreen h3 {
-    color: #fff;
-}
-
-.preview-wrapper.fullscreen .preview {
-    flex: 1;
-    max-height: none;
-    font-size: 14px;
-}
-.field-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.field-row input {
-    flex: 1;
-}
-
-.field-row select {
-    width: 240px;
-    font-size: 13px;
-}
-.autofill-warning {
-    background: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-    padding: 10px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    margin-bottom: 15px;
-}
-</style>
+<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 </head>
-
 <body>
-
-<div class="container">
-
-    <div class="header">
-        <h2>Rellenar Addenda Existente</h2>
-        <p class="note">
-            La estructura de esta addenda es fija.  
-            Solo completa los valores necesarios para generar la factura final.
-        </p>
-    </div>
-
-    <div class="main">
-
-        <!-- FORMULARIO -->
-        <div class="form-column">
-
-            <!-- WARNING AUTOFILL (ARRIBA DEL FORMULARIO) -->
-            <div id="autofillWarning" class="autofill-warning" style="display:none;">
-                ⚠️ Para usar el autofill debes subir primero la factura destino.
+<?php include __DIR__ . '/partials/sidebar.php'; ?>
+<div class="main">
+    <div class="instance-layout">
+        <div class="header">
+            <h2>Rellenar Addenda Existente</h2>
+            <p class="note">
+                La estructura de esta addenda es fija.  
+                Solo completa los valores necesarios para generar la factura final.
+            </p>
+        </div>
+        <div class="instance-grid">
+            <!-- FORMULARIO -->
+            <div class="form-column">
+                <!-- WARNING AUTOFILL (ARRIBA DEL FORMULARIO) -->
+                <div id="autofillWarning" class="autofill-warning" style="display:none;">
+                    ⚠️ Para usar el autofill debes subir primero la factura destino.
+                </div>
+                <form id="instanceForm">
+                    <?php renderFields([$structure], ''); ?>
+                </form>
+            </div>
+            <!-- PREVIEW + BOTÓN -->
+        <div class="preview-column">
+                <!-- FACTURA DESTINO -->
+                <div class="target-invoice">
+                    <h3>📄 Factura destino</h3>
+                    <p class="note">
+                        Sube la factura (CFDI) a la que se le agregará esta addenda.
+                        Esta factura no debe contener Addenda.</p>
+                    <input type="file"
+                        id="targetCfdi"
+                        accept=".xml">
+                    <div class="file-status" id="targetCfdiStatus">No se ha seleccionado ningún archivo.</div>
+                </div>
+                <!-- PREVIEW -->
+                <div class="preview-wrapper" id="previewWrapper">
+                    <button class="preview-expand" id="togglePreview" title="Expandir / Contraer"> ⛶</button>
+                    <h3 style="margin-top:30px;">👁 Vista previa de la Addenda</h3>
+                    <pre id="preview" class="preview">Cargando…</pre>
+                </div>
+                <!-- BOTÓN FINAL -->
+                <button id="generateBtn" disabled>Generar CFDI con Addenda</button>
             </div>
 
-            <form id="instanceForm">
-                <?php renderFields([$structure], ''); ?>
-            </form>
-
-        </div>
-
-        <!-- PREVIEW + BOTÓN -->
-       <div class="preview-column">
-
-    <!-- FACTURA DESTINO -->
-    <div class="target-invoice">
-        <h3>📄 Factura destino</h3>
-        <p class="note">
-            Sube la factura (CFDI) a la que se le agregará esta addenda.
-            Esta factura no debe contener Addenda.
-        </p>
-
-        <input type="file"
-               id="targetCfdi"
-               accept=".xml">
-
-        <div class="file-status" id="targetCfdiStatus">
-            No se ha seleccionado ningún archivo.
         </div>
     </div>
-
-    <!-- PREVIEW -->
-    <div class="preview-wrapper" id="previewWrapper">
-
-    <button class="preview-expand" id="togglePreview" title="Expandir / Contraer">
-        ⛶
-    </button>
-
-    <h3 style="margin-top:30px;">👁 Vista previa de la Addenda</h3>
-
-    <pre id="preview" class="preview">Cargando…</pre>
-
-    </div>
-
-    <!-- BOTÓN FINAL -->
-    <button id="generateBtn" disabled>
-        Generar CFDI con Addenda
-    </button>
 </div>
-
-    </div>
-</div>
-
 <script>
 const form = document.getElementById('instanceForm');
 const previewBox = document.getElementById('preview');
@@ -406,10 +182,14 @@ function getValues() {
     const values = {};
 
     form.querySelectorAll('.addenda-input').forEach(input => {
-        values[input.dataset.field] = {
-            value: input.value,
-            source: input.getAttribute('data-source')
-        };
+        const key = input.dataset.field;
+
+        if (typeof key === "string" && key.length > 0) {
+            values[key] = {
+                value: input.value,
+                source: input.getAttribute('data-source')
+            };
+        }
         console.log({
         field: input.dataset.field,
         value: input.value,
@@ -443,47 +223,55 @@ document.getElementById('generateBtn').addEventListener('click', async function 
 
     const xmlAddenda = previewBox.textContent.trim();
 
-    // 🚨 VALIDACIÓN CRÍTICA
-    if (
-        !xmlAddenda ||
-        xmlAddenda.startsWith('❌') ||
-        !xmlAddenda.startsWith('<')
-    ) {
-        alert('El preview no es válido. Revisa los datos antes de generar.');
+    if (!xmlAddenda || !xmlAddenda.startsWith('<')) {
+        alert('El preview no es válido.');
         return;
     }
+
     const targetFile = targetCfdiInput.files[0];
 
     const formData = new FormData();
     formData.append('addenda_xml', xmlAddenda);
     formData.append('cfdi', targetFile);
 
-    const res = await fetch('/addendas/backend/public/generate_final_cfdi.php', {
+    // ✅ generar CFDI
+    const res = await fetch('/addendas/backend/public/generate_cfdi_raw.php', {
         method: 'POST',
         body: formData
     });
 
-    if (!res.ok) {
+    const text = await res.text();
+
+    console.log("RAW RESPONSE:", text);
+
+    let data;
+
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        console.error("Respuesta inválida:", text);
+        alert("Error del servidor:\n" + text);
+        return;
+    }
+
+    if (!res.ok || !data.xml) {
         alert('Error generando CFDI');
         return;
     }
 
-    const xml = await res.text();
-
-    // ✅ guardar en sesión (nuevo endpoint)
+    // ✅ guardar en BD
     const fdStore = new FormData();
-    fdStore.append('xml', xml);
+    fdStore.append('xml', data.xml);
 
-    const storeRes = await fetch('/addendas/backend/public/store_generated_cfdi.php', {
+    const storeRes = await fetch('/addendas/backend/public/save_generated_cfdi.php', {
         method: 'POST',
         body: fdStore
     });
 
-    const storeText = await storeRes.text();
-    console.log("STORE:", storeText);
+    const saved = await storeRes.json();
 
-    // ✅ redirigir a página final
-    window.location.href = '/addendas/frontend/cfdi_success.php';
+    // ✅ redirect final
+    window.location.href = '/addendas/frontend/cfdi_success.php?id=' + saved.id;
 });
 
 const targetCfdiInput = document.getElementById('targetCfdi');
@@ -513,7 +301,9 @@ targetCfdiInput.addEventListener('change', function () {
 
     statusBox.textContent = 'Factura cargada: ' + file.name;
     targetCfdiLoaded = true;
-    generateBtn.disabled = false;
+    if (targetCfdiLoaded && previewBox.textContent.startsWith('<')) {
+        generateBtn.disabled = false;
+    }
 
     // Enviar CFDI destino al backend para habilitar autofill
 const fd = new FormData();
@@ -590,17 +380,15 @@ function onAutofillSelect(event) {
     // ✅ guardar explícitamente en atributo HTML
     input.setAttribute('data-source', path);
 }
+
 function updatePreview() {
 
-    // Incrementar ID de request (marca este request como el más reciente)
     const requestId = ++previewRequestId;
 
-    // Cancelar request anterior si existe
     if (previewAbortController) {
         previewAbortController.abort();
     }
 
-    // Crear nuevo controller
     previewAbortController = new AbortController();
 
     fetch('/addendas/backend/public/preview_addenda.php', {
@@ -612,16 +400,27 @@ function updatePreview() {
     .then(response => response.text())
     .then(xml => {
 
-        // ✅ SOLO pintar si este request es el último
-        if (requestId === previewRequestId) {
-            previewBox.textContent = xml;
+        console.log("PREVIEW:", xml);
+
+        if (requestId !== previewRequestId) return;
+
+        if (!xml || xml.startsWith('Notice') || xml.startsWith('Warning')) {
+            previewBox.textContent = '❌ Error en preview:\n' + xml;
+            return;
+        }
+
+        previewBox.textContent = xml;
+
+        // ✅ habilitar botón SOLO si también hay CFDI cargado
+        if (targetCfdiLoaded && xml.startsWith('<')) {
+            generateBtn.disabled = false;
         }
 
     })
     .catch(error => {
-        // Ignorar abortos intencionales
         if (error.name !== 'AbortError') {
             console.error('Preview error:', error);
+            previewBox.textContent = '❌ Error cargando preview';
         }
     });
 }
@@ -675,6 +474,5 @@ function hideAutofillWarning() {
     if (w) w.style.display = 'none';
 }
 </script>
-
 </body>
 </html>

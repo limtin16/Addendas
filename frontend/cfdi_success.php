@@ -1,99 +1,81 @@
 <?php
 session_start();
+require_once dirname(__DIR__) . '/backend/db.php';
 
-if (!isset($_SESSION['generated_cfdi_xml'])) {
-    die("No hay CFDI generado");
+// ✅ Validar login
+if (!isset($_SESSION['user_id'])) {
+    header("Location: /addendas/frontend/login.php");
+    exit;
+}
+
+$userId = $_SESSION['user_id'];
+$id = $_GET['id'] ?? null;
+
+if (!$id) {
+    die("❌ ID no proporcionado");
+}
+
+// ✅ Obtener CFDI
+$stmt = $conn->prepare("
+    SELECT id, filename, token, created_at
+    FROM generated_cfdis
+    WHERE id = ? AND user_id = ?
+");
+$stmt->bind_param("ii", $id, $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+$cfdi = $result->fetch_assoc();
+
+if (!$cfdi) {
+    die("❌ CFDI no encontrado o no autorizado");
 }
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>CFDI Generado</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            background: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            padding-top: 50px;
-        }
-
-        .box {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 400px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .btn {
-            display: block;
-            margin: 10px 0;
-            padding: 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            color: white;
-        }
-
-        .download {
-            background: #007bff;
-        }
-
-        .save {
-            background: #28a745;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>CFDI generado</title>
+    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 </head>
-
 <body>
 
-<div class="box">
+<?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-    <h2>✅ CFDI generado con éxito</h2>
+<div class="main">
+    <div class="container success-container">
 
-    <p>
-    🆔 ID de recuperación:<br>
-    <strong><?= $_SESSION['generated_cfdi_token'] ?></strong>
-    </p>
+        <div class="card success-box">
 
-    <p style="font-size:13px; color:#666;">
-    Guarda este ID. Podrás recuperar tu CFDI más adelante.
-    </p>
+            <h2>✅ CFDI generado con éxito</h2>
 
-    <a href="/addendas/backend/public/download_cfdi.php" class="btn download">
-        Descargar CFDI
-    </a>
+            <p class="note">
+                Tu CFDI fue generado correctamente.  
+                Puedes descargarlo o guardarlo para uso posterior.
+            </p>
 
-    <?php if (empty($_SESSION['using_template'])): ?>
+            <hr>
 
-    <h3>¿Guardar como template?</h3>
+            <p><b>ID:</b> <?= $cfdi['id'] ?></p>
+            <p><b>Archivo:</b> <?= htmlspecialchars($cfdi['filename']) ?></p>
+            <p><b>Fecha:</b> <?= $cfdi['created_at'] ?></p>
 
-    <form action="/addendas/backend/public/save_template_db.php" method="POST">
-        <input type="text" name="name" placeholder="Nombre del template" required>
-        <button class="btn save">Guardar template</button>
-    </form>
+            <br>
 
-    <?php endif; ?>
+            <a href="/addendas/backend/public/download_cfdi_by_id.php?id=<?= $cfdi['id'] ?>" class="btn blue">
+                ⬇ Descargar CFDI
+            </a>
 
-    <a href="/addendas/frontend/dashboard.php">
-        ⬅ Volver al dashboard
-    </a>
+            <br><br>
 
+            <a href="/addendas/frontend/dashboard.php" class="btn green">
+                ➡ Volver al dashboard
+            </a>
+
+        </div>
+
+    </div>
 </div>
 
- <?php unset($_SESSION['using_template']); ?>
-
 </body>
-<script>
-function confirmGuardarTemplate() {
-
-    return confirm(
-        "¿Estás seguro de guardar este template?\n\n" +
-        "Si no has descargado el CFDI, podrías perderlo."
-    );
-}
-</script>
 </html>

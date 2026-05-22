@@ -7,12 +7,9 @@ if (!isset($_POST['xml'])) {
 }
 
 $xml = $_POST['xml'];
-
 $token = bin2hex(random_bytes(16));
 $filename = "cfdi_" . $token . ".xml";
-
 $path = dirname(__DIR__) . "/src/storage/cfdi_generated/" . $filename;
-
 $result = file_put_contents($path, $xml);
 
 if ($result === false) {
@@ -26,7 +23,6 @@ if ($result === false) {
 }
 
 $userId = $_SESSION['user_id'] ?? null;
-
 $stmt = $conn->prepare("
     INSERT INTO generated_cfdis (user_id, token, filename)
     VALUES (?, ?, ?)

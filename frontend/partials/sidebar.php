@@ -19,7 +19,7 @@ $isLogged = isset($_SESSION['user_id']);
         <a href="#">💳 Comprar créditos</a>
         <a href="#">📦 Mis Planes</a>
         <a href="/addendas/frontend/account_settings.php">⚙️ Configuración</a>
-        <a href="/addendas/frontend/logout.php">🚪 Salir</a>
+        <a href="/addendas/backend/public/logout.php">🚪 Salir</a>
 
     <?php else: ?>
 

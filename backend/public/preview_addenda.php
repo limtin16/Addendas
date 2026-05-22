@@ -8,6 +8,9 @@ require_once BACKEND_ROOT . '/src/Services/CfdiValueResolver.php';
 use App\Services\CFDIParserService;
 use App\Services\CfdiValueResolver;
 
+ob_clean();
+header('Content-Type: text/plain');
+
 // ===============================
 // ✅ VALIDACIÓN SEGURA
 // ===============================
@@ -140,8 +143,5 @@ applyValues($doc->documentElement, $input, $resolver);
 $output = $doc->saveXML($doc->documentElement);
 
 // ✅ limpieza de espacios
-$output = trim($output);
-
-echo $output;
-
+echo trim($output);
 exit;

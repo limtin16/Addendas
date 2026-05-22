@@ -1,124 +1,74 @@
 <?php
-// select_mode.php
 session_start();
 unset($_SESSION['using_template']);
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Crear Addenda – Seleccionar modo</title>
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f5f5f5;
-    padding: 40px;
-}
+<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 
-.container {
-    max-width: 800px;
-    margin: auto;
-}
-
-h1 {
-    text-align: center;
-}
-
-.mode-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 40px;
-}
-
-.mode-card {
-    background: #fff;
-    padding: 25px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: center;
-}
-
-.mode-card:hover {
-    border-color: #0078d4;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.mode-card.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.mode-icon {
-    font-size: 40px;
-    margin-bottom: 15px;
-}
-
-.mode-title {
-    font-weight: bold;
-    font-size: 18px;
-    margin-bottom: 10px;
-}
-
-.mode-desc {
-    font-size: 14px;
-    color: #555;
-}
-</style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- ✅ SIDEBAR -->
+<?php include __DIR__ . '/partials/sidebar.php'; ?>
 
-<h1>¿Cómo deseas crear la addenda?</h1>
+<!-- ✅ CONTENIDO -->
+<div class="main">
 
-<div class="mode-grid">
+    <div class="container">
 
-    <!-- OPCIÓN 1: MANUAL -->
-    <div class="mode-card" onclick="goManual()">
-        <div class="mode-icon">🛠</div>
-        <div class="mode-title">Crear manualmente</div>
-        <div class="mode-desc">
-            Usa el wizard paso a paso para definir la addenda desde cero.
+        <h2>¿Cómo deseas crear la addenda?</h2>
+
+        <div class="mode-grid">
+
+            <!-- MANUAL -->
+            <div class="mode-card" onclick="goManual()">
+                <div class="mode-icon">🛠</div>
+                <div class="mode-title">Crear manualmente</div>
+                <div class="mode-desc">
+                    Usa el wizard paso a paso para definir la addenda desde cero.
+                </div>
+            </div>
+
+            <!-- SUBIR XML -->
+            <div class="mode-card" onclick="goUpload()">
+                <div class="mode-icon">📄</div>
+                <div class="mode-title">Subir addenda o CFDI</div>
+                <div class="mode-desc">
+                    Analiza una addenda existente y recrea la plantilla automáticamente.
+                </div>
+            </div>
+
+            <!-- XSD -->
+            <div class="mode-card" onclick="goXsd()">
+                <div class="mode-icon">📐</div>
+                <div class="mode-title">Subir XSD</div>
+                <div class="mode-desc">
+                    Genera la addenda automáticamente a partir de un archivo XSD.
+                </div>
+            </div>
+
         </div>
-    </div>
 
-    <!-- OPCIÓN 2: SUBIR XML -->
-    <div class="mode-card" onclick="goUpload()">
-        <div class="mode-icon">📄</div>
-        <div class="mode-title">Subir addenda o CFDI</div>
-        <div class="mode-desc">
-            Analiza una addenda existente y recrea la plantilla automáticamente.
-        </div>
     </div>
-
-    <!-- OPCIÓN 3: XSD (DESHABILITADA) -->
-    <div class="mode-card" onclick="goXsd()">
-    <div class="mode-icon">📐</div>
-    <div class="mode-title">Subir XSD</div>
-    <div class="mode-desc">
-        Genera la addenda automáticamente a partir de un archivo XSD.
-    </div>
-</div>
-
-</div>
 
 </div>
 
 <script>
 function goManual() {
-    // Flujo actual existente
-    window.location.href = '/addendas/frontend/wizard_step1.html';
+    window.location.href = '/addendas/frontend/wizard_step1.php';
 }
 
 function goUpload() {
-    // Nuevo flujo que implementaremos ahora
     window.location.href = '/addendas/frontend/upload_addenda.php';
 }
+
 function goXsd() {
     window.location.href = '/addendas/frontend/upload_xsd.php';
 }
