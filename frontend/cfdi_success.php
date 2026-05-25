@@ -1,34 +1,68 @@
 <?php
 session_start();
+
+// 🔥 BLOQUEAR CACHE DEL NAVEGADOR
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+header("Expires: 0");
+
 require_once dirname(__DIR__) . '/backend/db.php';
 
 // ✅ Validar login
-if (!isset($_SESSION['user_id'])) {
-    header("Location: /addendas/frontend/login.php");
+$isLogged = !empty($_SESSION['user_id']);
+$userId = $_SESSION['user_id'] ?? null;
+
+if (!$userId) {
+    $isLogged = false;
+}
+
+$isGuest = isset($_SESSION['cfdi_generated']); 
+
+if (!$isLogged && !$isGuest) {
+    header("Location: /addendas/frontend/select_mode.php");
     exit;
 }
 
-$userId = $_SESSION['user_id'];
+$userId = $_SESSION['user_id'] ?? null;
+$cfdi = null;
+
 $id = $_GET['id'] ?? null;
 
 if (!$id) {
     die("❌ ID no proporcionado");
 }
 
-// ✅ Obtener CFDI
-$stmt = $conn->prepare("
-    SELECT id, filename, token, created_at
-    FROM generated_cfdis
-    WHERE id = ? AND user_id = ?
-");
-$stmt->bind_param("ii", $id, $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$cfdi = $result->fetch_assoc();
+if ($isLogged) {
 
-if (!$cfdi) {
-    die("❌ CFDI no encontrado o no autorizado");
-}
+    $stmt = $conn->prepare("
+        SELECT id, filename, token, created_at
+        FROM generated_cfdis
+        WHERE id = ? AND user_id = ?
+    ");
+    $stmt->bind_param("ii", $id, $userId);
+
+    } else {
+
+        // ✅ visitante → sin filtro user_id
+        $stmt = $conn->prepare("
+            SELECT id, filename, token, created_at
+            FROM generated_cfdis
+            WHERE id = ?
+        ");
+        $stmt->bind_param("i", $id);
+
+    }
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $cfdi = $result->fetch_assoc();
+
+    if (!$cfdi) {
+        die("❌ CFDI no encontrado");
+    }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -56,26 +90,51 @@ if (!$cfdi) {
 
             <hr>
 
-            <p><b>ID:</b> <?= $cfdi['id'] ?></p>
-            <p><b>Archivo:</b> <?= htmlspecialchars($cfdi['filename']) ?></p>
-            <p><b>Fecha:</b> <?= $cfdi['created_at'] ?></p>
+            <p><b>ID:</b> <?php echo $cfdi['id'] ?></p>
+            <p><b>Archivo:</b> <?php echo htmlspecialchars($cfdi['filename']) ?></p>
+            <p><b>Fecha:</b> <?php echo $cfdi['created_at'] ?></p>
 
             <br>
 
-            <a href="/addendas/backend/public/download_cfdi_by_id.php?id=<?= $cfdi['id'] ?>" class="btn blue">
+            <a href="/addendas/backend/public/download_cfdi_by_id.php?id=<?php echo $cfdi['id'] ?>" class="btn blue">
                 ⬇ Descargar CFDI
             </a>
 
             <br><br>
 
+            <?php if ($isLogged): ?>
+
             <a href="/addendas/frontend/dashboard.php" class="btn green">
                 ➡ Volver al dashboard
             </a>
+
+            <?php else: ?>
+
+            <a href="/addendas/frontend/select_mode.php" class="btn green">
+                ➡ Volver a pantalla principal
+            </a>
+
+            <?php endif; ?>
 
         </div>
 
     </div>
 </div>
+<script>
+// 🔥 bloquear navegación hacia atrás
+history.pushState(null, null, location.href);
+window.addEventListener('popstate', function () {
+    history.pushState(null, null, location.href);
+});
 
+window.addEventListener('pageshow', function (event) {
+
+    if (event.persisted) {
+        window.location.reload();
+    }
+
+});
+
+</script>
 </body>
 </html>

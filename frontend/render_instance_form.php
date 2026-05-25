@@ -1,8 +1,10 @@
 <?php
 session_start();
 
+// 🔒 si ya no existe la instancia → redirigir
 if (!isset($_SESSION['addenda_instance']['structure'])) {
-    die('❌ No hay una addenda cargada para instanciar.');
+    header("Location: /addendas/frontend/select_mode.php");
+    exit;
 }
 
 $structure = $_SESSION['addenda_instance']['structure'];
@@ -169,6 +171,9 @@ function renderFields(array $nodes, string $prefix = ''): void
     </div>
 </div>
 <script>
+const isLogged = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+</script>
+<script>
     document.addEventListener('DOMContentLoaded', () => {
     checkCreditsAndToggleButton();
 });
@@ -210,9 +215,12 @@ function getValues() {
 
 function checkCreditsAndToggleButton() {
 
-if (userCredits > 0) {
-    removeNoCreditsMessage();
-}
+    // ✅ visitante: no hay créditos
+    if (!isLogged) {
+        userCredits = null;
+        updateGenerateButtonState();
+        return;
+    }
 
     fetch('/addendas/backend/public/get_credits.php')
         .then(r => r.json())
@@ -237,14 +245,14 @@ function updateGenerateButtonState() {
 
     const btn = document.getElementById('generateBtn');
 
-    // ✅ solo muestra mensaje si REALMENTE no hay créditos
-    if (userCredits !== null && userCredits <= 0) {
+    // ✅ usuario con créditos
+    if (isLogged && userCredits !== null && userCredits <= 0) {
         btn.disabled = true;
         showNoCreditsMessage();
         return;
     }
 
-    // ✅ lógica normal del flujo
+    // ✅ flujo normal (incluye visitante)
     if (
         !targetCfdiLoaded ||
         !previewBox.textContent.startsWith('<')
@@ -316,8 +324,6 @@ document.getElementById('generateBtn').addEventListener('click', async function 
 
     const text = await res.text();
 
-    console.log("RAW RESPONSE:", text);
-
     let data;
 
     try {
@@ -328,8 +334,22 @@ document.getElementById('generateBtn').addEventListener('click', async function 
         return;
     }
 
+    // ✅ manejar errores correctamente
     if (!res.ok || !data.xml) {
-        alert('Error generando CFDI');
+
+        if (data.error === "No autorizado") {
+            alert("⚠️ Tu sesión de pago ya fue utilizada.\nDebes pagar nuevamente.");
+
+            window.location.href = "/addendas/frontend/select_mode.php";
+            return;
+        }
+
+        if (data.error) {
+            alert("❌ " + data.error);
+            return;
+        }
+
+        alert("Error generando CFDI");
         return;
     }
 
@@ -342,8 +362,22 @@ document.getElementById('generateBtn').addEventListener('click', async function 
         body: fdStore
     });
 
-    const saved = await storeRes.json();
+    const storeText = await storeRes.text();
 
+    let saved;
+
+    try {
+        saved = JSON.parse(storeText);
+    } catch (e) {
+        console.error("Error guardando CFDI:", storeText);
+        alert("Error guardando CFDI:\n" + storeText);
+        return;
+    }
+
+    if (saved.error) {
+        alert("❌ " + saved.error);
+        return;
+    }
     alert(`✅ CFDI generado correctamente`);
     // ✅ actualizar créditos ANTES del redirect
     checkCreditsAndToggleButton();
@@ -479,8 +513,6 @@ function updatePreview() {
     .then(response => response.text())
     .then(xml => {
 
-        console.log("PREVIEW:", xml);
-
         if (requestId !== previewRequestId) return;
 
         if (!xml || xml.startsWith('Notice') || xml.startsWith('Warning')) {
@@ -552,6 +584,15 @@ function hideAutofillWarning() {
     const w = document.getElementById('autofillWarning');
     if (w) w.style.display = 'none';
 }
+
+// 🔥 detectar navegación desde cache (back/forward)
+window.addEventListener('pageshow', function(event) {
+
+    if (event.persisted) {
+        // recarga la página completamente
+        window.location.reload();
+    }
+});
 </script>
 </body>
 </html>

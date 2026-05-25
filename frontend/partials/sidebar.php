@@ -13,21 +13,36 @@ $isLogged = isset($_SESSION['user_id']);
             <small><?= htmlspecialchars($_SESSION['user_email']) ?></small>
         </div>
 
-        <a href="/addendas/frontend/dashboard.php">🏠 Dashboard</a>
-        <a href="/addendas/frontend/cfdi_list.php">📄 Mis CFDIs</a>
-        <a href="/addendas/frontend/templates_list.php">📁 Mis Templates</a>
-        <a href="/addendas/frontend/select_mode.php">➕ Crear Addenda</a>
-        <a href="/addendas/frontend/buy_credits.php">💳 Comprar créditos</a>
-        <a href="/addendas/frontend/my_plans.php">📦 Mis Planes</a>
-        <a href="/addendas/frontend/account_settings.php">⚙️ Configuración</a>
-        <a href="/addendas/backend/public/logout.php">🚪 Salir</a>
+        <!-- ✅ MENÚ PRINCIPAL -->
+        <div class="menu-top">
+            <a href="/addendas/frontend/dashboard.php">🏠 Dashboard</a>
+            <a href="/addendas/frontend/cfdi_list.php">📄 Mis CFDIs</a>
+            <a href="/addendas/frontend/templates_list.php">📁 Mis Templates</a>
+            <a href="/addendas/frontend/select_mode.php">➕ Crear Addenda</a>
+            <a href="/addendas/frontend/buy_credits.php">💳 Comprar créditos</a>
+            <a href="/addendas/frontend/my_plans.php">📦 Mis Planes</a>
+            <a href="#">🧾 Facturación</a>
+            <a href="/addendas/frontend/account_settings.php">⚙️ Configuración</a>
+            <a href="/addendas/backend/public/logout.php">🚪 Salir</a>
+        </div>
+
+        <!-- ✅ AYUDA (SIEMPRE ABAJO) -->
+        <div class="menu-bottom">
+            <a href="#">❓ Ayuda</a>
+        </div>
 
     <?php else: ?>
 
-        <a href="/addendas/frontend/select_mode.php">➕ Crear Addenda</a>
-        <a href="/addendas/frontend/cfdi_list.php">📄 CFDIs</a>
-        <a href="/addendas/frontend/register.php">📝 Registrarse</a>
-        <a href="/addendas/frontend/login.php">🔐 Login</a>
+        <div class="menu-top">
+            <a href="/addendas/frontend/select_mode.php">➕ Crear Addenda</a>
+            <a href="/addendas/frontend/recover_cfdi.php">📄 Recuperar CFDIs</a>
+            <a href="/addendas/frontend/register.php">📝 Registrarse</a>
+            <a href="/addendas/frontend/login.php">🔐 Login</a>
+        </div>
+
+        <div class="menu-bottom">
+            <a href="#">❓ Ayuda</a>
+        </div>
 
     <?php endif; ?>
 

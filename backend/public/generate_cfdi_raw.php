@@ -1,25 +1,35 @@
 <?php
 session_start();
 
+header('Content-Type: application/json');
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 require_once dirname(__DIR__) . '../db.php';
 require_once dirname(__DIR__) . '../src/Services/CreditService.php';
 
 $userId = $_SESSION['user_id'] ?? null;
+$isGuestPaid = $_SESSION['guest_paid'] ?? false;
 
-if (!$userId) {
+if (!$userId && !$isGuestPaid) {
     echo json_encode(['error' => 'No autorizado']);
     exit;
 }
 
 $creditService = new CreditService($conn);
 
-$available = $creditService->getAvailableCredits($userId);
+// ✅ SOLO validar créditos si es usuario logueado
+if ($userId) {
 
-if ($available <= 0) {
-    echo json_encode([
-        'error' => 'No tienes créditos disponibles'
-    ]);
-    exit;
+    $available = $creditService->getAvailableCredits($userId);
+
+    if ($available <= 0) {
+        echo json_encode([
+            'error' => 'No tienes créditos disponibles'
+        ]);
+        exit;
+    }
+
 }
 
 header('Content-Type: application/json');
@@ -125,19 +135,33 @@ if (!$finalCfdi || trim($finalCfdi) === '') {
     exit;
 }
 
-// ✅ SOLO AHÍ consumir crédito
-if (!$creditService->consumeOne(
-    $userId,
-    'Generación de CFDI con Addenda'
-)) {
-    echo json_encode([
-        'error' => 'No se pudo consumir el crédito'
-    ]);
-    exit;
+// ✅ SOLO consumir créditos si es usuario
+if ($userId) {
+
+    if (!$creditService->consumeOne(
+        $userId,
+        'Generación de CFDI con Addenda'
+    )) {
+        echo json_encode([
+            'error' => 'No se pudo consumir el crédito'
+        ]);
+        exit;
+    }
+
+} else {
+    // ✅ visitante: solo permitir UNA vez
+    unset($_SESSION['guest_paid']);
 }
 
-// ===============================
+
+// ✅ marcar que generó CFDI
+$_SESSION['cfdi_generated'] = true;
+
+// respuesta
 echo json_encode([
     'xml' => $finalCfdi
 ]);
+unset($_SESSION['addenda_instance']);
+unset($_SESSION['target_cfdi_xml']);
+
 exit;

@@ -59,18 +59,32 @@ unset($_SESSION['using_template']);
     </div>
 
 </div>
-
 <script>
+const isLogged = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+</script>
+<script>
+    function goWithPayment(destination) {
+
+    if (isLogged) {
+        window.location.href = destination;
+        return;
+    }
+
+    // 🚀 redirige a checkout con destino
+    const url = '/addendas/frontend/guest_checkout.php?redirect=' + encodeURIComponent(destination);
+
+    window.location.href = url;
+}
 function goManual() {
-    window.location.href = '/addendas/frontend/wizard_step1.php';
+    goWithPayment('/addendas/frontend/wizard_step1.php');
 }
 
 function goUpload() {
-    window.location.href = '/addendas/frontend/upload_addenda.php';
+    goWithPayment('/addendas/frontend/upload_addenda.php');
 }
 
 function goXsd() {
-    window.location.href = '/addendas/frontend/upload_xsd.php';
+    goWithPayment('/addendas/frontend/upload_xsd.php');
 }
 </script>
 

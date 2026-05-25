@@ -2,28 +2,46 @@
 session_start();
 require_once dirname(__DIR__) . '/db.php';
 
-if (!isset($_SESSION['user_id'])) {
-    die("No autorizado");
-}
+// ✅ detectar usuario
+$isLogged = !empty($_SESSION['user_id']);
+$userId = $_SESSION['user_id'] ?? null;
 
 $id = $_GET['id'] ?? 0;
-$userId = $_SESSION['user_id'];
 
-// ✅ validar que el CFDI pertenece al usuario
-$stmt = $conn->prepare("
-    SELECT filename FROM generated_cfdis 
-    WHERE id = ? AND user_id = ?
-");
+if (!$id) {
+    die("ID inválido");
+}
 
-$stmt->bind_param("ii", $id, $userId);
+// ✅ query dinámica
+if ($isLogged) {
+
+    $stmt = $conn->prepare("
+        SELECT filename 
+        FROM generated_cfdis 
+        WHERE id = ? AND user_id = ?
+    ");
+    $stmt->bind_param("ii", $id, $userId);
+
+} else {
+
+    // ✅ visitante → solo por ID
+    $stmt = $conn->prepare("
+        SELECT filename 
+        FROM generated_cfdis 
+        WHERE id = ?
+    ");
+    $stmt->bind_param("i", $id);
+
+}
+
 $stmt->execute();
-
 $res = $stmt->get_result()->fetch_assoc();
 
 if (!$res) {
     die("CFDI no encontrado");
 }
 
+// ✅ ruta
 $path = dirname(__DIR__) . "/src/storage/cfdi_generated/" . $res['filename'];
 
 if (!file_exists($path)) {

@@ -703,3 +703,36 @@ form {
     padding: 6px 10px;
     font-size: 12px;
 }
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.menu-top {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.menu-bottom {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+}
+
+.warning-box {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    padding: 12px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.plan-summary {
+    margin: 15px 0;
+    font-size: 16px;
+}

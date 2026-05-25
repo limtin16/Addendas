@@ -1,29 +1,31 @@
 <?php
 session_start();
-require_once dirname(__DIR__) . '/db.php';
 
-if (!isset($_SESSION['user_id'])) {
-    die("No autorizado");
-}
+header('Content-Type: application/json');
 
-$userId = $_SESSION['user_id'];
+require_once dirname(__DIR__) . '../db.php';
+
+$userId = $_SESSION['user_id'] ?? null;
+
+// ✅ XML obligatorio
 $xml = $_POST['xml'] ?? null;
 
 if (!$xml) {
-    die("No XML");
+    echo json_encode(['error' => 'No XML']);
+    exit;
 }
 
-/* ✅ generar filename */
+// ✅ generar filename
 $filename = 'cfdi_' . time() . '.xml';
 
-/* ✅ guardar archivo físico */
-$path = dirname(__DIR__) . '/src/storage/cfdi_generated/' . $filename;
+// ✅ guardar archivo físico
+$path = dirname(__DIR__) . '../src/storage/cfdi_generated/' . $filename;
 file_put_contents($path, $xml);
 
-/* ✅ generar token */
+// ✅ token (para recuperación futura)
 $token = bin2hex(random_bytes(8));
 
-/* ✅ guardar en BD */
+// ✅ guardar en BD (👀 user_id puede ser NULL)
 $stmt = $conn->prepare("
     INSERT INTO generated_cfdis (user_id, filename, xml, token, created_at)
     VALUES (?, ?, ?, ?, NOW())
@@ -34,7 +36,7 @@ $stmt->execute();
 
 $id = $stmt->insert_id;
 
-/* ✅ devolver ID */
+// ✅ respuesta
 echo json_encode([
     "id" => $id
 ]);

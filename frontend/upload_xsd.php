@@ -1,3 +1,15 @@
+<?php
+// upload_xsd.php
+session_start();
+
+if (
+    !isset($_SESSION['user_id']) &&
+    !isset($_SESSION['guest_paid'])
+) {
+    header("Location: /addendas/frontend/select_mode.php");
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
