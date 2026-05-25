@@ -568,3 +568,74 @@ form {
     font-size: 13px;
     color: #777;
 }
+
+/* =========================
+   BUY CREDITS
+========================= */
+
+.header-center {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 25px;
+}
+
+.plan-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+}
+
+.plan-header h3 {
+    margin: 0 0 10px;
+}
+
+.plan-price {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.plan-unit {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+/* plan destacado */
+.plan-card.highlight {
+    border: 2px solid #007bff;
+    transform: scale(1.03);
+}
+
+/* badge */
+.badge {
+    display: inline-block;
+    background: #007bff;
+    color: white;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.credits-box {
+    margin-top: 15px;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    color: #1e3a8a;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+}

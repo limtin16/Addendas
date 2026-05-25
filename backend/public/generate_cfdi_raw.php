@@ -1,6 +1,27 @@
 <?php
 session_start();
 
+require_once dirname(__DIR__) . '/../db.php';
+require_once dirname(__DIR__) . '/../src/Services/CreditService.php';
+
+$userId = $_SESSION['user_id'] ?? null;
+
+if (!$userId) {
+    echo json_encode(['error' => 'No autorizado']);
+    exit;
+}
+
+$creditService = new CreditService($conn);
+
+$available = $creditService->getAvailableCredits($userId);
+
+if ($available <= 0) {
+    echo json_encode([
+        'error' => 'No tienes créditos disponibles'
+    ]);
+    exit;
+}
+
 header('Content-Type: application/json');
 
 // ===============================
@@ -96,8 +117,22 @@ $comprobante->appendChild($addendaNode);
 
 $finalCfdi = $doc->saveXML();
 
-// ===============================
-// ✅ RESPUESTA JSON
+// ✅ VALIDACIÓN FINAL (muy importante)
+if (!$finalCfdi || trim($finalCfdi) === '') {
+    echo json_encode([
+        'error' => 'Error generando CFDI'
+    ]);
+    exit;
+}
+
+// ✅ SOLO AHÍ consumir crédito
+if (!$creditService->consumeOne($userId)) {
+    echo json_encode([
+        'error' => 'No se pudo consumir el crédito'
+    ]);
+    exit;
+}
+
 // ===============================
 echo json_encode([
     'xml' => $finalCfdi
