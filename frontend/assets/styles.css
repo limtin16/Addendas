@@ -736,3 +736,81 @@ form {
     margin: 15px 0;
     font-size: 16px;
 }
+
+/* ============================= */
+/* ✅ BILLING LAYOUT */
+/* ============================= */
+
+.grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================= */
+/* ✅ SCROLLABLE CARD */
+/* ============================= */
+
+.card.scrollable {
+    max-height: 600px;
+    overflow-y: auto;
+}
+/* ✅ TABLA RESPONSIVA */
+.table-compact {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: fixed; /* 🔥 clave */
+}
+
+/* columnas */
+.table-compact th,
+.table-compact td {
+    padding: 6px;
+    border-bottom: 1px solid #eee;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* header */
+.table-compact th {
+    background: #f8f8f8;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/* hover */
+.table-compact tr:hover {
+    background: #fafafa;
+}
+
+/* ✅ columna archivo acotada */
+.table-compact td:nth-child(2) {
+    max-width: 120px;
+}
+
+/* ✅ columna fecha más compacta */
+.table-compact td:nth-child(3) {
+    max-width: 140px;
+}
+
+/* ✅ columna botón fija */
+.table-compact td:last-child {
+    width: 110px;
+    text-align: right;
+}
+
+/* ✅ botón compacto */
+.btn.small {
+    padding: 5px 6px;
+    font-size: 11px;
+}

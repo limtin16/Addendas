@@ -21,14 +21,14 @@ $isLogged = isset($_SESSION['user_id']);
             <a href="/addendas/frontend/select_mode.php">➕ Crear Addenda</a>
             <a href="/addendas/frontend/buy_credits.php">💳 Comprar créditos</a>
             <a href="/addendas/frontend/my_plans.php">📦 Mis Planes</a>
-            <a href="#">🧾 Facturación</a>
+            <a href="/addendas/frontend/billing.php">🧾 Facturación</a>
             <a href="/addendas/frontend/account_settings.php">⚙️ Configuración</a>
             <a href="/addendas/backend/public/logout.php">🚪 Salir</a>
         </div>
 
         <!-- ✅ AYUDA (SIEMPRE ABAJO) -->
         <div class="menu-bottom">
-            <a href="#">❓ Ayuda</a>
+            <a href="/addendas/frontend/help.php">❓ Ayuda</a>
         </div>
 
     <?php else: ?>
@@ -41,7 +41,7 @@ $isLogged = isset($_SESSION['user_id']);
         </div>
 
         <div class="menu-bottom">
-            <a href="#">❓ Ayuda</a>
+            <a href="/addendas/frontend/help.php">❓ Ayuda</a>
         </div>
 
     <?php endif; ?>
