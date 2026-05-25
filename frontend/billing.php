@@ -10,24 +10,39 @@ if (!$isLogged) {
     exit;
 }
 
-// ✅ cargar datos fiscales
+// ✅ datos fiscales
 $stmt = $conn->prepare("SELECT * FROM billing_profiles WHERE user_id = ?");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $data = $stmt->get_result()->fetch_assoc();
 $data = $data ?? [];
 
-// ✅ obtener CFDIs (compras)
+// ✅ compras (paquetes)
 $stmt = $conn->prepare("
-    SELECT id, filename, created_at
-    FROM generated_cfdis
+    SELECT id, credits, created_at
+    FROM user_credit_batches
     WHERE user_id = ?
     ORDER BY created_at DESC
     LIMIT 20
 ");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
-$cfdis = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$batches = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// ✅ solicitudes existentes
+$stmt = $conn->prepare("
+    SELECT purchase_id 
+    FROM invoice_requests
+    WHERE user_id = ?
+");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$requests = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$requestedIds = array_column($requests, 'purchase_id');
+
+// ✅ detectar si ya hay datos
+$hasData = !empty($data);
 ?>
 
 <!DOCTYPE html>
@@ -46,7 +61,7 @@ $cfdis = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 <div class="grid">
 
-<!-- ✅ TARJETA 1: DATOS FISCALES -->
+<!-- ✅ DATOS FISCALES -->
 <div class="card">
 
 <h2>🧾 Datos de Facturación</h2>
@@ -57,40 +72,68 @@ Guarda tus datos fiscales para generar facturas automáticamente.
 
 <hr>
 
-<form method="POST" action="/addendas/backend/public/save_billing.php">
+<form method="POST" action="/addendas/backend/public/save_billing.php" id="billingForm">
 
 <label>RFC</label>
-<input type="text" class="form-input" name="rfc" value="<?= $data['rfc'] ?? '' ?>" required>
+<input type="text" class="form-input <?= $hasData ? 'readonly' : '' ?>" 
+       name="rfc" value="<?= $data['rfc'] ?? '' ?>" 
+       <?= $hasData ? 'readonly' : '' ?> required>
 
 <label>Nombre / Razón Social</label>
-<input type="text" class="form-input" name="name" value="<?= $data['name'] ?? '' ?>" required>
+<input type="text" class="form-input <?= $hasData ? 'readonly' : '' ?>" 
+       name="name" value="<?= $data['name'] ?? '' ?>" 
+       <?= $hasData ? 'readonly' : '' ?> required>
 
 <label>Código Postal</label>
-<input type="text" class="form-input" name="postal_code" value="<?= $data['postal_code'] ?? '' ?>" required>
+<input type="text" class="form-input <?= $hasData ? 'readonly' : '' ?>" 
+       name="postal_code" value="<?= $data['postal_code'] ?? '' ?>" 
+       <?= $hasData ? 'readonly' : '' ?> required>
 
 <label>Régimen Fiscal</label>
-<input type="text" class="form-input" name="regime" value="<?= $data['regime'] ?? '' ?>" required>
+<input type="text" class="form-input <?= $hasData ? 'readonly' : '' ?>" 
+       name="regime" value="<?= $data['regime'] ?? '' ?>" 
+       <?= $hasData ? 'readonly' : '' ?> required>
 
 <label>Uso de CFDI</label>
-<input type="text" class="form-input" name="cfdi_use" value="<?= $data['cfdi_use'] ?? '' ?>" required>
+<input type="text" class="form-input <?= $hasData ? 'readonly' : '' ?>" 
+       name="cfdi_use" value="<?= $data['cfdi_use'] ?? '' ?>" 
+       <?= $hasData ? 'readonly' : '' ?> required>
 
 <label>Email</label>
-<input type="email" class="form-input" name="email" value="<?= $data['email'] ?? '' ?>" required>
+<input type="email" class="form-input <?= $hasData ? 'readonly' : '' ?>" 
+       name="email" value="<?= $data['email'] ?? '' ?>" 
+       <?= $hasData ? 'readonly' : '' ?> required>
 
 <label>
-    <input type="checkbox" name="auto_invoice" <?= !empty($data['auto_invoice']) ? 'checked' : '' ?>>
+    <input type="checkbox" name="auto_invoice"
+        <?= !empty($data['auto_invoice']) ? 'checked' : '' ?>
+        <?= $hasData ? 'disabled' : '' ?>>
     Generar facturas automáticamente
 </label>
 
 <br><br>
 
+<?php if ($hasData): ?>
+
+<button type="button" class="btn green" onclick="enableEdit(this)">
+    ✏️ Editar datos
+</button>
+
+<button type="submit" class="btn blue" id="saveBtn" style="display:none;">
+    💾 Guardar cambios
+</button>
+
+<?php else: ?>
+
 <button class="btn blue">💾 Guardar datos</button>
+
+<?php endif; ?>
 
 </form>
 
 </div>
 
-<!-- ✅ TARJETA 2: SOLICITAR FACTURA -->
+<!-- ✅ SOLICITAR FACTURA -->
 <div class="card scrollable">
 
 <h2>📄 Solicitar Factura</h2>
@@ -102,30 +145,42 @@ La factura será generada en un plazo máximo de 5 días.
 
 <hr>
 
-<?php if ($cfdis): ?>
+<?php if ($batches): ?>
 
 <table class="table-compact">
 
 <tr>
-    <th>ID</th>
-    <th>Archivo</th>
+    <th>ID Compra</th>
+    <th>Créditos</th>
     <th>Fecha</th>
     <th></th>
 </tr>
 
-<?php foreach ($cfdis as $c): ?>
+<?php foreach ($batches as $b): ?>
 
 <tr>
-    <td><?= $c['id'] ?></td>
-    <td title="<?= htmlspecialchars($c['filename']) ?>">
-    <?= htmlspecialchars($c['filename']) ?></td>
-    <td><?= $c['created_at'] ?></td>
+    <td><?= $b['id'] ?></td>
+    <td><?= $b['credits'] ?> créditos</td>
+    <td><?= $b['created_at'] ?></td>
     <td>
 
-        <form method="POST" action="/addendas/backend/public/request_invoice.php">
-            <input type="hidden" name="purchase_id" value="<?= $c['id'] ?>">
-            <button class="btn small">🧾</button>
-        </form>
+        <?php if (in_array($b['id'], $requestedIds)): ?>
+
+            <button class="btn small" disabled title="Factura ya solicitada">
+                ✅
+            </button>
+
+        <?php else: ?>
+
+            <form method="POST" action="/addendas/backend/public/request_invoice.php"
+                  onsubmit="return confirm('¿Deseas solicitar la factura de esta compra?');">
+
+                <input type="hidden" name="purchase_id" value="<?= $b['id'] ?>">
+                <button class="btn small">🧾</button>
+
+            </form>
+
+        <?php endif; ?>
 
     </td>
 </tr>
@@ -145,6 +200,24 @@ La factura será generada en un plazo máximo de 5 días.
 </div>
 </div>
 </div>
+
+<script>
+function enableEdit(button) {
+
+    document.querySelectorAll('#billingForm .form-input').forEach(el => {
+        el.removeAttribute('readonly');
+        el.classList.remove('readonly');
+    });
+
+    document.querySelectorAll('#billingForm input[type="checkbox"]').forEach(el => {
+        el.removeAttribute('disabled');
+    });
+
+    document.getElementById('saveBtn').style.display = 'inline-block';
+
+    button.style.display = 'none';
+}
+</script>
 
 </body>
 </html>
