@@ -25,9 +25,9 @@ class CreditService {
         return (int)($result['total'] ?? 0);
     }
 
-    public function consumeOne($userId) {
+    public function consumeOne($userId, $description = null) {
 
-        // ✅ obtener el lote que expira primero
+        // ✅ obtener lote más cercano a expirar
         $stmt = $this->conn->prepare("
             SELECT id, remaining_credits
             FROM user_credit_batches
@@ -43,17 +43,29 @@ class CreditService {
         $batch = $stmt->get_result()->fetch_assoc();
 
         if (!$batch) {
-            return false; // no hay créditos
+            return false;
         }
 
-        // ✅ descontar 1
+        $batchId = $batch['id'];
+
+        // ✅ descontar crédito
         $stmt = $this->conn->prepare("
             UPDATE user_credit_batches
             SET remaining_credits = remaining_credits - 1
             WHERE id = ?
         ");
 
-        $stmt->bind_param("i", $batch['id']);
+        $stmt->bind_param("i", $batchId);
+        $stmt->execute();
+
+        // ✅ registrar uso
+        $stmt = $this->conn->prepare("
+            INSERT INTO credit_usage_logs
+            (user_id, batch_id, credits_used, description)
+            VALUES (?, ?, 1, ?)
+        ");
+
+        $stmt->bind_param("iis", $userId, $batchId, $description);
         $stmt->execute();
 
         return true;

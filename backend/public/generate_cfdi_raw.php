@@ -126,7 +126,10 @@ if (!$finalCfdi || trim($finalCfdi) === '') {
 }
 
 // ✅ SOLO AHÍ consumir crédito
-if (!$creditService->consumeOne($userId)) {
+if (!$creditService->consumeOne(
+    $userId,
+    'Generación de CFDI con Addenda'
+)) {
     echo json_encode([
         'error' => 'No se pudo consumir el crédito'
     ]);

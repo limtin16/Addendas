@@ -680,3 +680,26 @@ form {
     background: #6b7280;
     color: white;
 }
+
+.plan-item {
+    transition: all 0.2s ease;
+}
+
+.plan-item:hover {
+    transform: translateY(-2px);
+}
+
+.credits-warning {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.btn.small {
+    padding: 6px 10px;
+    font-size: 12px;
+}
