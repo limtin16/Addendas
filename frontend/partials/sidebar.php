@@ -9,7 +9,8 @@ $isLogged = isset($_SESSION['user_id']);
     <?php if ($isLogged): ?>
 
         <div class="user">
-            👤 <?= $_SESSION['user_name'] ?? 'Usuario' ?>
+            👤<br>
+            <small><?= htmlspecialchars($_SESSION['user_email']) ?></small>
         </div>
 
         <a href="/addendas/frontend/dashboard.php">🏠 Dashboard</a>
@@ -17,7 +18,7 @@ $isLogged = isset($_SESSION['user_id']);
         <a href="/addendas/frontend/templates_list.php">📁 Mis Templates</a>
         <a href="/addendas/frontend/select_mode.php">➕ Crear Addenda</a>
         <a href="/addendas/frontend/buy_credits.php">💳 Comprar créditos</a>
-        <a href="#">📦 Mis Planes</a>
+        <a href="/addendas/frontend/my_plans.php">📦 Mis Planes</a>
         <a href="/addendas/frontend/account_settings.php">⚙️ Configuración</a>
         <a href="/addendas/backend/public/logout.php">🚪 Salir</a>
 

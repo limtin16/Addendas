@@ -169,14 +169,22 @@ function renderFields(array $nodes, string $prefix = ''): void
     </div>
 </div>
 <script>
+    document.addEventListener('DOMContentLoaded', () => {
+    checkCreditsAndToggleButton();
+});
 const form = document.getElementById('instanceForm');
 const previewBox = document.getElementById('preview');
 // Controlador global para cancelar previews anteriores
 let previewAbortController = null;
+let userCredits = null;
 
 // 👇 NUEVO: contador de requests
 let previewRequestId = 0;
 
+function removeNoCreditsMessage() {
+    const msg = document.getElementById('noCreditsMsg');
+    if (msg) msg.remove();
+}
 
 function getValues() {
     const values = {};
@@ -198,6 +206,72 @@ function getValues() {
     });
 
     return values;
+}
+
+function checkCreditsAndToggleButton() {
+
+if (userCredits > 0) {
+    removeNoCreditsMessage();
+}
+
+    fetch('/addendas/backend/public/get_credits.php')
+        .then(r => r.json())
+        .then(data => {
+
+            if (!data.ok) {
+                console.error('Error obteniendo créditos');
+                return;
+            }
+
+            userCredits = data.credits;
+
+            updateGenerateButtonState();
+
+        })
+        .catch(err => {
+            console.error('Error credits:', err);
+        });
+}
+
+function updateGenerateButtonState() {
+
+    const btn = document.getElementById('generateBtn');
+
+    // ✅ solo muestra mensaje si REALMENTE no hay créditos
+    if (userCredits !== null && userCredits <= 0) {
+        btn.disabled = true;
+        showNoCreditsMessage();
+        return;
+    }
+
+    // ✅ lógica normal del flujo
+    if (
+        !targetCfdiLoaded ||
+        !previewBox.textContent.startsWith('<')
+    ) {
+        btn.disabled = true;
+    } else {
+        btn.disabled = false;
+    }
+}
+
+function showNoCreditsMessage() {
+
+    if (document.getElementById('noCreditsMsg')) return;
+
+    const msg = document.createElement('div');
+
+    msg.id = 'noCreditsMsg';
+    msg.innerHTML = `
+        ⚠️ No tienes créditos disponibles.<br>
+        <a href="/addendas/frontend/buy_credits.php">Comprar créditos</a>
+    `;
+
+    msg.style.marginTop = '10px';
+    msg.style.color = '#b91c1c';
+    msg.style.fontSize = '14px';
+
+    document.getElementById('generateBtn').parentElement.appendChild(msg);
 }
 
 function escapeXml(str = '') {
@@ -270,6 +344,11 @@ document.getElementById('generateBtn').addEventListener('click', async function 
 
     const saved = await storeRes.json();
 
+    alert(`✅ CFDI generado correctamente`);
+    // ✅ actualizar créditos ANTES del redirect
+    checkCreditsAndToggleButton();
+
+
     // ✅ redirect final
     window.location.href = '/addendas/frontend/cfdi_success.php?id=' + saved.id;
 });
@@ -302,7 +381,7 @@ targetCfdiInput.addEventListener('change', function () {
     statusBox.textContent = 'Factura cargada: ' + file.name;
     targetCfdiLoaded = true;
     if (targetCfdiLoaded && previewBox.textContent.startsWith('<')) {
-        generateBtn.disabled = false;
+        updateGenerateButtonState();
     }
 
     // Enviar CFDI destino al backend para habilitar autofill
@@ -413,7 +492,7 @@ function updatePreview() {
 
         // ✅ habilitar botón SOLO si también hay CFDI cargado
         if (targetCfdiLoaded && xml.startsWith('<')) {
-            generateBtn.disabled = false;
+            updateGenerateButtonState();
         }
 
     })

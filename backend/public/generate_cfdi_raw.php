@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-require_once dirname(__DIR__) . '/../db.php';
-require_once dirname(__DIR__) . '/../src/Services/CreditService.php';
+require_once dirname(__DIR__) . '../db.php';
+require_once dirname(__DIR__) . '../src/Services/CreditService.php';
 
 $userId = $_SESSION['user_id'] ?? null;
 

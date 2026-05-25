@@ -9,7 +9,7 @@ if (!$email || !$password) {
     die("Faltan datos");
 }
 
-$stmt = $conn->prepare("SELECT id, password FROM users WHERE email = ?");
+$stmt = $conn->prepare("SELECT id, email, password FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 
@@ -19,6 +19,7 @@ $user = $result->fetch_assoc();
 if ($user && password_verify($password, $user['password'])) {
 
     $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_email'] = $user['email'];
 
     // ✅ redirige al sistema
     header("Location: /addendas/frontend/dashboard.php");
