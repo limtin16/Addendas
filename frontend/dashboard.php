@@ -3,15 +3,20 @@ session_start();
 
 require_once dirname(__DIR__) . '/backend/db.php';
 require_once dirname(__DIR__) . '/backend/src/Services/CreditService.php';
+require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
-$creditService = new CreditService($conn);
 
-$credits = $creditService->getAvailableCredits($_SESSION['user_id']);
-
+// ✅ validar sesión primero
 if (!isset($_SESSION['user_id'])) {
     header("Location: /addendas/frontend/login.php");
     exit;
 }
+
+$userId = requireAuthAndPrivacy($conn);
+
+// ✅ ahora sí usar servicios
+$creditService = new CreditService($conn);
+$credits = $creditService->getAvailableCredits($userId);
 ?>
 
 <!DOCTYPE html>

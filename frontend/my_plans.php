@@ -2,13 +2,16 @@
 session_start();
 
 require_once dirname(__DIR__) . '/backend/db.php';
+require_once dirname(__DIR__) . '/backend/helpers/auth.php';
+
+
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: /addendas/frontend/login.php");
     exit;
 }
 
-$userId = $_SESSION['user_id'];
+$userId = requireAuthAndPrivacy($conn);
 
 // ✅ obtener planes
 $stmt = $conn->prepare("

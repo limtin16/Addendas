@@ -1,9 +1,11 @@
 <?php
 session_start();
 require_once dirname(__DIR__) . '/backend/db.php';
+require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
 $isLogged = !empty($_SESSION['user_id']);
-$userId = $_SESSION['user_id'] ?? null;
+//$userId = $_SESSION['user_id'] ?? null;
+$userId = requireAuthAndPrivacy($conn);
 
 if (!$isLogged) {
     header("Location: /addendas/frontend/login.php");

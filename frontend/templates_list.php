@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../backend/db.php';
+require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
 // ✅ PROTEGER: solo usuarios logueados
 if (!isset($_SESSION['user_id'])) {
@@ -8,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$userId = $_SESSION['user_id'];
+$userId = requireAuthAndPrivacy($conn);
 
 // ✅ obtener templates del usuario
 $stmt = $conn->prepare("

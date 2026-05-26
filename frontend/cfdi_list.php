@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once __DIR__ . '/../backend/db.php';
+require_once dirname(__DIR__) . '/backend/helpers/auth.php';
+
 
 // ✅ SOLO USUARIOS LOGUEADOS
 if (!isset($_SESSION['user_id'])) {
@@ -8,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$userId = $_SESSION['user_id'];
+$userId = requireAuthAndPrivacy($conn);
 
 // ✅ OBTENER CFDIs DEL USUARIO
 $stmt = $conn->prepare("
