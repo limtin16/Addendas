@@ -281,12 +281,15 @@ document.addEventListener('change', function(e) {
             .then(data => {
 
                 const select = document.querySelector('[name="cfdi_use"]');
+
+                // limpiar
                 select.innerHTML = '<option value="">Selecciona un uso</option>';
 
                 data.forEach(u => {
                     let opt = document.createElement('option');
                     opt.value = u.code;
                     opt.textContent = u.code + ' - ' + u.description;
+
                     select.appendChild(opt);
                 });
 
@@ -296,19 +299,6 @@ document.addEventListener('change', function(e) {
 
 });
 
-
-// ✅ 🔥 ESTA ES LA PARTE QUE TE FALTABA (PASO 5)
-window.addEventListener('DOMContentLoaded', function () {
-
-    const regimeSelect = document.querySelector('[name="regime"]');
-
-    if (regimeSelect && regimeSelect.value) {
-
-        // 👇 dispara cambio automáticamente para llenar usos
-        regimeSelect.dispatchEvent(new Event('change'));
-    }
-
-});
 
 function enableEdit(button) {
 
