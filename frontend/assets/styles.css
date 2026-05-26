@@ -833,3 +833,50 @@ form {
     cursor: not-allowed;
 }
 
+/* ============================= */
+/* ✅ INPUT Y SELECT UNIFICADOS */
+/* ============================= */
+
+.form-input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    margin: 6px 0 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+}
+
+/* ============================= */
+/* ✅ SELECT BONITO */
+/* ============================= */
+
+select.form-input {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='%23333' height='20' viewBox='0 0 24 24' width='20'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    cursor: pointer;
+}
+
+/* ============================= */
+/* ✅ MODO BLOQUEADO */
+/* ============================= */
+
+.form-input.readonly,
+select.form-input:disabled {
+    background-color: #f5f5f5;
+    color: #777;
+    cursor: not-allowed;
+}
+
+/* ============================= */
+/* ✅ EVITAR DESBORDE */
+/* ============================= */
+
+.card {
+    overflow: hidden;
+}
