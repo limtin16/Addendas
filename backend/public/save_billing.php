@@ -12,20 +12,57 @@ $cfdi = $_POST['cfdi_use'];
 $email = $_POST['email'];
 $auto = isset($_POST['auto_invoice']) ? 1 : 0;
 
-$stmt = $conn->prepare("
-INSERT INTO billing_profiles (user_id, email, rfc, name, postal_code, regime, cfdi_use, auto_invoice)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-ON DUPLICATE KEY UPDATE
-email=VALUES(email),
-rfc=VALUES(rfc),
-name=VALUES(name),
-postal_code=VALUES(postal_code),
-regime=VALUES(regime),
-cfdi_use=VALUES(cfdi_use),
-auto_invoice=VALUES(auto_invoice)
-");
+// ✅ verificar si ya existe perfil
+$stmt = $conn->prepare("SELECT id FROM billing_profiles WHERE user_id = ?");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+$existing = $result->fetch_assoc();
 
-$stmt->bind_param("issssssi", $userId, $email, $rfc, $name, $postal, $regime, $cfdi, $auto);
+if ($existing) {
+
+    // ✅ UPDATE
+    $stmt = $conn->prepare("
+        UPDATE billing_profiles
+        SET email=?, rfc=?, name=?, postal_code=?, regime=?, cfdi_use=?, auto_invoice=?
+        WHERE user_id=?
+    ");
+
+    $stmt->bind_param(
+        "ssssssii",
+        $email,
+        $rfc,
+        $name,
+        $postal,
+        $regime,
+        $cfdi,
+        $auto,
+        $userId
+    );
+
+} else {
+
+    // ✅ INSERT
+    $stmt = $conn->prepare("
+        INSERT INTO billing_profiles
+        (user_id, email, rfc, name, postal_code, regime, cfdi_use, auto_invoice)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $stmt->bind_param(
+        "issssssi",
+        $userId,
+        $email,
+        $rfc,
+        $name,
+        $postal,
+        $regime,
+        $cfdi,
+        $auto
+    );
+}
+
+// ✅ ejecutar (para ambos casos)
 $stmt->execute();
 
 header("Location: /addendas/frontend/billing.php");

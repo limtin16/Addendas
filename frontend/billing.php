@@ -303,6 +303,11 @@ document.addEventListener('change', function(e) {
 function enableEdit(button) {
 
     const form = document.getElementById("billingForm");
+    // ✅ eliminar hidden de cfdi_use (IMPORTANTE)
+    const hiddenCfdi = form.querySelector('input[name="cfdi_use"]');
+    if (hiddenCfdi) {
+        hiddenCfdi.remove();
+    }
 
     // ✅ desbloquear inputs (readonly)
     form.querySelectorAll('.form-input').forEach(el => {
