@@ -56,8 +56,9 @@ if (!empty($selectedRegime)) {
     $stmt = $conn->prepare("
         SELECT u.code, u.description
         FROM sat_uso_cfdi u
-        JOIN sat_regimen_uso r ON u.code = r.uso_cfdi_code
-        WHERE r.regimen_code = ?
+        JOIN sat_uso_cfdi_tipo t ON u.code = t.uso_cfdi_code
+        JOIN sat_regimenes r ON r.tipo = t.tipo
+        WHERE r.code = ?
     ");
     $stmt->bind_param("s", $selectedRegime);
     $stmt->execute();
