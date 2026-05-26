@@ -2,27 +2,50 @@
 session_start();
 require_once dirname(__DIR__) . '/db.php';
 
-if (!isset($_SESSION['user_id'])) {
-    die("Debes iniciar sesión");
+$userId = $_SESSION['user_id'] ?? null;
+
+if (!$userId) {
+    die("No autorizado");
 }
 
-if (!isset($_SESSION['addenda_instance']['structure'])) {
-    die("No hay estructura");
+$name = $_POST['name'] ?? null;
+$cfdiId = $_POST['cfdi_id'] ?? null;
+
+if (!$name || !$cfdiId) {
+    die("Datos incompletos");
 }
 
-$name = $_POST['name'] ?? 'Template sin nombre';
-$userId = $_SESSION['user_id'];
-
-$structure = json_encode($_SESSION['addenda_instance']['structure']);
-$xmlTemplate = $_SESSION['addenda_instance']['addenda_xml_template'];
-
+// ✅ obtener XML desde BD
 $stmt = $conn->prepare("
-    INSERT INTO templates (user_id, name, structure, xml_template)
-    VALUES (?, ?, ?, ?)
+    SELECT xml 
+    FROM generated_cfdis 
+    WHERE id = ? AND user_id = ?
+");
+$stmt->bind_param("ii", $cfdiId, $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_assoc();
+
+if (!$row) {
+    die("CFDI no encontrado");
+}
+
+$xml = $row['xml'];
+
+// ✅ guardar template
+$stmt = $conn->prepare("
+    INSERT INTO templates (user_id, name, structure, xml_template, created_at) 
+    VALUES (?, ?, ?, ?, NOW())
 ");
 
-$stmt->bind_param("isss", $userId, $name, $structure, $xmlTemplate);
+
+$structure = json_encode([
+    'type' => 'cfdi_template',
+    'source' => 'generated_cfdi'
+]); // 👈 valor por defecto
+$stmt->bind_param("isss", $userId, $name, $structure, $xml);
 $stmt->execute();
 
+// ✅ redirigir bonito
 header("Location: /addendas/frontend/templates_list.php");
 exit;

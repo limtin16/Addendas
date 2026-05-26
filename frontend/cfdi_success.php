@@ -104,6 +104,24 @@ if ($isLogged) {
 
             <?php if ($isLogged): ?>
 
+            <br><br>
+
+        <?php if ($isLogged && empty($_SESSION['using_template'])): ?>
+
+        <h3>¿Guardar como template?</h3>
+
+        <form action="/addendas/backend/public/save_template_db.php" method="POST"
+            onsubmit="return confirmGuardarTemplate();">
+            <input type="text" name="name" placeholder="Nombre del template" required>
+            <!-- ✅ enviar ID del CFDI -->
+            <input type="hidden" name="cfdi_id" value="<?= $cfdi['id'] ?>">
+            <button class="btn green">💾 Guardar template</button>
+        </form>
+        <?php unset($_SESSION['using_template']); ?>
+        <br>
+
+        <?php endif; ?>
+
             <a href="/addendas/frontend/dashboard.php" class="btn green">
                 ➡ Volver al dashboard
             </a>
@@ -135,6 +153,15 @@ window.addEventListener('pageshow', function (event) {
 
 });
 
+function confirmGuardarTemplate() {
+    return confirm(
+        "¿Estás seguro de guardar este template?\n\n" +
+        "Si no has descargado el CFDI, podrías perderlo."
+    );
+}
+
+
 </script>
+<?php unset($_SESSION['using_template']); ?>
 </body>
 </html>
