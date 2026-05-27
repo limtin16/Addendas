@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 
 require_once dirname(__DIR__) . '/config.php';
@@ -54,7 +55,7 @@ $_SESSION['current_group']['children'][] = [
 // REGRESAR A STEP 4
 // ===============================
 header(
-    'Location: /addendas/frontend/wizard_step4.php?template_id=' .
+    'Location: <?= $base ?>/frontend/wizard_step4.php?template_id=' .
     urlencode($templateId)
 );
 exit;

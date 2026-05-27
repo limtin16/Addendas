@@ -1,9 +1,10 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: <?= $base ?>/frontend/login.php");
     exit;
 }
 
@@ -22,5 +23,5 @@ $stmt = $conn->prepare("
 $stmt->bind_param("ii", $templateId, $userId);
 $stmt->execute();
 
-header("Location: /addendas/frontend/templates_list.php");
+header("Location: <?= $base ?>/frontend/templates_list.php");
 exit;

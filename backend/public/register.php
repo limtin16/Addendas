@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '/db.php';
 
@@ -15,7 +16,7 @@ $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
 $stmt->bind_param("ss", $email, $hashedPassword);
 
 if ($stmt->execute()) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: <?= $base ?>/frontend/login.php");
     exit;
 } else {
     echo "Error: email ya existe";

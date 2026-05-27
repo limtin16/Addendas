@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '/db.php';
 
@@ -47,5 +48,5 @@ $stmt->bind_param("isss", $userId, $name, $structure, $xml);
 $stmt->execute();
 
 // ✅ redirigir bonito
-header("Location: /addendas/frontend/templates_list.php");
+header("Location: <?= $base ?>/frontend/templates_list.php");
 exit;

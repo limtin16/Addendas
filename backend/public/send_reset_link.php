@@ -1,6 +1,6 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 require_once dirname(__DIR__) . '/db.php';
-
 $email = $_POST['email'] ?? '';
 
 if (!$email) {
@@ -32,7 +32,7 @@ $stmt->bind_param("ssi", $token, $expires, $user['id']);
 $stmt->execute();
 
 // ✅ link
-$link = "http://localhost/addendas/frontend/reset_password.php?token=$token";
+$link = "http://localhost<?= $base ?>/frontend/reset_password.php?token=$token";
 
 // ✅ enviar correo (simple)
 $subject = "Recuperación de contraseña";

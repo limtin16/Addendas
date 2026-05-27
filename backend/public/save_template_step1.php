@@ -1,5 +1,5 @@
 <?php
-
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 define('BASE_PATH', dirname(__DIR__));
 
 require_once dirname(__DIR__) . '/config.php';
@@ -31,5 +31,5 @@ $structure = [
 // ✅ Crear template
 $template = $service->save($name, $location, $structure);
 
-header('Location: /addendas/frontend/wizard_step2.php?template_id=' . urlencode($template->id));
+header('Location: <?= $base ?>/frontend/wizard_step2.php?template_id=' . urlencode($template->id));
 exit;

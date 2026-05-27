@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 
 require_once dirname(__DIR__) . '/config.php';
@@ -65,7 +66,7 @@ if (!$isFinalizing) {
     $_SESSION['current_group'] = null;
 
     // ✅ regresar a step4
-    header('Location: /addendas/frontend/wizard_step4.php?template_id=' . urlencode($templateId));
+    header('Location: <?= $base ?>/frontend/wizard_step4.php?template_id=' . urlencode($templateId));
     exit;
 }
 // ✅ ASEGURAR QUE EL GRUPO ACTIVO TAMBIÉN SE GUARDE
@@ -169,5 +170,5 @@ $_SESSION['addenda_instance'] = [
 // ===============================
 // ✅ REDIRIGIR A FORM FINAL
 // ===============================
-header('Location: /addendas/frontend/render_instance_form.php');
+header('Location: <?= $base ?>/frontend/render_instance_form.php');
 exit;

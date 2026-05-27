@@ -1,5 +1,5 @@
 <?php
-
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 define('BASE_PATH', dirname(__DIR__));
 
 require_once dirname(__DIR__) . '/config.php';
@@ -60,5 +60,5 @@ $service->update($templateId, $template->structure);
 // ===============================
 // ✅ REDIRIGIR A STEP 3
 // ===============================
-header('Location: /addendas/frontend/wizard_step3.php?template_id=' . urlencode($templateId));
+header('Location: <?= $base ?>/frontend/wizard_step3.php?template_id=' . urlencode($templateId));
 exit;

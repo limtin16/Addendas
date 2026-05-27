@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '/db.php';
 require_once dirname(__DIR__) . '/src/Services/AddendaXmlBuilder.php';
@@ -45,5 +46,5 @@ $_SESSION['addenda_instance'] = [
 $_SESSION['using_template'] = true;
 
 // ✅ redirigir al formulario
-header("Location: /addendas/frontend/render_instance_form.php");
+header("Location: <?= $base ?>/frontend/render_instance_form.php");
 exit;

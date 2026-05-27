@@ -1,10 +1,11 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '/db.php';
 
 // ✅ validar sesión
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: <?= $base ?>/frontend/login.php");
     exit;
 }
 
@@ -82,7 +83,7 @@ echo "
 
 <script>
     setTimeout(function () {
-        window.location.href = '/addendas/frontend/account_settings.php';
+        window.location.href = '<?= $base ?>/frontend/account_settings.php';
     }, 1500);
 </script>
 

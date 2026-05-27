@@ -1,11 +1,12 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '../db.php';
 
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: <?= $base ?>/frontend/login.php");
     exit;
 }
 
@@ -34,5 +35,5 @@ $stmt->execute();
 
 
 // redirigir al sistema
-header("Location: /addendas/frontend/dashboard.php");
+header("Location: <?= $base ?>/frontend/dashboard.php");
 exit;

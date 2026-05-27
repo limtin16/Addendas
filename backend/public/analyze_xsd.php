@@ -1,6 +1,6 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
-
 
 require_once dirname(__DIR__) . '/config.php';
 require_once BACKEND_ROOT . '/src/Services/XsdToArrayConverter.php';
@@ -33,5 +33,5 @@ $_SESSION['addenda_instance'] = [
 ];
 
 // ✅ redirigir
-header('Location: /addendas/frontend/render_instance_form.php');
+header('Location: <?= $base ?>/frontend/render_instance_form.php');
 exit;

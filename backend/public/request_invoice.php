@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '../db.php';
 
@@ -44,5 +45,5 @@ Fecha: ".date('Y-m-d H:i:s');
 mail($to, $subject, $message);
 
 // ✅ respuesta elegante
-header("Location: /addendas/frontend/billing.php?success=1");
+header("Location: <?= $base ?>/frontend/billing.php?success=1");
 exit;

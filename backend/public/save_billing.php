@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '../db.php';
 
@@ -65,5 +66,5 @@ if ($existing) {
 // ✅ ejecutar (para ambos casos)
 $stmt->execute();
 
-header("Location: /addendas/frontend/billing.php");
+header("Location: <?= $base ?>/frontend/billing.php");
 exit;

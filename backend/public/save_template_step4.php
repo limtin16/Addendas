@@ -1,5 +1,5 @@
 <?php
-
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 define('BASE_PATH', dirname(__DIR__));
 
 require_once dirname(__DIR__) . '/config.php';
@@ -55,5 +55,5 @@ $template->structure['root']['children'][] = $group;
 $service->update($templateId, $template->structure);
 
 // ✅ Fin del wizard (luego haremos pantalla final)
-header('Location: /addendas/frontend/wizard_done.php?template_id=' . urlencode($templateId));
+header('Location: <?= $base ?>/frontend/wizard_done.php?template_id=' . urlencode($templateId));
 exit;

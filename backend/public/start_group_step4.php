@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 
 $_SESSION['current_group'] = [
@@ -10,5 +11,5 @@ $_SESSION['current_group'] = [
     'children' => []
 ];
 
-header('Location: /addendas/frontend/wizard_step4.php?template_id=' . $_POST['template_id']);
+header('Location: <?= $base ?>/frontend/wizard_step4.php?template_id=' . $_POST['template_id']);
 exit;

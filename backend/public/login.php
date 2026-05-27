@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '/db.php';
 
@@ -22,7 +23,7 @@ if ($user && password_verify($password, $user['password'])) {
     $_SESSION['user_email'] = $user['email'];
 
     // ✅ redirige al sistema
-    header("Location: /addendas/frontend/dashboard.php");
+    header("Location: <?= $base ?>/frontend/dashboard.php");
     exit;
 
 } else {

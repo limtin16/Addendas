@@ -1,6 +1,7 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 session_destroy();
 
-header("Location: /addendas/frontend/login.php");
+header("Location: <?= $base ?>/frontend/login.php");
 exit;

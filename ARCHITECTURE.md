@@ -33,7 +33,7 @@ The development workflow for the Addendas CFDI management system follows a GitFl
 
 ### API Endpoints
 - `/api/v1/cfdi`: Manage CFDI records.
-- `/api/v1/addendas`: Handle addenda operations related to CFDI.
+- `/api/v1<?= $base ?>`: Handle addenda operations related to CFDI.
 
 ### Security Considerations
 - Proper authentication and authorization mechanisms are in place to secure API endpoints.
