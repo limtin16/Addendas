@@ -2,12 +2,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-$path = "";
-$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
-for ($i = 0; $i < $depth; $i++) {
-    $path .= "../";
-}
-echo $path .= "backend/config.php";
+$basePath = substr(__DIR__, strpos(__DIR__, 'addendas'));
+$depth = substr_count($basePath, DIRECTORY_SEPARATOR) - 1;
+
+$path = str_repeat("../", $depth) . "backend/config.php";
+
+echo $path;
+
 exit;
 require_once $path; 
 
