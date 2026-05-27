@@ -2,12 +2,15 @@
 
 session_start();
 
-$path = "";
-$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
-for ($i = 0; $i < $depth; $i++) {
-    $path .= "../";
+$path="";
+$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
+if ($count==0){
+    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
 }
-$path .= "backend/config.php";
+for ($i=0; $i<$count; $i++){
+	$path.="../";
+}
+$path.="backend/config.php";
 require_once $path;
 require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
 require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
