@@ -1,3 +1,6 @@
+<?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,7 +10,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com">
 
 <style>
 
@@ -67,7 +70,7 @@ body {
     font-weight: 600;
 }
 
-/* ✅ FEATURES */
+/* ✅ SECTIONS */
 .section {
     padding: 60px 20px;
     text-align: center;
@@ -91,7 +94,7 @@ body {
     margin-bottom: 10px;
 }
 
-/* ✅ HOW IT WORKS */
+/* ✅ STEPS */
 .steps {
     display: flex;
     flex-wrap: wrap;
@@ -123,7 +126,7 @@ body {
     color: #2563eb;
 }
 
-/* ✅ CTA FINAL */
+/* ✅ CTA */
 .cta {
     background: #2563eb;
     color: white;
@@ -157,7 +160,7 @@ body {
 <!-- ✅ NAV -->
 <div class="nav">
     <h1>AddendaFácil</h1>
-    <a href="/frontend/login.php">Iniciar sesión</a>
+    <a href="<?= $base ?>/frontend/login.php">Iniciar sesión</a>
 </div>
 
 <!-- ✅ HERO -->
@@ -169,13 +172,13 @@ body {
         sin registrarte. Guarda y administra tus addendas creando tu cuenta.
     </p>
 
-    <a href="/frontend/select_mode.php" class="btn">
+    <a href="<?= $base ?>/frontend/select_mode.php" class="btn">
         Generar addenda ahora
     </a>
 
     <div style="margin-top:15px;">
         o
-        <a href="/frontend/register.php" style="color:#2563eb; font-weight:600;">
+        <a href="<?= $base ?>/frontend/register.php" style="color:#2563eb; font-weight:600;">
             crea tu cuenta gratis
         </a>
     </div>
@@ -257,9 +260,9 @@ body {
     <h2>Empieza hoy mismo</h2>
     <p>Genera tus addendas en minutos</p>
 
-    <button onclick="location.href='/frontend/register.php'">
+    <a href="<?= $base ?>/frontend/register.php" class="btn">
         Crear cuenta gratis
-    </button>
+    </a>
 </div>
 
 <!-- ✅ FOOTER -->
