@@ -6,7 +6,7 @@ $script = $_SERVER['SCRIPT_NAME'];
 if (strpos($script, '/addendas/') === 0) {
     $base = '/addendas';
 } else {
-    $base = 'www.addendasfacil.com';
+    $base = 'www.addendafacil.com';
 }
 
 define('BASE_URL', $base);
