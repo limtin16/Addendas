@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 // upload_xsd.php
 session_start();
 
@@ -6,17 +7,18 @@ if (
     !isset($_SESSION['user_id']) &&
     !isset($_SESSION['guest_paid'])
 ) {
-    header("Location: /addendas/frontend/select_mode.php");
+    header("Location: <?= $base ?>/frontend/select_mode.php");
     exit;
 }
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Subir XSD de Addenda</title>
-    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+<meta charset="UTF-8">
+<title>Subir XSD</title>
+<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
 </head>
+
 <body>
 
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
@@ -27,23 +29,22 @@ if (
 
         <div class="card upload-card">
 
-            <h2>📐 Generar Addenda desde XSD</h2>
+            <h2>📐 Subir archivo XSD</h2>
 
             <p class="description">
-                Sube el archivo XSD de la addenda.<br>
-                Se generará una estructura base que podrás completar después.
+                Sube un archivo XSD para generar la estructura de la addenda automáticamente.
             </p>
 
-            <form action="/addendas/backend/public/analyze_xsd.php"
-                method="POST"
+            <form method="post"
+                action="<?= $base ?>/backend/public/analyze_xsd.php"
                 enctype="multipart/form-data"
-                id="uploadXsdForm">
+                id="uploadForm">
 
                 <!-- ✅ FILE INPUT BONITO -->
                 <div class="upload-area">
 
                     <input type="file"
-                        name="xsd"
+                        name="xsd_file"
                         id="xsdFile"
                         accept=".xsd"
                         required>
@@ -52,22 +53,21 @@ if (
                         📂 Seleccionar archivo XSD
                     </label>
 
-                    <div id="xsdFileInfo" class="file-info">
-                        Ningún archivo seleccionado
-                    </div>
+                    <div class="file-info" id="fileInfo"></div>
 
-                    <div id="xsdError" class="error">
+                    <div class="error" id="fileError">
                         Debes seleccionar un archivo XSD válido.
                     </div>
 
                 </div>
 
+                <!-- ✅ BOTÓN -->
                 <button type="submit" class="btn blue full">
-                    ⚙️ Generar Addenda
+                    🔍 Analizar archivo
                 </button>
 
                 <div class="note">
-                    * Solo archivos .xsd
+                    * Archivos soportados: XSD (XML Schema Definition)
                 </div>
 
             </form>
@@ -75,42 +75,42 @@ if (
         </div>
 
     </div>
-
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    const input = document.getElementById('xsdFile');
-    const info = document.getElementById('xsdFileInfo');
-    const error = document.getElementById('xsdError');
-    const form = document.getElementById('uploadXsdForm');
+    var input = document.getElementById('xsdFile');
+    var form = document.getElementById('uploadForm');
+    var errorBox = document.getElementById('fileError');
+    var fileInfo = document.getElementById('fileInfo');
 
     input.addEventListener('change', function () {
-        error.classList.remove('visible');
+        errorBox.classList.remove('visible');
+        fileInfo.textContent = '';
 
         if (!input.files || !input.files.length) {
-            info.textContent = 'Ningún archivo seleccionado';
             return;
         }
 
-        const file = input.files[0];
+        var file = input.files[0];
+        var name = file.name.toLowerCase();
 
-        if (!file.name.toLowerCase().endsWith('.xsd')) {
-            error.textContent = 'El archivo debe ser .xsd';
-            error.classList.add('visible');
+        if (!name.endsWith('.xsd')) {
+            errorBox.textContent = 'El archivo debe ser XSD (.xsd)';
+            errorBox.classList.add('visible');
             input.value = '';
-            info.textContent = 'Ningún archivo seleccionado';
             return;
         }
 
-        info.textContent = '📄 ' + file.name;
+        fileInfo.textContent = '📄 ' + file.name;
     });
 
     form.addEventListener('submit', function (e) {
-        if (!input.files.length) {
-            error.classList.add('visible');
+        if (!input.files || !input.files.length) {
+            errorBox.classList.add('visible');
             e.preventDefault();
+            return;
         }
     });
 });

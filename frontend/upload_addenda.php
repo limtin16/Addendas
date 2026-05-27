@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 // upload_addenda.php
 session_start();
 
@@ -6,7 +7,7 @@ if (
     !isset($_SESSION['user_id']) &&
     !isset($_SESSION['guest_paid'])
 ) {
-    header("Location: /addendas/frontend/select_mode.php");
+    header("Location: <?= $base ?>/frontend/select_mode.php");
     exit;
 }
 ?>
@@ -15,7 +16,7 @@ if (
 <head>
 <meta charset="UTF-8">
 <title>Subir Addenda o CFDI</title>
-<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -36,7 +37,7 @@ if (
             </p>
 
             <form method="post"
-                action="/addendas/backend/public/analyze_addenda.php"
+                action="<?= $base ?>/backend/public/analyze_addenda.php"
                 enctype="multipart/form-data"
                 id="uploadForm">
 

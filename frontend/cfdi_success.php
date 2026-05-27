@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 
 // 🔥 BLOQUEAR CACHE DEL NAVEGADOR
@@ -20,7 +21,7 @@ if (!$userId) {
 $isGuest = isset($_SESSION['cfdi_generated']); 
 
 if (!$isLogged && !$isGuest) {
-    header("Location: /addendas/frontend/select_mode.php");
+    header("Location: <?= $base ?>/frontend/select_mode.php");
     exit;
 }
 
@@ -44,7 +45,7 @@ if ($isLogged) {
 
     } else {
 
-        // ✅ visitante → sin filtro user_id
+        // �� visitante → sin filtro user_id
         $stmt = $conn->prepare("
             SELECT id, filename, token, created_at
             FROM generated_cfdis
@@ -70,7 +71,7 @@ if ($isLogged) {
 <head>
     <meta charset="UTF-8">
     <title>CFDI generado</title>
-    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+    <link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -96,7 +97,7 @@ if ($isLogged) {
 
             <br>
 
-            <a href="/addendas/backend/public/download_cfdi_by_id.php?id=<?php echo $cfdi['id'] ?>" class="btn blue">
+            <a href="<?= $base ?>/backend/public/download_cfdi_by_id.php?id=<?php echo $cfdi['id'] ?>" class="btn blue">
                 ⬇ Descargar CFDI
             </a>
 
@@ -110,7 +111,7 @@ if ($isLogged) {
 
         <h3>¿Guardar como template?</h3>
 
-        <form action="/addendas/backend/public/save_template_db.php" method="POST"
+        <form action="<?= $base ?>/backend/public/save_template_db.php" method="POST"
             onsubmit="return confirmGuardarTemplate();">
             <input type="text" name="name" placeholder="Nombre del template" required>
             <!-- ✅ enviar ID del CFDI -->
@@ -122,13 +123,13 @@ if ($isLogged) {
 
         <?php endif; ?>
 
-            <a href="/addendas/frontend/dashboard.php" class="btn green">
+            <a href="<?= $base ?>/frontend/dashboard.php" class="btn green">
                 ➡ Volver al dashboard
             </a>
 
             <?php else: ?>
 
-            <a href="/addendas/frontend/select_mode.php" class="btn green">
+            <a href="<?= $base ?>/frontend/select_mode.php" class="btn green">
                 ➡ Volver a pantalla principal
             </a>
 

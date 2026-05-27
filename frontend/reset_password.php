@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 $token = $_GET['token'] ?? '';
 
 if (!$token) {
@@ -6,7 +7,7 @@ if (!$token) {
 }
 ?>
 
-<form action="/addendas/backend/public/update_password.php" method="POST">
+<form action="<?= $base ?>/backend/public/update_password.php" method="POST">
 
     <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
 
