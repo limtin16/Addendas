@@ -10,7 +10,7 @@ if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
     $host = 'localhost';
     $db   = 'desenti2_addendas';
     $user = 'desenti2_af_admin';
-    $pass = 'Dani1687';
+    $pass = 'Dani1687.1';
 }
 
 $conn = new mysqli($host, $user, $pass, $db);
