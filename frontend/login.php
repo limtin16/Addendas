@@ -83,24 +83,24 @@
 
     <h2>Iniciar sesión</h2>
 
-    <form method="POST" action="/backend/public/login.php">
+    <form method="POST" action="/addendas/backend/public/login.php">
         <input type="email" name="email" placeholder="Correo" required>
         <input type="password" name="password" placeholder="Contraseña" required>
         <button type="submit">Login</button>
     </form>
 
     <div class="links">
-        <a href="/frontend/register.php">Crear cuenta</a>
+        <a href="/addendas/frontend/register.php">Crear cuenta</a>
     </div>
 
     <div class="links">
-        <a href="/frontend/forgot_password.php">
+        <a href="/addendas/frontend/forgot_password.php">
         ¿Olvidaste tu contraseña?
         </a>
     </div>
 
     <div class="guest">
-        <a href="/frontend/select_mode.php">Entrar como visitante</a>
+        <a href="/addendas/frontend/select_mode.php">Entrar como visitante</a>
     </div>
 
 </div>

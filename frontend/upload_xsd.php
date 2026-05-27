@@ -6,7 +6,7 @@ if (
     !isset($_SESSION['user_id']) &&
     !isset($_SESSION['guest_paid'])
 ) {
-    header("Location: /frontend/select_mode.php");
+    header("Location: /addendas/frontend/select_mode.php");
     exit;
 }
 ?>
@@ -15,7 +15,7 @@ if (
 <head>
     <meta charset="UTF-8">
     <title>Subir XSD de Addenda</title>
-    <link rel="stylesheet" href="/frontend/assets/styles.css">
+    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -34,7 +34,7 @@ if (
                 Se generará una estructura base que podrás completar después.
             </p>
 
-            <form action="/backend/public/analyze_xsd.php"
+            <form action="/addendas/backend/public/analyze_xsd.php"
                 method="POST"
                 enctype="multipart/form-data"
                 id="uploadXsdForm">

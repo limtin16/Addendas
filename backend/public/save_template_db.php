@@ -47,5 +47,5 @@ $stmt->bind_param("isss", $userId, $name, $structure, $xml);
 $stmt->execute();
 
 // ✅ redirigir bonito
-header("Location: /frontend/templates_list.php");
+header("Location: /addendas/frontend/templates_list.php");
 exit;

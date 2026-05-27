@@ -6,7 +6,7 @@ if (!$token) {
 }
 ?>
 
-<form action="/backend/public/update_password.php" method="POST">
+<form action="/addendas/backend/public/update_password.php" method="POST">
 
     <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
 

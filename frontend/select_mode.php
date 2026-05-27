@@ -9,7 +9,7 @@ unset($_SESSION['using_template']);
 <meta charset="UTF-8">
 <title>Crear Addenda – Seleccionar modo</title>
 
-<link rel="stylesheet" href="/frontend/assets/styles.css">
+<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 
 </head>
 
@@ -71,20 +71,20 @@ const isLogged = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
     }
 
     // 🚀 redirige a checkout con destino
-    const url = '/frontend/guest_checkout.php?redirect=' + encodeURIComponent(destination);
+    const url = '/addendas/frontend/guest_checkout.php?redirect=' + encodeURIComponent(destination);
 
     window.location.href = url;
 }
 function goManual() {
-    goWithPayment('/frontend/wizard_step1.php');
+    goWithPayment('/addendas/frontend/wizard_step1.php');
 }
 
 function goUpload() {
-    goWithPayment('/frontend/upload_addenda.php');
+    goWithPayment('/addendas/frontend/upload_addenda.php');
 }
 
 function goXsd() {
-    goWithPayment('/frontend/upload_xsd.php');
+    goWithPayment('/addendas/frontend/upload_xsd.php');
 }
 </script>
 

@@ -65,5 +65,5 @@ if ($existing) {
 // ✅ ejecutar (para ambos casos)
 $stmt->execute();
 
-header("Location: /frontend/billing.php");
+header("Location: /addendas/frontend/billing.php");
 exit;

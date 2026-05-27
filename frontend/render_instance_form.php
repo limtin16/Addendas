@@ -3,7 +3,7 @@ session_start();
 
 // 🔒 si ya no existe la instancia → redirigir
 if (!isset($_SESSION['addenda_instance']['structure'])) {
-    header("Location: /frontend/select_mode.php");
+    header("Location: /addendas/frontend/select_mode.php");
     exit;
 }
 
@@ -120,7 +120,7 @@ function renderFields(array $nodes, string $prefix = ''): void
 <head>
 <meta charset="UTF-8">
 <title>Rellenar Addenda</title>
-<link rel="stylesheet" href="/frontend/assets/styles.css">
+<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 </head>
 <body>
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
@@ -222,7 +222,7 @@ function checkCreditsAndToggleButton() {
         return;
     }
 
-    fetch('/backend/public/get_credits.php')
+    fetch('/addendas/backend/public/get_credits.php')
         .then(r => r.json())
         .then(data => {
 
@@ -272,7 +272,7 @@ function showNoCreditsMessage() {
     msg.id = 'noCreditsMsg';
     msg.innerHTML = `
         ⚠️ No tienes créditos disponibles.<br>
-        <a href="/frontend/buy_credits.php">Comprar créditos</a>
+        <a href="/addendas/frontend/buy_credits.php">Comprar créditos</a>
     `;
 
     msg.style.marginTop = '10px';
@@ -317,7 +317,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
     formData.append('cfdi', targetFile);
 
     // ✅ generar CFDI
-    const res = await fetch('/backend/public/generate_cfdi_raw.php', {
+    const res = await fetch('/addendas/backend/public/generate_cfdi_raw.php', {
         method: 'POST',
         body: formData
     });
@@ -340,7 +340,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
         if (data.error === "No autorizado") {
             alert("⚠️ Tu sesión de pago ya fue utilizada.\nDebes pagar nuevamente.");
 
-            window.location.href = "/frontend/select_mode.php";
+            window.location.href = "/addendas/frontend/select_mode.php";
             return;
         }
 
@@ -357,7 +357,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
     const fdStore = new FormData();
     fdStore.append('xml', data.xml);
 
-    const storeRes = await fetch('/backend/public/save_generated_cfdi.php', {
+    const storeRes = await fetch('/addendas/backend/public/save_generated_cfdi.php', {
         method: 'POST',
         body: fdStore
     });
@@ -384,7 +384,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
 
 
     // ✅ redirect final
-    window.location.href = '/frontend/cfdi_success.php?id=' + saved.id;
+    window.location.href = '/addendas/frontend/cfdi_success.php?id=' + saved.id;
 });
 
 const targetCfdiInput = document.getElementById('targetCfdi');
@@ -422,7 +422,7 @@ targetCfdiInput.addEventListener('change', function () {
 const fd = new FormData();
 fd.append('target_cfdi', file);
 
-fetch('/backend/public/load_target_cfdi.php', {
+fetch('/addendas/backend/public/load_target_cfdi.php', {
     method: 'POST',
     body: fd
 })
@@ -504,7 +504,7 @@ function updatePreview() {
 
     previewAbortController = new AbortController();
 
-    fetch('/backend/public/preview_addenda.php', {
+    fetch('/addendas/backend/public/preview_addenda.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(getValues()),
@@ -540,7 +540,7 @@ let cfdiSuggestions = [];
 
 function loadCfdiAutofillSuggestions() {
 
-    fetch('/backend/public/cfdi_autofill_suggestions.php')
+    fetch('/addendas/backend/public/cfdi_autofill_suggestions.php')
         .then(r => r.json())
         .then(data => {
 

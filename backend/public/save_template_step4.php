@@ -55,5 +55,5 @@ $template->structure['root']['children'][] = $group;
 $service->update($templateId, $template->structure);
 
 // ✅ Fin del wizard (luego haremos pantalla final)
-header('Location: /frontend/wizard_done.php?template_id=' . urlencode($templateId));
+header('Location: /addendas/frontend/wizard_done.php?template_id=' . urlencode($templateId));
 exit;

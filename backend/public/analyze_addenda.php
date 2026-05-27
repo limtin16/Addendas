@@ -168,5 +168,5 @@ $_SESSION['addenda_instance'] = [
    8. REDIRIGIR
    ======================================================= */
 
-header('Location: /frontend/render_instance_form.php');
+header('Location: /addendas/frontend/render_instance_form.php');
 exit;

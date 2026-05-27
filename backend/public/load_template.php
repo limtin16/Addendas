@@ -45,5 +45,5 @@ $_SESSION['addenda_instance'] = [
 $_SESSION['using_template'] = true;
 
 // ✅ redirigir al formulario
-header("Location: /frontend/render_instance_form.php");
+header("Location: /addendas/frontend/render_instance_form.php");
 exit;

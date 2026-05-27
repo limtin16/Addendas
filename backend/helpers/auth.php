@@ -2,7 +2,7 @@
 function requireAuthAndPrivacy($conn) {
 
     if (!isset($_SESSION['user_id'])) {
-        header("Location: /frontend/login.php");
+        header("Location: /addendas/frontend/login.php");
         exit;
     }
 
@@ -15,7 +15,7 @@ function requireAuthAndPrivacy($conn) {
     $stmt->execute();
 
     if (!$stmt->get_result()->fetch_assoc()) {
-        header("Location: /frontend/privacy.php");
+        header("Location: /addendas/frontend/privacy.php");
         exit;
     }
 

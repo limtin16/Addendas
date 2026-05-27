@@ -32,7 +32,7 @@ $stmt->bind_param("ssi", $token, $expires, $user['id']);
 $stmt->execute();
 
 // ✅ link
-$link = "http://localhost/frontend/reset_password.php?token=$token";
+$link = "http://localhost/addendas/frontend/reset_password.php?token=$token";
 
 // ✅ enviar correo (simple)
 $subject = "Recuperación de contraseña";

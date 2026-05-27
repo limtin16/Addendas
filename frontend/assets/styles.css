@@ -1053,13 +1053,3 @@ body {
 html, body {
     overflow-x: hidden;
 }
-
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden; /* ✅ elimina scroll */
-}
-.nav {
-    padding: 12px 30px; /* antes 20px */
-}

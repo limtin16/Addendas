@@ -4,7 +4,7 @@ require_once dirname(__DIR__) . '/db.php';
 
 // ✅ validar sesión
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /frontend/login.php");
+    header("Location: /addendas/frontend/login.php");
     exit;
 }
 
@@ -82,7 +82,7 @@ echo "
 
 <script>
     setTimeout(function () {
-        window.location.href = '/frontend/account_settings.php';
+        window.location.href = '/addendas/frontend/account_settings.php';
     }, 1500);
 </script>
 

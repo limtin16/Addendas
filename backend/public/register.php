@@ -15,7 +15,7 @@ $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
 $stmt->bind_param("ss", $email, $hashedPassword);
 
 if ($stmt->execute()) {
-    header("Location: /frontend/login.php");
+    header("Location: /addendas/frontend/login.php");
     exit;
 } else {
     echo "Error: email ya existe";

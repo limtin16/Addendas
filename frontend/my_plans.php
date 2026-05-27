@@ -7,7 +7,7 @@ require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /frontend/login.php");
+    header("Location: /addendas/frontend/login.php");
     exit;
 }
 
@@ -96,7 +96,7 @@ $olderExpired = array_slice($expiredPlans, 1);
 <head>
 <meta charset="UTF-8">
 <title>Mis Planes</title>
-<link rel="stylesheet" href="/frontend/assets/styles.css">
+<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 </head>
 <body>
 

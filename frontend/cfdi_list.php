@@ -6,7 +6,7 @@ require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
 // ✅ SOLO USUARIOS LOGUEADOS
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /frontend/login.php");
+    header("Location: /addendas/frontend/login.php");
     exit;
 }
 
@@ -32,7 +32,7 @@ $cfdis = $result->fetch_all(MYSQLI_ASSOC);
 <html>
 <head>
     <title>Mis CFDIs</title>
-    <link rel="stylesheet" href="/frontend/assets/styles.css">
+    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -51,7 +51,7 @@ $cfdis = $result->fetch_all(MYSQLI_ASSOC);
                     <div class="name"><?= htmlspecialchars($c['filename']) ?></div>
                     <div class="date">Creado: <?= $c['created_at'] ?></div>
 
-                    <a href="/backend/public/download_cfdi_by_id.php?id=<?= $c['id'] ?>" class="btn blue">
+                    <a href="/addendas/backend/public/download_cfdi_by_id.php?id=<?= $c['id'] ?>" class="btn blue">
                         Descargar
                     </a>
                 </div>
@@ -59,7 +59,7 @@ $cfdis = $result->fetch_all(MYSQLI_ASSOC);
 
         <?php endif; ?>
 
-        <a href="/frontend/dashboard.php" class="btn back">
+        <a href="/addendas/frontend/dashboard.php" class="btn back">
         ⬅ Volver
         </a>
 

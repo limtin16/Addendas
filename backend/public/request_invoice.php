@@ -44,5 +44,5 @@ Fecha: ".date('Y-m-d H:i:s');
 mail($to, $subject, $message);
 
 // ✅ respuesta elegante
-header("Location: /frontend/billing.php?success=1");
+header("Location: /addendas/frontend/billing.php?success=1");
 exit;

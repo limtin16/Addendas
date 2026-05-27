@@ -5,7 +5,7 @@ require_once dirname(__DIR__) . '../db.php';
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
-    header("Location: /frontend/login.php");
+    header("Location: /addendas/frontend/login.php");
     exit;
 }
 
@@ -34,5 +34,5 @@ $stmt->execute();
 
 
 // redirigir al sistema
-header("Location: /frontend/dashboard.php");
+header("Location: /addendas/frontend/dashboard.php");
 exit;
