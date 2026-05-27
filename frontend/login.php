@@ -1,19 +1,16 @@
 <?php
 
+$path="";
 $root = __DIR__;
-
-while (basename($root) !== 'addendas') {
-    $root = dirname($root);
+echo $root;
+$count= (substr_count(substr(getcwd(),strrpos(getcwd(),$root),100),'\\'));
+for ($i=0; $i<$count; $i++){
+	$path.="../";
 }
-
-$relative = str_replace($root . DIRECTORY_SEPARATOR, '', __DIR__);
-$depth = substr_count($relative, DIRECTORY_SEPARATOR);
-
-$path = str_repeat("../", $depth) . "backend/config.php";
-
-echo $path;
+$path.="backend/config.php";
+//echo $path;
 exit;
-require_once $path; 
+include $path;
 
 session_start(); 
 ?>
