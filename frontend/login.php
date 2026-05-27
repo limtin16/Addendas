@@ -1,14 +1,17 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
-$basePath = substr(__DIR__, strpos(__DIR__, 'addendas'));
-$depth = substr_count($basePath, DIRECTORY_SEPARATOR) - 1;
+$root = __DIR__;
+
+while (basename($root) !== 'addendas') {
+    $root = dirname($root);
+}
+
+$relative = str_replace($root . DIRECTORY_SEPARATOR, '', __DIR__);
+$depth = substr_count($relative, DIRECTORY_SEPARATOR);
 
 $path = str_repeat("../", $depth) . "backend/config.php";
 
 echo $path;
-
 exit;
 require_once $path; 
 
