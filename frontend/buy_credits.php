@@ -1,14 +1,5 @@
 <?php
-$path="";
-$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
-if ($count==0){
-    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
-}
-for ($i=0; $i<$count; $i++){
-	$path.="../";
-}
-$path.="backend/config.php";
-require_once $path;
+require_once __DIR__ . '/../backend/config.php';
 
 session_start();
 
@@ -23,8 +14,13 @@ if (!isset($_SESSION['user_id'])) {
 <head>
 <meta charset="UTF-8">
 <title>Comprar Créditos</title>
-<link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+
+ <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+
+<!-- ✅ SCRIPT CONEKTA -->
+<script src="https://checkout.conektas/conekta-checkout.min.js>"></script>
 </head>
+
 <body>
 
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
@@ -39,104 +35,141 @@ if (!isset($_SESSION['user_id'])) {
             </p>
         </div>
 
+        <!-- ✅ CONTENEDOR CHECKOUT -->
+        <div id="conektaIframeContainer" style="margin-bottom:30px;"></div>
+
         <div class="plans-grid">
 
-            <?php
-            $plans = [
-                ['credits'=>1, 'price'=>100],
-                ['credits'=>10, 'price'=>850],
-                ['credits'=>20, 'price'=>1500],
-                ['credits'=>50, 'price'=>3250],
-                ['credits'=>100, 'price'=>5500],
-                ['credits'=>200, 'price'=>10000],
-                ['credits'=>300, 'price'=>13500],
-                ['credits'=>500, 'price'=>20000],
-            ];
+        <?php
+        $plans = [
+            ['credits'=>1, 'price'=>100],
+            ['credits'=>10, 'price'=>850],
+            ['credits'=>20, 'price'=>1500],
+            ['credits'=>50, 'price'=>3250],
+            ['credits'=>100, 'price'=>5500],
+            ['credits'=>200, 'price'=>10000],
+            ['credits'=>300, 'price'=>13500],
+            ['credits'=>500, 'price'=>20000],
+        ];
 
-            foreach ($plans as $p):
-                $unit = round($p['price'] / $p['credits']);
-                $isBest = in_array($p['credits'], [100, 200, 500]);
-            ?>
+        foreach ($plans as $p):
+            $unit = round($p['price'] / $p['credits']);
+        ?>
 
-            <div class="plan-card <?= $isBest ? 'highlight' : '' ?>">
+        <div class="plan-card">
 
-                <?php if ($isBest): ?>
-                    <div class="badge">🔥 Mejor valor</div>
-                <?php endif; ?>
+            <h3><?= $p['credits'] ?> Addenda<?= $p['credits'] > 1 ? 's' : '' ?></h3>
 
-                <div class="plan-header">
-                    <h3><?= $p['credits'] ?> Addenda<?= $p['credits'] > 1 ? 's' : '' ?></h3>
-                </div>
+            <div>$<?= number_format($p['price'],2) ?></div>
+            <div>$<?= $unit ?> por addenda</div>
 
-                <div class="plan-price">
-                    $<?= number_format($p['price'], 2) ?> MXN
-                </div>
+            <?php if ($p['credits'] == 1): ?>
 
-                <div class="plan-unit">
-                    $<?= $unit ?> por addenda
-                </div>
-
-                <button class="btn blue full buy-btn"
-                        data-credits="<?= $p['credits'] ?>"
-                        data-price="<?= $p['price'] ?>">
-                    Comprar
+                <button class="generate-checkout btn blue"
+                        data-credits="1">
+                    Pagar con tarjeta / OXXO
                 </button>
 
-            </div>
+            <?php else: ?>
 
-            <?php endforeach; ?>
+                <button class="btn blue">
+                    Comprar (demo)
+                </button>
+
+            <?php endif; ?>
+
+        </div>
+
+        <?php endforeach; ?>
 
         </div>
 
     </div>
 </div>
 
+<!-- ✅ SCRIPT CORRECTO -->
 <script>
-// ✅ Flujo mock (sin Conekta)
-document.querySelectorAll('.buy-btn').forEach(btn => {
 
-    btn.addEventListener('click', () => {
+console.log("SCRIPT CARGADO ✅");
 
-        const credits = btn.dataset.credits;
-        const price = btn.dataset.price;
+// ✅ ESPERAR A QUE EL DOM EXISTA
+document.addEventListener("DOMContentLoaded", function () {
 
-        if (!confirm(`¿Comprar ${credits} addendas por $${price} MXN?`)) {
-            return;
-        }
+    console.log("DOM LISTO ✅");
 
-        fetch('<?= BASE_URL ?>/backend/public/mock_buy_credits.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ credits })
-})
-.then(async r => {
+    const buttons = document.querySelectorAll('.generate-checkout');
+    console.log("Botones encontrados:", buttons.length);
 
-    const text = await r.text();
-    console.log("RESPUESTA RAW:", text);
+    buttons.forEach(btn => {
 
-    let res;
+        btn.addEventListener('click', async function () {
 
-    try {
-        res = JSON.parse(text);
-    } catch (e) {
-        alert("Respuesta inválida del servidor:\n" + text);
-        return;
-    }
 
-    if (!res.ok) {
-        alert('❌ Error al procesar la compra');
-        return;
-    }
+            const credits = btn.dataset.credits;
 
-    alert(`✅ Compra simulada exitosa\nCréditos agregados: ${credits}`);
-})
-.catch(() => {
-    alert('Error de conexión');
-});
+            try {
+
+                const res = await fetch('<?= BASE_URL ?>/backend/public/create_checkout.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ credits })
+                });
+
+                const text = await res.text();
+                console.log("RESP RAW:", text);
+
+                let data;
+
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    alert("Error JSON:\n" + text);
+                    return;
+                }
+
+                if (!data.checkoutId) {
+                    alert("Error backend");
+                    console.log(data);
+                    return;
+                }
+
+                renderCheckout(data.checkoutId);
+
+            } catch (err) {
+                console.error(err);
+                alert("Error fetch");
+            }
+
+        });
 
     });
 
 });
+
+function renderCheckout(checkoutId) {
+
+    console.log("Checkout ID:", checkoutId);
+
+    const container = document.getElementById("conektaIframeContainer");
+    container.innerHTML = "";
+
+    if (!window.ConektaCheckout) {
+        alert("ERROR: ConektaCheckout no cargó");
+        console.log(window);
+        return;
+    }
+
+    const checkout = new window.ConektaCheckout({
+        target: "#conektaIframeContainer",
+        checkoutRequestId: checkoutId,
+        publicKey: "key_test_xxxxx"
+    });
+
+}
+
 </script>
 
 </body>
