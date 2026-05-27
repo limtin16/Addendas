@@ -1,14 +1,11 @@
 <?php
 
-// ✅ detectar base automáticamente
-$script = $_SERVER['SCRIPT_NAME'];
-
-if (strpos($script, '/addendas/') === 0) {
-    $base = '/addendas';
+// ✅ detectar si estás en localhost
+if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
+    define('BASE_URL', '/addendas');
 } else {
-    $base = 'https://addendafacil.com';
+    define('BASE_URL', '');
 }
 
-define('BASE_URL', $base);
 define('BACKEND_ROOT', __DIR__);
 define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/Storage/templates');
