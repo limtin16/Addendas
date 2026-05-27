@@ -2,7 +2,7 @@
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: /frontend/login.php");
     exit;
 }
 ?>
@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 <html>
 <head>
     <title>Configuración de cuenta</title>
-    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+    <link rel="stylesheet" href="/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -28,7 +28,7 @@ if (!isset($_SESSION['user_id'])) {
         <div class="card">
     <h3>📧 Cambiar correo</h3>
 
-    <form action="/addendas/backend/public/update_email.php" method="POST">
+    <form action="/backend/public/update_email.php" method="POST">
 
         <input type="email" name="email" placeholder="Nuevo correo" required>
 
@@ -42,7 +42,7 @@ if (!isset($_SESSION['user_id'])) {
         <div class="card">
     <h3>🔒 Cambiar contraseña</h3>
 
-    <form action="/addendas/backend/public/update_password_user.php" method="POST">
+    <form action="/backend/public/update_password_user.php" method="POST">
 
             <input type="password" name="current_password" placeholder="Contraseña actual" required>
 

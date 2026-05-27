@@ -5,7 +5,7 @@ require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
 // ✅ PROTEGER: solo usuarios logueados
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: /frontend/login.php");
     exit;
 }
 
@@ -29,7 +29,7 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
 <html>
 <head>
     <title>Mis Templates</title>
-    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+    <link rel="stylesheet" href="/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -50,11 +50,11 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
 
                 <div class="actions">
 
-                <a href="/addendas/backend/public/load_template.php?id=<?= $tpl['id'] ?>" class="btn blue">
+                <a href="/backend/public/load_template.php?id=<?= $tpl['id'] ?>" class="btn blue">
                     Usar template
                 </a>
 
-                <form method="POST" action="/addendas/backend/public/delete_template.php">
+                <form method="POST" action="/backend/public/delete_template.php">
 
                     <input type="hidden" name="id" value="<?= $tpl['id'] ?>">
 
@@ -68,7 +68,7 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
 
         <?php endif; ?>
 
-            <a class="back" href="/addendas/frontend/dashboard.php">
+            <a class="back" href="/frontend/dashboard.php">
                 ⬅ Volver
             </a>
 

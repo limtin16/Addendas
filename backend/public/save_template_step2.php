@@ -60,5 +60,5 @@ $service->update($templateId, $template->structure);
 // ===============================
 // ✅ REDIRIGIR A STEP 3
 // ===============================
-header('Location: /addendas/frontend/wizard_step3.php?template_id=' . urlencode($templateId));
+header('Location: /frontend/wizard_step3.php?template_id=' . urlencode($templateId));
 exit;

@@ -30,7 +30,7 @@ if (!isset($_SESSION['current_group'])) {
 <head>
 <meta charset="UTF-8">
 <title>Crear addenda – Paso 4</title>
-<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+<link rel="stylesheet" href="/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -50,7 +50,7 @@ if (!isset($_SESSION['current_group'])) {
 
                 <h3>Nuevo grupo</h3>
 
-                <form method="post" action="/addendas/backend/public/start_group_step4.php">
+                <form method="post" action="/backend/public/start_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
 
                     <label>Nombre del grupo</label>
@@ -77,7 +77,7 @@ if (!isset($_SESSION['current_group'])) {
 
                 <h4>Agregar campo al grupo</h4>
 
-                <form method="post" action="/addendas/backend/public/add_field_to_group_step4.php">
+                <form method="post" action="/backend/public/add_field_to_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
 
                     <label>Nombre del campo</label>
@@ -94,7 +94,7 @@ if (!isset($_SESSION['current_group'])) {
 
                 <hr>
 
-                <form method="post" action="/addendas/backend/public/save_group_step4.php">
+                <form method="post" action="/backend/public/save_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
                     <button type="submit">Guardar grupo</button>
                 </form>
@@ -103,7 +103,7 @@ if (!isset($_SESSION['current_group'])) {
 
                 <hr>
 
-                <form method="post" action="/addendas/backend/public/save_group_step4.php">
+                <form method="post" action="/backend/public/save_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
                     <input type="hidden" name="redirect_done" value="1">
                     <button type="submit">Finalizar addenda ✅</button>
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var templateId = container.dataset.templateId;
         if (!templateId) return;
         fetch(
-            '/addendas/backend/public/preview_addenda_combined.php?template_id=' +
+            '/backend/public/preview_addenda_combined.php?template_id=' +
             encodeURIComponent(templateId) +
             '&_=' + Date.now()
         )

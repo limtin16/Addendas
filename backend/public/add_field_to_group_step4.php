@@ -54,7 +54,7 @@ $_SESSION['current_group']['children'][] = [
 // REGRESAR A STEP 4
 // ===============================
 header(
-    'Location: /addendas/frontend/wizard_step4.php?template_id=' .
+    'Location: /frontend/wizard_step4.php?template_id=' .
     urlencode($templateId)
 );
 exit;

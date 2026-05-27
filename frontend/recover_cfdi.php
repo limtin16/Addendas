@@ -51,7 +51,7 @@
 
     <h2>Recuperar CFDI</h2>
 
-    <form method="GET" action="/addendas/backend/public/recover_cfdi.php">
+    <form method="GET" action="/backend/public/recover_cfdi.php">
         <input type="text" name="token" placeholder="Ingresa tu ID" required>
         <button>Descargar CFDI</button>
     </form>

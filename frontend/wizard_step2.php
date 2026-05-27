@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Crear plantilla – Paso 2</title>
-    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+    <link rel="stylesheet" href="/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -15,7 +15,7 @@
             <h2>Crear plantilla – Paso 2</h2>
             <p>Define la estructura principal solicitada por tu cliente.</p>
 
-            <form method="post" action="/addendas/backend/public/save_template_step2.php">
+            <form method="post" action="/backend/public/save_template_step2.php">
                 <!-- Id de la plantilla creada en el paso 1 -->
                 <input type="hidden" name="template_id" value="<?php echo $_GET['template_id'] ?? ''; ?>">
 

@@ -24,7 +24,7 @@ if (!$template) {
 <head>
 <meta charset="UTF-8">
 <title>Crear addenda – Paso 3</title>
-<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+<link rel="stylesheet" href="/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -41,7 +41,7 @@ if (!$template) {
             <p>Agrega campos simples a la addenda.</p>
 
             <!-- FORM STEP 3 -->
-            <form method="post" action="/addendas/backend/public/save_template_step3.php">
+            <form method="post" action="/backend/public/save_template_step3.php">
                 <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
 
                 <label>Nombre del campo</label>
@@ -69,7 +69,7 @@ if (!$template) {
 
             <hr>
 
-            <form method="get" action="/addendas/frontend/wizard_step4.php">
+            <form method="get" action="/frontend/wizard_step4.php">
                 <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
                 <button type="submit">Continuar al Paso 4 →</button>
             </form>
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return t.value;
     }
 
-    fetch('/addendas/backend/public/preview_addenda_combined.php?template_id=<?= urlencode($templateId) ?>')
+    fetch('/backend/public/preview_addenda_combined.php?template_id=<?= urlencode($templateId) ?>')
     .then(function (r) {
         return r.text(); // 👈 importante para debug
     })

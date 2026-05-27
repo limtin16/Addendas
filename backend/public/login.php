@@ -22,7 +22,7 @@ if ($user && password_verify($password, $user['password'])) {
     $_SESSION['user_email'] = $user['email'];
 
     // ✅ redirige al sistema
-    header("Location: /addendas/frontend/dashboard.php");
+    header("Location: /frontend/dashboard.php");
     exit;
 
 } else {

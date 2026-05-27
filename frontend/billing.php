@@ -8,7 +8,7 @@ $isLogged = !empty($_SESSION['user_id']);
 $userId = requireAuthAndPrivacy($conn);
 
 if (!$isLogged) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: /frontend/login.php");
     exit;
 }
 
@@ -73,7 +73,7 @@ if (!empty($selectedRegime)) {
 <head>
     <meta charset="UTF-8">
     <title>Facturación</title>
-    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+    <link rel="stylesheet" href="/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -95,7 +95,7 @@ Guarda tus datos fiscales para generar facturas automáticamente.
 
 <hr>
 
-<form method="POST" action="/addendas/backend/public/save_billing.php" id="billingForm">
+<form method="POST" action="/backend/public/save_billing.php" id="billingForm">
 
 <label>RFC</label>
 <input type="text" class="form-input <?= $hasData ? 'readonly' : '' ?>" 
@@ -242,7 +242,7 @@ La factura será generada en un plazo máximo de 5 días.
 
         <?php else: ?>
 
-            <form method="POST" action="/addendas/backend/public/request_invoice.php"
+            <form method="POST" action="/backend/public/request_invoice.php"
                   onsubmit="return confirm('¿Deseas solicitar la factura de esta compra?');">
 
                 <input type="hidden" name="purchase_id" value="<?= $b['id'] ?>">
@@ -279,7 +279,7 @@ document.addEventListener('change', function(e) {
 
         const regime = e.target.value;
 
-        fetch('/addendas/backend/public/get_usos_cfdi.php?regime=' + regime)
+        fetch('/backend/public/get_usos_cfdi.php?regime=' + regime)
             .then(res => res.json())
             .then(data => {
 

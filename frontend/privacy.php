@@ -5,7 +5,7 @@ require_once dirname(__DIR__) . '../backend/db.php';
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: /frontend/login.php");
     exit;
 }
 
@@ -26,7 +26,7 @@ $policy = $stmt->get_result()->fetch_assoc();
 <head>
     <meta charset="UTF-8">
     <title>Aviso de Privacidad</title>
-    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+    <link rel="stylesheet" href="/frontend/assets/styles.css">
     <style>
 
 /* ✅ RESET TOTAL para esta página */
@@ -92,7 +92,7 @@ body {
             <p>Revisa los términos antes de continuar</p>
         </header>
 
-        <form method="POST" action="/addendas/backend/public/accept_privacy.php">
+        <form method="POST" action="/backend/public/accept_privacy.php">
 
             <!-- ✅ CONTENIDO CON SCROLL -->
             <div class="privacy-content">

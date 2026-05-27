@@ -38,7 +38,7 @@ $headers .= "Reply-To: $email\r\n";
 // ✅ enviar
 if (mail($to, $subject, $body, $headers)) {
     echo "<h3>✅ Tu mensaje fue enviado correctamente</h3>";
-    echo "<a href='/addendas/frontend/select_mode.php'>Volver</a>";
+    echo "<a href='/frontend/select_mode.php'>Volver</a>";
 } else {
     echo "❌ Error enviando el mensaje";
 }
