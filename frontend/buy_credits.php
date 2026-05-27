@@ -1,8 +1,9 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: <?= $base ?>/frontend/login.php");
     exit;
 }
 ?>
@@ -12,7 +13,7 @@ if (!isset($_SESSION['user_id'])) {
 <head>
 <meta charset="UTF-8">
 <title>Comprar Créditos</title>
-<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -93,7 +94,7 @@ document.querySelectorAll('.buy-btn').forEach(btn => {
             return;
         }
 
-        fetch('/addendas/backend/public/mock_buy_credits.php', {
+        fetch('<?= $base ?>/backend/public/mock_buy_credits.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ credits })

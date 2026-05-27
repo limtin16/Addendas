@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 require_once dirname(__DIR__) . '/backend/db.php';
 require_once dirname(__DIR__) . '/backend/helpers/auth.php';
@@ -8,7 +9,7 @@ $isLogged = !empty($_SESSION['user_id']);
 $userId = requireAuthAndPrivacy($conn);
 
 if (!$isLogged) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: <?= $base ?>/frontend/login.php");
     exit;
 }
 
@@ -73,7 +74,7 @@ if (!empty($selectedRegime)) {
 <head>
     <meta charset="UTF-8">
     <title>Facturación</title>
-    <link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+    <link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -95,7 +96,7 @@ Guarda tus datos fiscales para generar facturas automáticamente.
 
 <hr>
 
-<form method="POST" action="/addendas/backend/public/save_billing.php" id="billingForm">
+<form method="POST" action="<?= $base ?>/backend/public/save_billing.php" id="billingForm">
 
 <label>RFC</label>
 <input type="text" class="form-input <?= $hasData ? 'readonly' : '' ?>" 
@@ -242,7 +243,7 @@ La factura será generada en un plazo máximo de 5 días.
 
         <?php else: ?>
 
-            <form method="POST" action="/addendas/backend/public/request_invoice.php"
+            <form method="POST" action="<?= $base ?>/backend/public/request_invoice.php"
                   onsubmit="return confirm('¿Deseas solicitar la factura de esta compra?');">
 
                 <input type="hidden" name="purchase_id" value="<?= $b['id'] ?>">
@@ -279,7 +280,7 @@ document.addEventListener('change', function(e) {
 
         const regime = e.target.value;
 
-        fetch('/addendas/backend/public/get_usos_cfdi.php?regime=' + regime)
+        fetch('<?= $base ?>/backend/public/get_usos_cfdi.php?regime=' + regime)
             .then(res => res.json())
             .then(data => {
 

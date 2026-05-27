@@ -1,4 +1,5 @@
 <?php
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 session_start();
 
 require_once dirname(__DIR__) . '/backend/db.php';
@@ -7,7 +8,7 @@ require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /addendas/frontend/login.php");
+    header("Location: <?= $base ?>/frontend/login.php");
     exit;
 }
 
@@ -96,7 +97,7 @@ $olderExpired = array_slice($expiredPlans, 1);
 <head>
 <meta charset="UTF-8">
 <title>Mis Planes</title>
-<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
 </head>
 <body>
 
