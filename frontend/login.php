@@ -1,17 +1,15 @@
 <?php
 $path="";
-echo getcwd();
 
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
-    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
+    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'\\'));
 }
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $path.="backend/config.php";
-echo $path;
-exit;
+
 require_once $path;
 
 session_start(); 
