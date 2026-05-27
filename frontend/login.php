@@ -6,6 +6,8 @@ for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $path.="backend/config.php";
+echo $path;
+exit;
 require_once $path;
 
 session_start(); 
