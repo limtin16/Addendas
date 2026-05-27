@@ -9,6 +9,8 @@ for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $path.="backend/config.php";
+echo "  path: " . $path;
+echo "    ----actual  ". getcwd();
 echo $path;
 exit;
 require_once $path;
