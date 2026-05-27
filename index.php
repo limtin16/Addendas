@@ -157,7 +157,7 @@ body {
 <!-- ✅ NAV -->
 <div class="nav">
     <h1>AddendaFácil</h1>
-    <a href="/addendas/frontend/login.php">Iniciar sesión</a>
+    <a href="/frontend/login.php">Iniciar sesión</a>
 </div>
 
 <!-- ✅ HERO -->
@@ -169,13 +169,13 @@ body {
         sin registrarte. Guarda y administra tus addendas creando tu cuenta.
     </p>
 
-    <a href="/addendas/frontend/select_mode.php" class="btn">
+    <a href="/frontend/select_mode.php" class="btn">
         Generar addenda ahora
     </a>
 
     <div style="margin-top:15px;">
         o
-        <a href="/addendas/frontend/register.php" style="color:#2563eb; font-weight:600;">
+        <a href="/frontend/register.php" style="color:#2563eb; font-weight:600;">
             crea tu cuenta gratis
         </a>
     </div>
@@ -257,7 +257,7 @@ body {
     <h2>Empieza hoy mismo</h2>
     <p>Genera tus addendas en minutos</p>
 
-    <button onclick="location.href='/addendas/frontend/register.php'">
+    <button onclick="location.href='/frontend/register.php'">
         Crear cuenta gratis
     </button>
 </div>
