@@ -2,14 +2,8 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-exit;
-$path = "";
-$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
-for ($i = 0; $i < $depth; $i++) {
-    $path .= "../";
-}
-$path .= "backend/config.php";
-require_once $path;
+
+require_once __DIR__ . '/backend/config.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -170,7 +164,7 @@ body {
 <!-- ✅ NAV -->
 <div class="nav">
     <h1>AddendaFácil</h1>
-    <a href=BASE_URL . "/frontend/login.php">   Iniciar sesión</a>
+    <a href="<?= BASE_URL ?>/frontend/login.php">   Iniciar sesión</a>
 </div>
 
 <!-- ✅ HERO -->
@@ -182,13 +176,13 @@ body {
         sin registrarte. Guarda y administra tus addendas creando tu cuenta.
     </p>
 
-    <a href=BASE_URL . "/frontend/select_mode.php" class="btn">
+    <a href="<?= BASE_URL ?>/frontend/select_mode.php" class="btn">
         Generar addenda ahora
     </a>
 
     <div style="margin-top:15px;">
         o
-        <a href=BASE_URL . "/frontend/register.php" style="color:#2563eb; font-weight:600;">
+        <a href="<?= BASE_URL ?>/frontend/register.php" style="color:#2563eb; font-weight:600;">
             crea tu cuenta gratis
         </a>
     </div>
@@ -270,7 +264,7 @@ body {
     <h2>Empieza hoy mismo</h2>
     <p>Genera tus addendas en minutos</p>
 
-    <a href=BASE_URL . "/frontend/register.php" class="btn">
+    <a href="<?= BASE_URL ?>/frontend/register.php" class="btn">
         Crear cuenta gratis
     </a>
 </div>
