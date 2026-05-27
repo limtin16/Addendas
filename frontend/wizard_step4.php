@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 session_start();
 
 require_once dirname(__DIR__) . '/backend/config.php';
@@ -10,14 +17,14 @@ use App\Services\TemplateService;
 $templateId = $_GET['template_id'] ?? $_POST['template_id'] ?? null;
 
 if (!$templateId) {
-    header("Location: <?= $base ?>/frontend/wizard_step1.php");
+    header("Location: " . BASE_URL . "/frontend/wizard_step1.php");
     exit;
 }
 
 $service = new TemplateService();
 $template = $service->get($templateId);
 if (!$template) {
-    header("Location: <?= $base ?>/frontend/wizard_step1.php");
+    header("Location: " . BASE_URL . "/frontend/wizard_step1.php");
     exit;
 }
 
@@ -31,7 +38,7 @@ if (!isset($_SESSION['current_group'])) {
 <head>
 <meta charset="UTF-8">
 <title>Crear addenda – Paso 4</title>
-<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -51,7 +58,7 @@ if (!isset($_SESSION['current_group'])) {
 
                 <h3>Nuevo grupo</h3>
 
-                <form method="post" action="<?= $base ?>/backend/public/start_group_step4.php">
+                <form method="post" action="<?= BASE_URL ?>/backend/public/start_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
 
                     <label>Nombre del grupo</label>
@@ -78,7 +85,7 @@ if (!isset($_SESSION['current_group'])) {
 
                 <h4>Agregar campo al grupo</h4>
 
-                <form method="post" action="<?= $base ?>/backend/public/add_field_to_group_step4.php">
+                <form method="post" action="<?= BASE_URL ?>/backend/public/add_field_to_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
 
                     <label>Nombre del campo</label>
@@ -95,7 +102,7 @@ if (!isset($_SESSION['current_group'])) {
 
                 <hr>
 
-                <form method="post" action="<?= $base ?>/backend/public/save_group_step4.php">
+                <form method="post" action="<?= BASE_URL ?>/backend/public/save_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
                     <button type="submit">Guardar grupo</button>
                 </form>
@@ -104,7 +111,7 @@ if (!isset($_SESSION['current_group'])) {
 
                 <hr>
 
-                <form method="post" action="<?= $base ?>/backend/public/save_group_step4.php">
+                <form method="post" action="<?= BASE_URL ?>/backend/public/save_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
                     <input type="hidden" name="redirect_done" value="1">
                     <button type="submit">Finalizar addenda ✅</button>
@@ -151,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var templateId = container.dataset.templateId;
         if (!templateId) return;
         fetch(
-            '<?= $base ?>/backend/public/preview_addenda_combined.php?template_id=' +
+            '<?= BASE_URL ?>/backend/public/preview_addenda_combined.php?template_id=' +
             encodeURIComponent(templateId) +
             '&_=' + Date.now()
         )

@@ -1,9 +1,16 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: <?= $base ?>/frontend/login.php");
+    header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
 ?>
@@ -13,7 +20,7 @@ if (!isset($_SESSION['user_id'])) {
 <head>
 <meta charset="UTF-8">
 <title>Comprar Créditos</title>
-<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -94,7 +101,7 @@ document.querySelectorAll('.buy-btn').forEach(btn => {
             return;
         }
 
-        fetch('<?= $base ?>/backend/public/mock_buy_credits.php', {
+        fetch('<?= BASE_URL ?>/backend/public/mock_buy_credits.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ credits })

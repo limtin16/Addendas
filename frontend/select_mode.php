@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 session_start();
 unset($_SESSION['using_template']);
 ?>
@@ -10,7 +17,7 @@ unset($_SESSION['using_template']);
 <meta charset="UTF-8">
 <title>Crear Addenda – Seleccionar modo</title>
 
-<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 
 </head>
 
@@ -72,20 +79,20 @@ const isLogged = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
     }
 
     // 🚀 redirige a checkout con destino
-    const url = '<?= $base ?>/frontend/guest_checkout.php?redirect=' + encodeURIComponent(destination);
+    const url = '<?= BASE_URL ?>/frontend/guest_checkout.php?redirect=' + encodeURIComponent(destination);
 
     window.location.href = url;
 }
 function goManual() {
-    goWithPayment('<?= $base ?>/frontend/wizard_step1.php');
+    goWithPayment('<?= BASE_URL ?>/frontend/wizard_step1.php');
 }
 
 function goUpload() {
-    goWithPayment('<?= $base ?>/frontend/upload_addenda.php');
+    goWithPayment('<?= BASE_URL ?>/frontend/upload_addenda.php');
 }
 
 function goXsd() {
-    goWithPayment('<?= $base ?>/frontend/upload_xsd.php');
+    goWithPayment('<?= BASE_URL ?>/frontend/upload_xsd.php');
 }
 </script>
 

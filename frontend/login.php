@@ -1,5 +1,13 @@
-<?php 
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+<?php
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+
+require_once $path; 
+
 session_start(); 
 ?>
 
@@ -86,24 +94,24 @@ session_start();
 
     <h2>Iniciar sesión</h2>
 
-    <form method="POST" action="<?= $base ?>/backend/public/login.php">
+    <form method="POST" action="<?= BASE_URL ?>/backend/public/login.php">
         <input type="email" name="email" placeholder="Correo" required>
         <input type="password" name="password" placeholder="Contraseña" required>
         <button type="submit">Login</button>
     </form>
 
     <div class="links">
-        <a href="<?= $base ?>/frontend/register.php">Crear cuenta</a>
+        <a href="<?= BASE_URL ?>/frontend/register.php">Crear cuenta</a>
     </div>
 
     <div class="links">
-        <a href="<?= $base ?>/frontend/forgot_password.php">
+        <a href="<?= BASE_URL ?>/frontend/forgot_password.php">
         ¿Olvidaste tu contraseña?
         </a>
     </div>
 
     <div class="guest">
-        <a href="<?= $base ?>/frontend/select_mode.php">Entrar como visitante</a>
+        <a href="<?= BASE_URL ?>/frontend/select_mode.php">Entrar como visitante</a>
     </div>
 
 </div>

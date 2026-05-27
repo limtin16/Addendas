@@ -1,9 +1,9 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
 function requireAuthAndPrivacy($conn) {
 
     if (!isset($_SESSION['user_id'])) {
-        header("Location: <?= $base ?>/frontend/login.php");
+        header("Location: " . BASE_URL . "/frontend/login.php");
         exit;
     }
 
@@ -16,7 +16,7 @@ function requireAuthAndPrivacy($conn) {
     $stmt->execute();
 
     if (!$stmt->get_result()->fetch_assoc()) {
-        header("Location: <?= $base ?>/frontend/privacy.php");
+        header("Location: " . BASE_URL . "/frontend/privacy.php");
         exit;
     }
 

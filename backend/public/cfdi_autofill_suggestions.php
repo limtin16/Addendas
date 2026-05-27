@@ -1,7 +1,13 @@
 <?php
 session_start();
 
-require_once dirname(__DIR__) . '/config.php';
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
 
 header('Content-Type: application/json; charset=UTF-8');
 

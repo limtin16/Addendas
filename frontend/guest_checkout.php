@@ -1,9 +1,9 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
 session_start();
 $_SESSION['guest_paid'] = true;
 
-$redirect = $_GET['redirect'] ?? "<?= $base ?>/frontend/select_mode.php";
+$redirect = $_GET['redirect'] ?? "<?= BASE_URL ?>/frontend/select_mode.php";
 ?>
 
 <!DOCTYPE html>
@@ -11,7 +11,7 @@ $redirect = $_GET['redirect'] ?? "<?= $base ?>/frontend/select_mode.php";
 <head>
 <meta charset="UTF-8">
 <title>Pagar Addenda</title>
-<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -29,7 +29,7 @@ $redirect = $_GET['redirect'] ?? "<?= $base ?>/frontend/select_mode.php";
             <!-- ✅ WARNING -->
             <div class="warning-box">
                 ⚠️ Si te registras obtienes mejores precios, paquetes de créditos y beneficios adicionales.
-                <a href="<?= $base ?>/frontend/register.php" class="btn gray full">
+                <a href="<?= BASE_URL ?>/frontend/register.php" class="btn gray full">
                     👉 Registrarme y pagar menos
                 </a>
             </div>

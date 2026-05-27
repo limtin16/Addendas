@@ -6,7 +6,7 @@ This document serves as a guide for developers working on the Addendas project. 
 ## Development Setup
 1. **Clone the Repository**: 
    ```bash
-   git clone https://github.com/limtin16<?= $base ?>.git
+   git clone https://github.com/limtin16<?= BASE_URL ?>.git
    cd Addendas
    ```
 

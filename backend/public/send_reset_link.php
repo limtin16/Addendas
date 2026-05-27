@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 require_once dirname(__DIR__) . '/db.php';
 $email = $_POST['email'] ?? '';
 
@@ -32,7 +39,7 @@ $stmt->bind_param("ssi", $token, $expires, $user['id']);
 $stmt->execute();
 
 // ✅ link
-$link = "http://localhost<?= $base ?>/frontend/reset_password.php?token=$token";
+$link = "http://localhost<?= BASE_URL ?>/frontend/reset_password.php?token=$token";
 
 // ✅ enviar correo (simple)
 $subject = "Recuperación de contraseña";

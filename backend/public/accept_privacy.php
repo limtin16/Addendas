@@ -1,12 +1,19 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 session_start();
 require_once dirname(__DIR__) . '../db.php';
 
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
-    header("Location: <?= $base ?>/frontend/login.php");
+    header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
 
@@ -35,5 +42,5 @@ $stmt->execute();
 
 
 // redirigir al sistema
-header("Location: <?= $base ?>/frontend/dashboard.php");
+header("Location: " . BASE_URL . "/frontend/dashboard.php");
 exit;

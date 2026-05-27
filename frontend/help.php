@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 session_start();
 ?>
 
@@ -8,7 +15,7 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <title>Soporte</title>
-    <link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -27,7 +34,7 @@ session_start();
 
             <hr>
 
-            <form action="<?= $base ?>/backend/public/send_support.php" method="POST">
+            <form action="<?= BASE_URL ?>/backend/public/send_support.php" method="POST">
 
                 <label><b>Tu correo</b></label><br>
                 <input 
@@ -61,13 +68,13 @@ session_start();
             <!-- Botón volver dinámico -->
             <?php if (!empty($_SESSION['user_id'])): ?>
 
-                <a href="<?= $base ?>/frontend/dashboard.php" class="btn green">
+                <a href="<?= BASE_URL ?>/frontend/dashboard.php" class="btn green">
                     ➡ Volver al dashboard
                 </a>
 
             <?php else: ?>
 
-                <a href="<?= $base ?>/frontend/select_mode.php" class="btn green">
+                <a href="<?= BASE_URL ?>/frontend/select_mode.php" class="btn green">
                     🏠 Volver al inicio
                 </a>
 

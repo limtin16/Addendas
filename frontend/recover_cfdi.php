@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 ?>
 
 <!DOCTYPE html>
@@ -55,7 +62,7 @@ $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 
     <h2>Recuperar CFDI</h2>
 
-    <form method="GET" action="<?= $base ?>/backend/public/recover_cfdi.php">
+    <form method="GET" action="<?= BASE_URL ?>/backend/public/recover_cfdi.php">
         <input type="text" name="token" placeholder="Ingresa tu ID" required>
         <button>Descargar CFDI</button>
     </form>

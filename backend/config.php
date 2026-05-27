@@ -1,5 +1,14 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
+// ✅ detectar base automáticamente
+$script = $_SERVER['SCRIPT_NAME'];
+
+if (strpos($script, '/addendas/') === 0) {
+    $base = '/addendas';
+} else {
+    $base = '';
+}
+
+define('BASE_URL', $base);
 define('BACKEND_ROOT', __DIR__);
-define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/src/Storage/templates');
-define('FRONTEND_URL', '<?= $base ?>');
+define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/Storage/templates');

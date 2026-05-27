@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 ?>
 
 <!DOCTYPE html>
@@ -74,14 +81,14 @@ $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
 
     <h2>Crear cuenta</h2>
 
-    <form method="POST" action="<?= $base ?>/backend/public/register.php">
+    <form method="POST" action="<?= BASE_URL ?>/backend/public/register.php">
         <input type="email" name="email" placeholder="Correo" required>
         <input type="password" name="password" placeholder="Contraseña" required>
         <button type="submit">Registrarse</button>
     </form>
 
     <div class="links">
-        <a href="<?= $base ?>/frontend/login.php">Volver a login</a>
+        <a href="<?= BASE_URL ?>/frontend/login.php">Volver a login</a>
     </div>
 
 </div>

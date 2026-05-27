@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 session_start();
 require_once __DIR__ . '/../backend/db.php';
 require_once dirname(__DIR__) . '/backend/helpers/auth.php';
@@ -7,7 +14,7 @@ require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
 // ✅ SOLO USUARIOS LOGUEADOS
 if (!isset($_SESSION['user_id'])) {
-    header("Location: <?= $base ?>/frontend/login.php");
+    header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
 
@@ -33,7 +40,7 @@ $cfdis = $result->fetch_all(MYSQLI_ASSOC);
 <html>
 <head>
     <title>Mis CFDIs</title>
-    <link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -52,7 +59,7 @@ $cfdis = $result->fetch_all(MYSQLI_ASSOC);
                     <div class="name"><?= htmlspecialchars($c['filename']) ?></div>
                     <div class="date">Creado: <?= $c['created_at'] ?></div>
 
-                    <a href="<?= $base ?>/backend/public/download_cfdi_by_id.php?id=<?= $c['id'] ?>" class="btn blue">
+                    <a href="<?= BASE_URL ?>/backend/public/download_cfdi_by_id.php?id=<?= $c['id'] ?>" class="btn blue">
                         Descargar
                     </a>
                 </div>
@@ -60,7 +67,7 @@ $cfdis = $result->fetch_all(MYSQLI_ASSOC);
 
         <?php endif; ?>
 
-        <a href="<?= $base ?>/frontend/dashboard.php" class="btn back">
+        <a href="<?= BASE_URL ?>/frontend/dashboard.php" class="btn back">
         ⬅ Volver
         </a>
 

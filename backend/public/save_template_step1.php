@@ -1,8 +1,14 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+
 define('BASE_PATH', dirname(__DIR__));
 
-require_once dirname(__DIR__) . '/config.php';
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
 require_once BASE_PATH . '/src/DTO/Template.php';
 require_once BASE_PATH . '/src/Services/TemplateService.php';
 
@@ -31,5 +37,5 @@ $structure = [
 // ✅ Crear template
 $template = $service->save($name, $location, $structure);
 
-header('Location: <?= $base ?>/frontend/wizard_step2.php?template_id=' . urlencode($template->id));
+header('Location: " . BASE_URL . "/frontend/wizard_step2.php?template_id=' . urlencode($template->id));
 exit;

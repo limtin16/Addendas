@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 // upload_addenda.php
 session_start();
 
@@ -7,7 +14,7 @@ if (
     !isset($_SESSION['user_id']) &&
     !isset($_SESSION['guest_paid'])
 ) {
-    header("Location: <?= $base ?>/frontend/select_mode.php");
+    header("Location: " . BASE_URL . "/frontend/select_mode.php");
     exit;
 }
 ?>
@@ -16,7 +23,7 @@ if (
 <head>
 <meta charset="UTF-8">
 <title>Subir Addenda o CFDI</title>
-<link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -37,7 +44,7 @@ if (
             </p>
 
             <form method="post"
-                action="<?= $base ?>/backend/public/analyze_addenda.php"
+                action="<?= BASE_URL ?>/backend/public/analyze_addenda.php"
                 enctype="multipart/form-data"
                 id="uploadForm">
 

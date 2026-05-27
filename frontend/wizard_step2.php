@@ -1,12 +1,19 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Crear plantilla – Paso 2</title>
-    <link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 <body>
 
@@ -18,7 +25,7 @@ $base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
             <h2>Crear plantilla – Paso 2</h2>
             <p>Define la estructura principal solicitada por tu cliente.</p>
 
-            <form method="post" action="<?= $base ?>/backend/public/save_template_step2.php">
+            <form method="post" action="<?= BASE_URL ?>/backend/public/save_template_step2.php">
                 <!-- Id de la plantilla creada en el paso 1 -->
                 <input type="hidden" name="template_id" value="<?php echo $_GET['template_id'] ?? ''; ?>">
 

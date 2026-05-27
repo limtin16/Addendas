@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 session_start();
 
 $_SESSION['current_group'] = [
@@ -11,5 +18,5 @@ $_SESSION['current_group'] = [
     'children' => []
 ];
 
-header('Location: <?= $base ?>/frontend/wizard_step4.php?template_id=' . $_POST['template_id']);
+header('Location: " . BASE_URL . "/frontend/wizard_step4.php?template_id=' . $_POST['template_id']);
 exit;

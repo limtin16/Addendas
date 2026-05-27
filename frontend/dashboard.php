@@ -1,5 +1,12 @@
 <?php
-$base = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
+}
+$path .= "backend/config.php";
+require_once $path;
+
 session_start();
 
 require_once dirname(__DIR__) . '/backend/db.php';
@@ -9,7 +16,7 @@ require_once dirname(__DIR__) . '/backend/helpers/auth.php';
 
 // ✅ validar sesión primero
 if (!isset($_SESSION['user_id'])) {
-    header("Location: <?= $base ?>/frontend/login.php");
+    header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
 
@@ -24,7 +31,7 @@ $credits = $creditService->getAvailableCredits($userId);
 <html>
 <head>
     <title>Dashboard</title>
-    <link rel="stylesheet" href="<?= $base ?>/frontend/assets/styles.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 
 <body>
@@ -49,7 +56,7 @@ $credits = $creditService->getAvailableCredits($userId);
             <?php if ($credits <= 0): ?>
                 <div class="credits-box" style="background:#fee2e2; border-color:#fecaca; color:#991b1b;">
                     ⚠️ No tienes créditos disponibles.
-                    <a href="<?= $base ?>/frontend/buy_credits.php" class="btn red">
+                    <a href="<?= BASE_URL ?>/frontend/buy_credits.php" class="btn red">
                         Comprar créditos
                     </a>
                 </div>
@@ -67,7 +74,7 @@ $credits = $creditService->getAvailableCredits($userId);
             <div class="card">
                 <h3>🆕 Crear Addenda</h3>
                 <p>Genera una nueva addenda desde cero</p>
-                <a href="<?= $base ?>/frontend/select_mode.php" class="btn blue">
+                <a href="<?= BASE_URL ?>/frontend/select_mode.php" class="btn blue">
                     Crear
                 </a>
             </div>
@@ -75,7 +82,7 @@ $credits = $creditService->getAvailableCredits($userId);
             <div class="card">
                 <h3>📁 Mis Templates</h3>
                 <p>Reutiliza templates guardados</p>
-                <a href="<?= $base ?>/frontend/templates_list.php" class="btn gray">
+                <a href="<?= BASE_URL ?>/frontend/templates_list.php" class="btn gray">
                     Ver templates
                 </a>
             </div>
@@ -83,7 +90,7 @@ $credits = $creditService->getAvailableCredits($userId);
             <div class="card">
                 <h3>📑 CFDIs generados</h3>
                 <p>Consulta y descarga CFDIs generados</p>
-                <a href="<?= $base ?>/frontend/cfdi_list.php" class="btn gray">
+                <a href="<?= BASE_URL ?>/frontend/cfdi_list.php" class="btn gray">
                     Ver historial
                 </a>
             </div>
