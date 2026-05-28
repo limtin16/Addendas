@@ -36,11 +36,7 @@ $credits = $creditService->getAvailableCredits($userId);
 
 <body>
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
-            <?php if (isset($_GET['paid'])): ?>
-                <div style="background:#d1fae5;padding:15px;margin-bottom:20px;border-radius:8px;">
-                    ✅ Pago exitoso. Tus créditos han sido agregados.
-                </div>
-            <?php endif; ?>
+
 <div class="main">
     <div class="container">
         <div class="welcome">
