@@ -66,7 +66,7 @@ $data = [
     ],
 
     "checkout" => [
-        "type" => "Integration",
+        "type" => "Hosted",
         "allowed_payment_methods" => ["card", "cash", "bank_transfer"],
 
         // ✅ AQUÍ ESTÁ LA CLAVE
