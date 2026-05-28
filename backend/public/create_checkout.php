@@ -112,7 +112,7 @@ if (!isset($result["checkout"]["id"])) {
     exit;
 }
 
-// ✅ respuesta final
 echo json_encode([
-    "checkoutId" => $result["checkout"]["id"]
+    "checkoutId" => $result["checkout"]["id"],
+    "checkoutUrl" => $result["checkout"]["url"]
 ]);
