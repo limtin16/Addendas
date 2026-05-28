@@ -67,7 +67,8 @@ $data = [
 
     "checkout" => [
         "type" => "Hosted",
-        "allowed_payment_methods" => ["card", "cash", "bank_transfer"]
+        "allowed_payment_methods" => ["card", "cash", "bank_transfer"],
+        "return_url" => "https://www.addendafacil.com/frontend/payment_success.php"
     ]
 ];
 
