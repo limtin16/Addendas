@@ -120,8 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const container = document.getElementById("conektaIframeContainer");
             container.innerHTML = "";
 
-            // ✅ redirigir directo
-            window.location.href = data.checkoutUrl;
+            const conektaBtn = document.createElement("conekta-button");
 
             conektaBtn.setAttribute("checkoutId", data.checkoutId);
             conektaBtn.setAttribute("locale", "es");
