@@ -67,7 +67,11 @@ $data = [
 
     "checkout" => [
         "type" => "Integration",
-        "allowed_payment_methods" => ["card", "cash", "bank_transfer"]
+        "allowed_payment_methods" => ["card", "cash", "bank_transfer"],
+
+        // ✅ AQUÍ ESTÁ LA CLAVE
+        "success_url" => "https://www.addendafacil.com/frontend/dashboard.php?paid=1",
+        "failure_url" => "https://www.addendafacil.com/frontend/buy_credits.php?failed=1"
     ]
 ];
 

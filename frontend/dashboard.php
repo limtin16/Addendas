@@ -1,13 +1,10 @@
 <?php
-$path="";
-$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
-if ($count==0){
-    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
+$path = "";
+$depth = substr_count(__DIR__, DIRECTORY_SEPARATOR) - substr_count(__DIR__, DIRECTORY_SEPARATOR) + substr_count(substr(__DIR__, strpos(__DIR__, 'addendas')), DIRECTORY_SEPARATOR);
+for ($i = 0; $i < $depth; $i++) {
+    $path .= "../";
 }
-for ($i=0; $i<$count; $i++){
-	$path.="../";
-}
-$path.="backend/config.php";
+$path .= "backend/config.php";
 require_once $path;
 
 session_start();
@@ -105,4 +102,17 @@ $credits = $creditService->getAvailableCredits($userId);
 </div>
 
 </body>
+<script>
+const params = new URLSearchParams(window.location.search);
+
+if (params.get("paid") === "1") {
+    // ✅ recargar automáticamente una vez
+    if (!sessionStorage.getItem("reloaded")) {
+        sessionStorage.setItem("reloaded", "true");
+        window.location.reload();
+    } else {
+        sessionStorage.removeItem("reloaded");
+    }
+}
+</script>
 </html>
