@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
@@ -54,10 +56,28 @@ if ($data->type === "order.paid") {
         exit;
     }
 
-    // ✅ agregar créditos
-    $stmt = $conn->prepare("UPDATE users SET credits = credits + ? WHERE id = ?");
-    $stmt->bind_param("ii", $credits, $userId);
-    $stmt->execute();
+    // ✅ crear lote de créditos
+    $stmt = $conn->prepare("
+        INSERT INTO user_credit_batches 
+        (user_id, credits, remaining_credits, expires_at, created_at)
+        VALUES (?, ?, ?, ?, NOW())
+    ");
+
+    // ejemplo: expiran en 1 año
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+1 year'));
+
+    $remainingCredits = $credits;
+
+    $stmt->bind_param("iiis", 
+        $userId, 
+        $credits, 
+        $remainingCredits, 
+        $expiresAt
+    );
+
+    if (!$stmt->execute()) {
+        throw new Exception("Error insert credit batch: " . $stmt->error);
+    }
 
     // ✅ guardar historial
     $stmt = $conn->prepare("
