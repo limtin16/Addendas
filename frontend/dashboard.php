@@ -38,13 +38,18 @@ $credits = $creditService->getAvailableCredits($userId);
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
 <div class="main">
+
     <div class="container">
+
         <div class="welcome">
             <h2>Bienvenido 👋</h2>
+
             <p>Selecciona una acción para comenzar</p>
+
             <div class="credits-box">
                 💳 Tienes <b><?= $credits ?></b> crédito<?= $credits == 1 ? '' : 's' ?> disponible<?= $credits == 1 ? '' : 's' ?>
             </div>
+            
             <?php if ($credits <= 0): ?>
                 <div class="credits-box" style="background:#fee2e2; border-color:#fecaca; color:#991b1b;">
                     ⚠️ No tienes créditos disponibles.
@@ -94,23 +99,4 @@ $credits = $creditService->getAvailableCredits($userId);
 </div>
 
 </body>
-<script>
-const params = new URLSearchParams(window.location.search);
-
-if (params.get("paid") === "1") {
-
-    if (!sessionStorage.getItem("reload_paid")) {
-
-        sessionStorage.setItem("reload_paid", "1");
-
-        // ✅ pequeño delay para asegurar webhook
-        setTimeout(() => {
-            window.location.reload();
-        }, 800);
-
-    } else {
-        sessionStorage.removeItem("reload_paid");
-    }
-}
-</script>
 </html>
