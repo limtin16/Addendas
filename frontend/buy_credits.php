@@ -122,12 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.disabled = true;
 
             // ✅ redirección directa al checkout
-            if (!data.checkoutUrl) {
-                alert("Error: checkoutUrl no recibido");
-                console.log(data);
-                return;
-            }
-
             window.location.href = data.checkoutUrl;
 
         });
