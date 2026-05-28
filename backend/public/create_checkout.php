@@ -66,7 +66,7 @@ $data = [
     ],
 
     "checkout" => [
-        "type" => "Integration",
+        "type" => "Hosted",
         "allowed_payment_methods" => ["card", "cash", "bank_transfer"]
     ]
 ];
@@ -112,7 +112,18 @@ if (!isset($result["checkout"]["id"])) {
     exit;
 }
 
+$checkoutUrl = $result["checkout"]["url"] ?? null;
+
+if (!$checkoutUrl) {
+    http_response_code(500);
+    echo json_encode([
+        "error" => "No se pudo generar checkoutUrl",
+        "debug" => $result
+    ]);
+    exit;
+}
+
 echo json_encode([
     "checkoutId" => $result["checkout"]["id"],
-    "checkoutUrl" => $result["checkout"]["url"]
+    "checkoutUrl" => $checkoutUrl
 ]);
