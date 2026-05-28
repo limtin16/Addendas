@@ -52,6 +52,7 @@ $credits = $creditService->getAvailableCredits($userId);
             <div class="credits-box">
                 💳 Tienes <b><?= $credits ?></b> crédito<?= $credits == 1 ? '' : 's' ?> disponible<?= $credits == 1 ? '' : 's' ?>
             </div>
+            
             <?php if (isset($_GET['paid'])): ?>
                 <div style="background:#d1fae5;padding:15px;margin-bottom:20px;border-radius:8px;">
                     ✅ Pago exitoso. Tus créditos han sido agregados.
