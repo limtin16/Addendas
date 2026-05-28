@@ -35,6 +35,9 @@ $credits = $creditService->getAvailableCredits($userId);
 </head>
 
 <body>
+
+<body>
+
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
 
 <div class="main">
