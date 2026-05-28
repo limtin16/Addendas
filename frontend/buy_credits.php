@@ -68,7 +68,10 @@ if (!isset($_SESSION['user_id'])) {
             <div style="font-size:13px; color:#6b7280;">
                 Total: $<?= number_format($total,2) ?>
             </div>
-            <div>$<?= $unit ?> por addenda</div>
+
+            <div class="plan-expiration">
+                ⏳ Expira en <?= $p['expires'] ?>
+            </div>
 
             <button class="generate-checkout btn blue"
                     data-credits="<?= $p['credits'] ?>">
