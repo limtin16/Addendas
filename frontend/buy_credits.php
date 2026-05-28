@@ -104,44 +104,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
         btn.addEventListener('click', async function () {
 
-
             const credits = btn.dataset.credits;
 
-            try {
+            const res = await fetch('<?= BASE_URL ?>/backend/public/create_checkout.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credits })
+            });
 
-                const res = await fetch('<?= BASE_URL ?>/backend/public/create_checkout.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ credits })
-                });
+            const data = await res.json();
 
-                const text = await res.text();
-                console.log("RESP RAW:", text);
+            console.log("CHECKOUT:", data);
 
-                let data;
+            // ✅ crear botón dinámico
+            const container = document.getElementById("conektaIframeContainer");
+            container.innerHTML = "";
 
-                try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    alert("Error JSON:\n" + text);
-                    return;
-                }
+            const conektaBtn = document.createElement("conekta-button");
 
-                if (!data.checkoutId) {
-                    alert("Error backend");
-                    console.log(data);
-                    return;
-                }
+            conektaBtn.setAttribute("checkoutId", data.checkoutId);
+            conektaBtn.setAttribute("locale", "es");
 
-                renderCheckout(data.checkoutId);
-
-            } catch (err) {
-                console.error(err);
-                alert("Error fetch");
-            }
+            container.appendChild(conektaBtn);
 
         });
 
