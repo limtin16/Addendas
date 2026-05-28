@@ -22,14 +22,6 @@ $stmt->execute();
 $resultUser = $stmt->get_result()->fetch_assoc();
 
 $email = $resultUser["email"] ?? null;
-// ✅ VALIDAR EMAIL
-if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    echo json_encode([
-        "error" => "Email inválido",
-        "email" => $email
-    ]);
-    exit;
-}
 
 if (!$email) {
     echo json_encode(["error" => "Email no encontrado"]);
@@ -86,12 +78,11 @@ $data = [
     ],
 
     // ✅ 💣 CLAVE: HOSTED
-        "checkout" => [
-            "type" => "Hosted",
-            "allowed_payment_methods" => ["card", "cash", "bank_transfer"],
-            "return_url" => "https://www.addendafacil.com/frontend/payment_success.php",
-            "expires_at" => time() + 3600
-        ]
+    "checkout" => [
+        "type" => "Hosted",
+        "allowed_payment_methods" => ["card", "cash", "bank_transfer"],
+        "return_url" => "https://www.addendafacil.com/frontend/payment_success.php"
+    ]
 ];
 
 // ✅ CURL
@@ -122,10 +113,9 @@ curl_close($ch);
 
 // ✅ DEBUG SI FALLA
 if (!isset($result["checkout"]["url"])) {
-        echo json_encode([
+    echo json_encode([
         "error" => "Error en Conekta",
-        "debug" => $result,
-        "raw" => $response
+        "debug" => $result
     ]);
     exit;
 }

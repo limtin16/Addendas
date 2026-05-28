@@ -123,12 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!data.checkoutUrl) {
                 alert("Error en pago");
-
-                console.log("ERROR COMPLETO:");
-                console.log(data);
-                console.log("DEBUG:");
-                console.log(data.debug);
-
+                console.log("DEBUG:", data);
                 return;
             }
 
