@@ -38,11 +38,14 @@ $credits = $creditService->getAvailableCredits($userId);
 </head>
 
 <body>
-
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
 <div class="main">
     <div class="container">
-
+        <?php if (isset($_GET['paid'])): ?>
+            <div style="background:#d1fae5;padding:15px;margin-bottom:20px;border-radius:8px;">
+                ✅ Pago exitoso. Tus créditos han sido agregados.
+            </div>
+        <?php endif; ?>
         <div class="welcome">
             <h2>Bienvenido 👋</h2>
 
@@ -99,6 +102,24 @@ $credits = $creditService->getAvailableCredits($userId);
     </div>
 
 </div>
+<script>
+    const params = new URLSearchParams(window.location.search);
 
+    if (params.get("paid") === "1") {
+
+        if (!sessionStorage.getItem("reload_paid")) {
+
+            sessionStorage.setItem("reload_paid", "1");
+
+            // ✅ pequeño delay para asegurar webhook
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+
+        } else {
+            sessionStorage.removeItem("reload_paid");
+        }
+    }
+</script>
 </body>
 </html>
