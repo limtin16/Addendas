@@ -1,10 +1,7 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once __DIR__ . '/backend/config.php';
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -14,28 +11,43 @@ require_once __DIR__ . '/backend/config.php';
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 
-body {
+/* ✅ RESET */
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
     font-family: 'Inter', sans-serif;
-    background: #f9fafb;
-    color: #1f2937;
+
+    background:
+        radial-gradient(circle at 20% 30%, #dbeafe 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, #e9d5ff 0%, transparent 40%),
+        linear-gradient(180deg, #f8fafc, #ffffff);
+
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ✅ NAVBAR */
 .nav {
     display: flex;
     justify-content: space-between;
-    padding: 20px 40px;
-    background: #fff;
-    border-bottom: 1px solid #eee;
+    align-items: center;
+    padding: 25px 60px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .nav h1 {
     font-size: 20px;
+    font-weight: 600;
 }
 
 .nav a {
@@ -44,116 +56,98 @@ body {
     font-weight: 600;
 }
 
-/* ✅ HERO */
+/* ✅ HERO FULLSCREEN */
 .hero {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* ✅ CARD CENTRAL */
+.card {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px);
+    padding: 60px 50px;
+    border-radius: 18px;
+    max-width: 650px;
+    width: 100%;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.12);
     text-align: center;
-    padding: 80px 20px;
-    background: #fff;
 }
 
-.hero h1 {
+/* ✅ TEXTOS */
+.card h1 {
     font-size: 42px;
-    margin-bottom: 10px;
+    font-weight: 600;
+    margin-bottom: 15px;
 }
 
-.hero p {
+.card p {
     font-size: 18px;
-    color: #555;
-    max-width: 600px;
-    margin: auto;
+    color: #6b7280;
+    margin-bottom: 25px;
 }
 
-.btn {
-    margin-top: 30px;
-    display: inline-block;
-    background: #2563eb;
+/* ✅ BOTÓN */
+.btn-main {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
     color: white;
-    padding: 14px 26px;
-    border-radius: 8px;
+    padding: 16px 32px;
+    border-radius: 12px;
     text-decoration: none;
     font-weight: 600;
+    display: inline-block;
+    transition: 0.25s;
 }
 
-/* ✅ SECTIONS */
-.section {
-    padding: 60px 20px;
-    text-align: center;
+.btn-main:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
 
-.features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 30px;
-    margin-top: 40px;
+/* ✅ LINKS */
+.secondary {
+    margin-top: 15px;
+    font-size: 14px;
 }
 
-.card {
-    background: #fff;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-.card h3 {
-    margin-bottom: 10px;
-}
-
-/* ✅ STEPS */
-.steps {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 40px;
-}
-
-.step {
-    max-width: 250px;
-}
-
-/* ✅ PRICING */
-.pricing {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-.plan {
-    background: #fff;
-    padding: 25px;
-    border-radius: 10px;
-    width: 200px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-
-.plan h2 {
+.secondary a {
     color: #2563eb;
-}
-
-/* ✅ CTA */
-.cta {
-    background: #2563eb;
-    color: white;
-    padding: 60px 20px;
-    text-align: center;
-}
-
-.cta button {
-    background: white;
-    color: #2563eb;
-    border: none;
-    padding: 14px 26px;
-    border-radius: 8px;
     font-weight: 600;
-    cursor: pointer;
+    text-decoration: none;
+}
+
+/* ✅ FEATURES INLINE */
+.features {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    gap: 15px;
+    text-align: center;
+}
+
+.features div {
+    background: #eff6ff;
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-size: 13px;
 }
 
 /* ✅ FOOTER */
 .footer {
-    padding: 20px;
     text-align: center;
-    font-size: 14px;
-    color: #888;
+    padding: 15px;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.card {
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-5px);
 }
 
 </style>
@@ -163,115 +157,57 @@ body {
 
 <!-- ✅ NAV -->
 <div class="nav">
-    <h1>AddendaFácil</h1>
-    <a href="<?= BASE_URL ?>/frontend/login.php">   Iniciar sesión</a>
+    <h1>🚀 AddendaFácil</h1>
+    <a href="<?= BASE_URL ?>/frontend/login.php">Iniciar sesión</a>
 </div>
 
-<!-- ✅ HERO -->
+<!-- ✅ HERO FULL -->
 <div class="hero">
-    <h1>Genera addendas sin complicaciones</h1>
 
-    <p>
-        Puedes generar tu primera addenda en segundos,
-        sin registrarte. Guarda y administra tus addendas creando tu cuenta.
-    </p>
+    <div class="card">
 
-    <a href="<?= BASE_URL ?>/frontend/select_mode.php" class="btn">
-        Generar addenda ahora
-    </a>
+        <h1>Genera addendas en minutos</h1>
 
-    <div style="margin-top:15px;">
-        o
-        <a href="<?= BASE_URL ?>/frontend/register.php" style="color:#2563eb; font-weight:600;">
-            crea tu cuenta gratis
+        <p>
+            Olvídate del proceso complicado.  
+            Crea, valida y descarga addendas CFDI 4.0 de forma rápida y segura.
+        </p>
+
+        <a href="<?= BASE_URL ?>/frontend/register.php" class="btn-main">
+            Crear cuenta gratis 🚀
         </a>
+        <div style="margin-top:20px; font-size:13px; color:#6b7280;">
+            ✅ Sin tarjeta · ⚡ Acceso inmediato · 🧾 CFDI 4.0 compatible
+        </div>
+
+        <div class="secondary">
+            <div style="margin-bottom:8px;">
+                <a href="<?= BASE_URL ?>/frontend/select_mode.php">
+                    Probar sin cuenta →
+                </a>
+            </div>
+            <div style="font-size:13px; color:#6b7280;">
+                ¿Ya tienes cuenta? 
+                <a href="<?= BASE_URL ?>/frontend/login.php" style="font-weight:600;">
+                    Iniciar sesión
+                </a>
+            </div>
+        </div>
+
+        <!-- ✅ FEATURES compactas -->
+        <div class="features">
+            <div>⚡ Rápido</div>
+            <div>✅ Validado</div>
+            <div>🔁 Reutilizable</div>
+        </div>
+
     </div>
-</div>
 
-<!-- ✅ FEATURES -->
-<div class="section">
-    <h2>¿Por qué usar AddendaFácil?</h2>
-
-    <div class="features">
-        <div class="card">
-            <h3>⚡ Rápido</h3>
-            <p>Genera addendas en segundos.</p>
-        </div>
-
-        <div class="card">
-            <h3>🧾 Compatible</h3>
-            <p>Compatible con CFDI 4.0.</p>
-        </div>
-
-        <div class="card">
-            <h3>🔁 Reutilizable</h3>
-            <p>Guarda templates y reutiliza.</p>
-        </div>
-
-        <div class="card">
-            <h3>✅ Sin errores</h3>
-            <p>Validación automática incluida.</p>
-        </div>
-    </div>
-</div>
-
-<!-- ✅ HOW IT WORKS -->
-<div class="section" style="background:#fff;">
-    <h2>¿Cómo funciona?</h2>
-
-    <div class="steps">
-        <div class="step">
-            <h3>1️⃣ Captura</h3>
-            <p>Llena los datos fácilmente.</p>
-        </div>
-
-        <div class="step">
-            <h3>2️⃣ Genera</h3>
-            <p>El sistema crea tu addenda.</p>
-        </div>
-
-        <div class="step">
-            <h3>3️⃣ Descarga</h3>
-            <p>Úsala en segundos.</p>
-        </div>
-    </div>
-</div>
-
-<!-- ✅ PRICING -->
-<div class="section">
-    <h2>Compra créditos</h2>
-
-    <div class="pricing">
-        <div class="plan">
-            <h2>$100</h2>
-            <p>100 créditos</p>
-        </div>
-
-        <div class="plan">
-            <h2>$250</h2>
-            <p>260 créditos</p>
-        </div>
-
-        <div class="plan">
-            <h2>$500</h2>
-            <p>550 créditos</p>
-        </div>
-    </div>
-</div>
-
-<!-- ✅ CTA -->
-<div class="cta">
-    <h2>Empieza hoy mismo</h2>
-    <p>Genera tus addendas en minutos</p>
-
-    <a href="<?= BASE_URL ?>/frontend/register.php" class="btn">
-        Crear cuenta gratis
-    </a>
 </div>
 
 <!-- ✅ FOOTER -->
 <div class="footer">
-    © <?= date('Y') ?> AddendaFácil — Todos los derechos reservados
+    © <?= date('Y') ?> AddendaFácil
 </div>
 
 </body>

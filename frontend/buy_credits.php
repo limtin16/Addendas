@@ -42,23 +42,34 @@ if (!isset($_SESSION['user_id'])) {
 
         <?php
         $plans = [
-            ['credits'=>1, 'price'=>100],
-            ['credits'=>10, 'price'=>850],
-            ['credits'=>20, 'price'=>1500],
-            ['credits'=>50, 'price'=>3250],
-            ['credits'=>100, 'price'=>5500],
-            ['credits'=>200, 'price'=>10000],
-            ['credits'=>300, 'price'=>13500],
-            ['credits'=>500, 'price'=>20000],
+            ['credits'=>1,   'price'=>100,   'expires'=>'1 mes'],
+            ['credits'=>10,  'price'=>850,   'expires'=>'3 meses'],
+            ['credits'=>20,  'price'=>1500,  'expires'=>'6 meses'],
+            ['credits'=>50,  'price'=>3250,  'expires'=>'6 meses'],
+            ['credits'=>100, 'price'=>5500,  'expires'=>'1 año'],
+            ['credits'=>200, 'price'=>10000, 'expires'=>'1 año'],
+            ['credits'=>300, 'price'=>13500, 'expires'=>'1 año'],
+            ['credits'=>500, 'price'=>20000, 'expires'=>'1 año'],
         ];
         foreach ($plans as $p):
             $unit = round($p['price'] / $p['credits']);
         ?>
         <div class="plan-card">
             <h3><?= $p['credits'] ?> Addenda<?= $p['credits'] > 1 ? 's' : '' ?></h3>
-            <div>$<?= number_format($p['price'],2) ?></div>
+            <?php
+                $iva = $p['price'] * 0.16;
+                $total = $p['price'] + $iva;
+            ?>
+
+            <div>
+                $<?= number_format($p['price'],2) ?> + IVA
+            </div>
+
+            <div style="font-size:13px; color:#6b7280;">
+                Total: $<?= number_format($total,2) ?>
+            </div>
             <div>$<?= $unit ?> por addenda</div>
-            
+
             <button class="generate-checkout btn blue"
                     data-credits="<?= $p['credits'] ?>">
                 Pagar con tarjeta / OXXO

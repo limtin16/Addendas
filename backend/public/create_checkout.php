@@ -38,7 +38,8 @@ if (!isset($prices[$credits])) {
     exit;
 }
 
-$amount = $prices[$credits];
+$baseAmount = $prices[$credits];
+$amount = round($baseAmount * 1.16); // ✅ agrega 16%
 
 // ✅ API KEY
 $apiKey = "key_tAsPP4OcAeVh6YcHl1ltOyR"; // ⚠️ privada
@@ -66,7 +67,7 @@ $data = [
     ],
 
     "checkout" => [
-        "type" => "Hosted",
+        "type" => "Integration",
         "allowed_payment_methods" => ["card", "cash", "bank_transfer"],
 
         // ✅ AQUÍ ESTÁ LA CLAVE
