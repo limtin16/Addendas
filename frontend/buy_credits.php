@@ -121,17 +121,13 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.innerText = "Redirigiendo...";
             btn.disabled = true;
 
+            // ✅ redirección directa al checkout
             if (!data.checkoutUrl) {
-                alert("Error en pago");
-                console.log("DEBUG:", data);
+                alert("Error: checkoutUrl no recibido");
+                console.log(data);
                 return;
             }
 
-            // UX mejorado
-            btn.innerText = "Redirigiendo...";
-            btn.disabled = true;
-
-            // ✅ redirect directo
             window.location.href = data.checkoutUrl;
 
         });
