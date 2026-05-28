@@ -129,11 +129,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // ✅ INSERTARLO justo donde estaba el botón original
             btn.parentNode.appendChild(conektaBtn);
-
         });
-
     });
-
 });
 
 function renderCheckout(checkoutId) {
