@@ -104,7 +104,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         btn.addEventListener('click', async function () {
 
-
             const credits = btn.dataset.credits;
 
             const res = await fetch('<?= BASE_URL ?>/backend/public/create_checkout.php', {
@@ -117,18 +116,52 @@ document.addEventListener("DOMContentLoaded", function () {
 
             console.log("CHECKOUT:", data);
 
-            // ✅ UX: deshabilitar botón
-            btn.innerText = "Redirigiendo...";
-            btn.disabled = true;
+            // ✅ crear botón dinámico
+            const container = document.getElementById("conektaIframeContainer");
+            container.innerHTML = "";
 
-            // ✅ redirección directa al checkout
+            // ✅ redirigir directo
             window.location.href = data.checkoutUrl;
+
+            conektaBtn.setAttribute("checkoutId", data.checkoutId);
+            conektaBtn.setAttribute("locale", "es");
+
+            container.appendChild(conektaBtn);
 
         });
 
     });
 
 });
+
+function renderCheckout(checkoutId) {
+
+    console.log("Renderizando checkout:", checkoutId);
+
+    const container = document.getElementById("conektaIframeContainer");
+    container.innerHTML = "";
+
+    // ✅ VALIDAR QUE CONEKTA EXISTA
+    if (!window.ConektaCheckoutComponents) {
+        alert("Error: Conekta no cargó");
+        console.log(window);
+        return;
+    }
+
+    // ✅ AQUÍ VA Integration (LO QUE NO SABÍAS DÓNDE PONER)
+    window.ConektaCheckoutComponents.Integration({
+        targetIFrame: "#conektaIframeContainer",
+        checkoutRequestId: checkoutId,
+
+        publicKey: "key_test_xxxxx", // ✅ tu public key
+
+        paymentMethods: ["Card", "Cash"],
+
+        options: {
+            theme: 'blue'
+        }
+    });
+}
 
 </script>
 
