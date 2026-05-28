@@ -18,7 +18,7 @@ if (!isset($_SESSION['user_id'])) {
  <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 
 <!-- ✅ SCRIPT CONEKTA -->
-<script src="https://checkout.conekta.com/v2.1.0heckout.min.js"></script>
+<script src="https://checkout.conekta.com/v2.1.0/js/conekta-checkout.min.js"></script>
 </head>
 
 <body>
