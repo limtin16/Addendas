@@ -15,10 +15,8 @@ if (!isset($_SESSION['user_id'])) {
 <meta charset="UTF-8">
 <title>Comprar Créditos</title>
 
- <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 
-<!-- ✅ SCRIPT CONEKTA -->
-<script src="https://pay.conekta.com/v1.0/js/components.js"></script>
 </head>
 
 <body>
@@ -34,9 +32,6 @@ if (!isset($_SESSION['user_id'])) {
                 Adquiere paquetes de addendas para generar CFDIs de forma rápida.
             </p>
         </div>
-
-        <!-- ✅ CONTENEDOR CHECKOUT -->
-        <div id="conektaIframeContainer" style="margin-bottom:30px;"></div>
 
         <div class="plans-grid">
 
@@ -87,64 +82,68 @@ if (!isset($_SESSION['user_id'])) {
     </div>
 </div>
 
-<!-- ✅ SCRIPT CORRECTO -->
 <script>
 
-console.log("SCRIPT CARGADO ✅");
-
-// ✅ ESPERAR A QUE EL DOM EXISTA
 document.addEventListener("DOMContentLoaded", function () {
 
-    console.log("DOM LISTO ✅");
-
     const buttons = document.querySelectorAll('.generate-checkout');
-    console.log("Botones encontrados:", buttons.length);
 
     buttons.forEach(btn => {
 
         btn.addEventListener('click', async function () {
 
-
             const credits = btn.dataset.credits;
 
-            const res = await fetch('<?= BASE_URL ?>/backend/public/create_checkout.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ credits })
-            });
-
-            const data = await res.json();
-
-            console.log("CHECKOUT:", data);
-
-            // ✅ UX: deshabilitar botón
-            btn.innerText = "Redirigiendo...";
-            btn.disabled = true;
-
-            if (!data.checkoutUrl) {
-                alert("Error en pago");
-
-                console.log("ERROR COMPLETO:");
-                console.log(data);
-                console.log("DEBUG:");
-                console.log(data.debug);
-
+            // ✅ si ya está listo → redirige directo
+            if (btn.dataset.ready === "true") {
+                window.location.href = btn.dataset.url;
                 return;
             }
 
-            // UX mejorado
-            btn.innerText = "Redirigiendo...";
+            // ✅ estado loading
+            btn.innerText = "Cargando...";
             btn.disabled = true;
 
-            // ✅ redirect directo
-            window.location.href = data.checkoutUrl;
+            try {
+
+                const res = await fetch('<?= BASE_URL ?>/backend/public/create_checkout.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credits })
+                });
+
+                const data = await res.json();
+                console.log("CHECKOUT:", data);
+
+                if (!data.checkoutUrl) {
+                    alert("Error en pago");
+                    console.log(data);
+                    btn.innerText = "Pagar con tarjeta / OXXO";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // ✅ guardar url
+                btn.dataset.url = data.checkoutUrl;
+                btn.dataset.ready = "true";
+
+                // ✅ transformar botón
+                btn.innerText = "Continuar al Pago ✅";
+                btn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                alert("Error de conexión");
+
+                btn.innerText = "Pagar con tarjeta / OXXO";
+                btn.disabled = false;
+            }
 
         });
 
     });
 
 });
-
 </script>
 
 </body>
