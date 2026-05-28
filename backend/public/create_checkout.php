@@ -15,12 +15,24 @@ if (!$userId) {
     exit;
 }
 
+// ✅ obtener email real del usuario
+$stmt = $conn->prepare("SELECT email FROM users WHERE id = ?");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$resultUser = $stmt->get_result()->fetch_assoc();
+
+$email = $resultUser["email"] ?? null;
+
+if (!$email) {
+    echo json_encode(["error" => "Email no encontrado"]);
+    exit;
+}
+
 // ✅ leer datos del frontend
 $input = json_decode(file_get_contents("php://input"), true);
-
 $credits = isset($input['credits']) ? (int)$input['credits'] : 1;
 
-// ✅ precios dinámicos (puedes expandir esto)
+// ✅ precios
 $prices = [
     1   => 10000,
     10  => 85000,
@@ -41,16 +53,17 @@ if (!isset($prices[$credits])) {
 $amount = $prices[$credits];
 
 // ✅ API KEY
-$apiKey = "key_tAsPP4OcAeVh6YcHl1ltOyR"; // ⚠️ privada
+$apiKey = "key_test_xxxxx"; // ⚠️ TU PRIVATE KEY
+
 $url = "https://api.conekta.io/orders";
 
-// ✅ request
+// ✅ request a Conekta
 $data = [
     "currency" => "MXN",
 
     "customer_info" => [
-        "name" => "Usuario",
-        "email" => "cliente@test.com" // puedes sacar del usuario después
+        "name" => "Cliente",
+        "email" => $email
     ],
 
     "line_items" => [[
@@ -59,12 +72,12 @@ $data = [
         "quantity" => 1
     ]],
 
-    // 💣 IMPORTANTE → metadata
     "metadata" => [
         "user_id" => $userId,
         "credits" => $credits
     ],
 
+    // ✅ 💣 CLAVE: HOSTED
     "checkout" => [
         "type" => "Hosted",
         "allowed_payment_methods" => ["card", "cash", "bank_transfer"],
@@ -82,19 +95,15 @@ curl_setopt_array($ch, [
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => json_encode($data),
     CURLOPT_HTTPHEADER => [
-    "Content-Type: application/json",
-    "Accept: application/vnd.conekta-v2.0.0+json"
-]
+        "Content-Type: application/json",
+        "Accept: application/vnd.conekta-v2.0.0+json"
+    ]
 ]);
 
 $response = curl_exec($ch);
 
 if ($response === false) {
-    http_response_code(500);
-    echo json_encode([
-        "error" => curl_error($ch)
-    ]);
-    curl_close($ch);
+    echo json_encode(["error" => curl_error($ch)]);
     exit;
 }
 
@@ -102,29 +111,16 @@ $result = json_decode($response, true);
 
 curl_close($ch);
 
-// ✅ validar respuesta
-if (!isset($result["checkout"]["id"])) {
-
-    http_response_code(500);
+// ✅ DEBUG SI FALLA
+if (!isset($result["checkout"]["url"])) {
     echo json_encode([
-        "error" => "Respuesta inválida de Conekta",
+        "error" => "Error en Conekta",
         "debug" => $result
     ]);
     exit;
 }
 
-$checkoutUrl = $result["checkout"]["url"] ?? null;
-
-if (!$checkoutUrl) {
-    http_response_code(500);
-    echo json_encode([
-        "error" => "No se pudo generar checkoutUrl",
-        "debug" => $result
-    ]);
-    exit;
-}
-
+// ✅ RESPUESTA FINAL
 echo json_encode([
-    "checkoutId" => $result["checkout"]["id"],
-    "checkoutUrl" => $checkoutUrl
+    "checkoutUrl" => $result["checkout"]["url"]
 ]);
