@@ -18,7 +18,7 @@ if (!isset($_SESSION['user_id'])) {
  <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 
 <!-- ✅ SCRIPT CONEKTA -->
-<script src="https://checkout.conekta.com/v2.1.0/js/conekta-checkout.min.js"></script>
+<script src="https://pay.conekta.com/v1.0/js/components.js"></script>
 </head>
 
 <body>
@@ -151,23 +151,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function renderCheckout(checkoutId) {
 
-    console.log("Checkout ID:", checkoutId);
+    console.log("Renderizando checkout:", checkoutId);
 
     const container = document.getElementById("conektaIframeContainer");
     container.innerHTML = "";
 
-    if (!window.ConektaCheckout) {
-        alert("ERROR: ConektaCheckout no cargó");
+    // ✅ VALIDAR QUE CONEKTA EXISTA
+    if (!window.ConektaCheckoutComponents) {
+        alert("Error: Conekta no cargó");
         console.log(window);
         return;
     }
 
-    const checkout = new window.ConektaCheckout({
-        target: "#conektaIframeContainer",
+    // ✅ AQUÍ VA Integration (LO QUE NO SABÍAS DÓNDE PONER)
+    window.ConektaCheckoutComponents.Integration({
+        targetIFrame: "#conektaIframeContainer",
         checkoutRequestId: checkoutId,
-        publicKey: "key_test_xxxxx"
-    });
 
+        publicKey: "key_test_xxxxx", // ✅ tu public key
+
+        paymentMethods: ["Card", "Cash"],
+
+        options: {
+            theme: 'blue'
+        }
+    });
 }
 
 </script>
