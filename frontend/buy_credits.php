@@ -116,16 +116,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
             console.log("CHECKOUT:", data);
 
-            // ✅ crear botón dinámico
-            const container = document.getElementById("conektaIframeContainer");
-            container.innerHTML = "";
+            // ✅ OCULTAR el botón actual
+            btn.style.display = "none";
 
+            // ✅ CREAR botón Conekta EN EL MISMO LUGAR
             const conektaBtn = document.createElement("conekta-button");
 
             conektaBtn.setAttribute("checkoutId", data.checkoutId);
             conektaBtn.setAttribute("locale", "es");
+            conektaBtn.setAttribute("size", "large");
+            conektaBtn.setAttribute("border", "rounded");
 
-            container.appendChild(conektaBtn);
+            // ✅ INSERTARLO justo donde estaba el botón original
+            btn.parentNode.appendChild(conektaBtn);
 
         });
 
