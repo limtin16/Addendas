@@ -51,33 +51,18 @@ if (!isset($_SESSION['user_id'])) {
             ['credits'=>300, 'price'=>13500],
             ['credits'=>500, 'price'=>20000],
         ];
-
         foreach ($plans as $p):
             $unit = round($p['price'] / $p['credits']);
         ?>
-
         <div class="plan-card">
-
             <h3><?= $p['credits'] ?> Addenda<?= $p['credits'] > 1 ? 's' : '' ?></h3>
-
             <div>$<?= number_format($p['price'],2) ?></div>
             <div>$<?= $unit ?> por addenda</div>
-
-            <?php if ($p['credits'] == 1): ?>
-
-                <button class="generate-checkout btn blue"
-                        data-credits="1">
-                    Pagar con tarjeta / OXXO
-                </button>
-
-            <?php else: ?>
-
-                <button class="btn blue">
-                    Comprar (demo)
-                </button>
-
-            <?php endif; ?>
-
+            
+            <button class="generate-checkout btn blue"
+                    data-credits="<?= $p['credits'] ?>">
+                Pagar con tarjeta / OXXO
+            </button>
         </div>
 
         <?php endforeach; ?>
