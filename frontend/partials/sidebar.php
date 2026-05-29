@@ -26,12 +26,11 @@ define('BASE_URL_sb', $base);
         <!-- ✅ MENÚ PRINCIPAL -->
         <div class="menu-top">
             <a href="<?= BASE_URL_sb ?>/frontend/dashboard.php">🏠 Dashboard</a>
-            <a href="<?= BASE_URL_sb ?>/frontend/cfdi_list.php">📄 Mis CFDIs</a>
-            <a href="<?= BASE_URL_sb ?>/frontend/templates_list.php">📁 Mis Templates</a>
-            <a href="<?= BASE_URL_sb ?>/frontend/select_mode.php">➕ Crear Addenda</a>
             <a href="<?= BASE_URL_sb ?>/frontend/buy_credits.php">💳 Comprar créditos</a>
             <a href="<?= BASE_URL_sb ?>/frontend/my_plans.php">📦 Mis Planes</a>
             <a href="<?= BASE_URL_sb ?>/frontend/billing.php">🧾 Facturación</a>
+            <a href="<?= BASE_URL_sb ?>/frontend/privacy.php">📝 Política de privacidad</a>
+            <a href="<?= BASE_URL_sb ?>/frontend/cancellation_policy.php">📝 Política de cancelación</a>
             <a href="<?= BASE_URL_sb ?>/frontend/account_settings.php">⚙️ Configuración</a>
             <a href="<?= BASE_URL_sb ?>/backend/public/logout.php">🚪 Salir</a>
         </div>
@@ -44,10 +43,10 @@ define('BASE_URL_sb', $base);
     <?php else: ?>
 
         <div class="menu-top">
-            <a href="<?= BASE_URL_sb ?>/frontend/select_mode.php">➕ Crear Addenda</a>
-            <a href="<?= BASE_URL_sb ?>/frontend/recover_cfdi.php">📄 Recuperar CFDIs</a>
             <a href="<?= BASE_URL_sb ?>/frontend/register.php">📝 Registrarse</a>
             <a href="<?= BASE_URL_sb ?>/frontend/login.php">🔐 Login</a>
+            <a href="<?= BASE_URL_sb ?>/frontend/privacy.php">📝 Política de privacidad</a>
+            <a href="<?= BASE_URL_sb ?>/frontend/cancellation_policy.php">📝 Política de cancelación</a>
         </div>
 
         <div class="menu-bottom">

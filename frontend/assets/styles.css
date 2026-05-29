@@ -32,8 +32,16 @@ form {
     color: white;
     padding: 20px;
     box-sizing: border-box;
+
     display: flex;
     flex-direction: column;
+}
+
+/* ✅ HACE SCROLL SOLO EN EL MENÚ */
+.menu-top {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px; /* evita cortar scrollbar */
 }
 
 .logo {
@@ -52,6 +60,25 @@ form {
 .sidebar a:hover {
     background: #334155;
     color: white;
+}
+
+.menu-section {
+    margin-bottom: 20px;
+}
+
+.menu-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin: 10px 0 5px;
+    letter-spacing: 0.5px;
+}
+
+/* ✅ links más compactos */
+.sidebar a {
+    font-size: 14px;
+    padding: 8px 10px;
+    display: block;
 }
 
 .user {
