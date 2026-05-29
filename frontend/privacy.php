@@ -16,7 +16,7 @@ require_once dirname(__DIR__) . '/backend/db.php';
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
-    header("Location: " . BASE_URL . "/login.php");
+    header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
 
