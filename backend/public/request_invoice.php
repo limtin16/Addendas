@@ -35,7 +35,7 @@ $stmt->execute();
 $data = $stmt->get_result()->fetch_assoc();
 
 // ✅ correo
-$to = "tu_correo@gmail.com";
+$to = "rene.limonchi@addendafacil.com";
 $subject = "🧾 Nueva solicitud de factura";
 
 $message = "
