@@ -98,7 +98,10 @@ body {
             <p>Revisa los términos antes de continuar</p>
         </header>
 
-        <form method="POST" action="<?= BASE_URL ?>/backend/public/accept_privacy.php">
+        <form method="POST" action="<?= $userId 
+            ? BASE_URL . '/backend/public/accept_privacy.php' 
+            : BASE_URL . '/frontend/select_mode.php'
+        ?>" class="privacy-wrapper">
 
             <!-- ✅ CONTENIDO CON SCROLL -->
             <div class="privacy-content">
