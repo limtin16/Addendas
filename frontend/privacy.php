@@ -16,7 +16,7 @@ require_once dirname(__DIR__) . '../backend/db.php';
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
-    header("Location: " . BASE_URL . "/frontend/login.php");
+    header("Location: " . BASE_URL . "/login.php");
     exit;
 }
 
@@ -37,7 +37,7 @@ $policy = $stmt->get_result()->fetch_assoc();
 <head>
     <meta charset="UTF-8">
     <title>Aviso de Privacidad</title>
-    <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/styles.css">
     <style>
 
 /* ✅ RESET TOTAL para esta página */
