@@ -15,11 +15,6 @@ require_once dirname(__DIR__) . '/backend/db.php';
 
 $userId = $_SESSION['user_id'] ?? null;
 
-if (!$userId) {
-    header("Location: " . BASE_URL . "/frontend/login.php");
-    exit;
-}
-
 $stmt = $conn->prepare("
     SELECT content, version 
     FROM privacy_policy 
