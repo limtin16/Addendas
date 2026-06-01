@@ -12,7 +12,8 @@ require_once $path;
 
 session_start();
 require_once dirname(__DIR__) . '/../db.php';
-
+echo "test";
+exit;
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
