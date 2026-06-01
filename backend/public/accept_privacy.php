@@ -8,8 +8,6 @@ for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $path.="backend/config.php";
-echo $path;
-exit;
 require_once $path;
 
 session_start();
@@ -32,8 +30,7 @@ $stmt = $conn->prepare("
 ");
 $stmt->execute();
 $policy = $stmt->get_result()->fetch_assoc();
-
-$version = $policy['version'];
+$version = $policy['version'] ?? '1.0';
 
 $stmt = $conn->prepare("
     INSERT INTO privacy_acceptance 
