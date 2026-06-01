@@ -14,10 +14,10 @@ require_once $path;
 require_once $dbPath;
 
 session_start();
-$userId = $_SESSION['user_id'] ?? null;
-
 echo "test";
 exit;
+$userId = $_SESSION['user_id'] ?? null;
+
 if (!$userId) {
     header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
