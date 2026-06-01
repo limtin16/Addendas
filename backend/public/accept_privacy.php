@@ -8,10 +8,12 @@ for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $path.="backend/config.php";
+echo $path;
+exit;
 require_once $path;
 
 session_start();
-require_once dirname(__DIR__) . '/../db.php';
+require_once dirname(__DIR__) . '../db.php';
 
 $userId = $_SESSION['user_id'] ?? null;
 
