@@ -10,12 +10,14 @@ for ($i=0; $i<$count; $i++){
 
 $path.="backend/config.php";
 require_once $path;
-$file = __DIR__ . '/../db.php';
+
+echo $file = __DIR__ . '/../db.php';
 
 if (!file_exists($file)) {
     die("NO EXISTE: " . $file);
 }
 
+exit;
 require_once $file;
 
 session_start();
