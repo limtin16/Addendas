@@ -1,7 +1,4 @@
 <?php
-echo "inicio";
-exit;
-session_start();
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
@@ -10,13 +7,11 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
-$dbPath = $path;
-echo $_SESSION['user_id'];
-exit;
 $path.="backend/config.php";
-$dbPath.="backend/db.php";
 require_once $path;
-require_once $dbPath;
+
+session_start();
+require_once dirname(__DIR__) . '../db.php';
 
 $userId = $_SESSION['user_id'] ?? null;
 
@@ -34,17 +29,15 @@ $stmt = $conn->prepare("
     SELECT version FROM privacy_policy WHERE active = 1 LIMIT 1
 ");
 $stmt->execute();
-$stmt->bind_result($version);
-$stmt->fetch();
+$policy = $stmt->get_result()->fetch_assoc();
 
-$stmt = $conn->prepare(
+$version = $policy['version'];
+
+$stmt = $conn->prepare("
     INSERT INTO privacy_acceptance 
     (user_id, accepted_at, ip_address, user_agent, version)
     VALUES (?, NOW(), ?, ?, ?)
 ");
-if (!$stmt) {
-    die("Error SQL: " . $conn->error);
-}
 
 $stmt->bind_param("isss", $userId, $ip, $userAgent, $version);
 $stmt->execute();
