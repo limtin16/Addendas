@@ -12,12 +12,12 @@ $path.="backend/config.php";
 require_once $path;
 
 echo $file = __DIR__ . '/../db.php';
-
+exit;
 if (!file_exists($file)) {
     die("NO EXISTE: " . $file);
 }
 
-exit;
+
 require_once $file;
 
 session_start();
