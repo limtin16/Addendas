@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
@@ -21,8 +23,8 @@ if (!$userId) {
 }
 
 // obtener datos técnicos
-$ip = $_SERVER['REMOTE_ADDR'];
-$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$ip = $_SERVER['REMOTE_ADDR'] ?? '';
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
 // obtener versión activa
 $stmt = $conn->prepare("
