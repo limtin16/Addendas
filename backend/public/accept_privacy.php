@@ -9,7 +9,7 @@ for ($i=0; $i<$count; $i++){
 }
 $dbPath = $path;
 $path.="backend/config.php";
-echo $dbPath.="backend/db.php";
+$dbPath.="backend/db.php";
 require_once $path;
 require_once $dbPath;
 
