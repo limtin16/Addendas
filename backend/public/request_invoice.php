@@ -14,8 +14,7 @@ require_once $path;
 require_once $dbPath;
 require_once $mailerPath;
 session_start();
-echo "test";
-exit;
+
 $userId = $_SESSION['user_id'] ?? null;
 $purchaseId = $_POST['purchase_id'] ?? null;
 
@@ -78,17 +77,6 @@ sendEmail(
     $subject,
     $body
 );
-
-// ✅ opcional: log
-$stmt = $conn->prepare("
-    INSERT INTO email_logs (user_id, email, template_code, status)
-    VALUES (?, ?, ?, ?)
-");
-$templateCode = 'invoice_request';
-$status = 'sent';
-$stmt->bind_param("isss", $userId, $email, $templateCode, $status);
-$stmt->execute();
-$stmt->close();
 
 // ✅ respuesta
 header("Location: " . BASE_URL . "/frontend/billing.php?success=1");
