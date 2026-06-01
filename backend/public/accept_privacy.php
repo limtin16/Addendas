@@ -1,4 +1,6 @@
 <?php
+echo "inicio";
+exit;
 session_start();
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
@@ -15,9 +17,6 @@ $path.="backend/config.php";
 $dbPath.="backend/db.php";
 require_once $path;
 require_once $dbPath;
-
-
-
 
 $userId = $_SESSION['user_id'] ?? null;
 
