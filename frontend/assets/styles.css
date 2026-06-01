@@ -1134,3 +1134,14 @@ html, body {
 .back-link:hover {
     color: #2563eb;
 }
+
+.login-error {
+    background: #fef2f2;
+    color: #b91c1c;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 14px;
+    border: 1px solid #fecaca;
+}

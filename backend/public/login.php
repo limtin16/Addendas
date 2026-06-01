@@ -8,9 +8,10 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$dbPath = $path . "backend/db.php";
 $path.="backend/config.php";
 require_once $path;
-require_once dirname(__DIR__) . '/db.php';
+require_once $dbPath;
 
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
@@ -36,5 +37,6 @@ if ($user && password_verify($password, $user['password'])) {
     exit;
 
 } else {
-    echo "Credenciales incorrectas";
+    header("Location: " . BASE_URL . "/frontend/login.php?error=1");
+    exit;
 }

@@ -93,7 +93,11 @@ session_start();
 <body>
 
 <div class="card">
-
+<?php if (isset($_GET['error'])): ?>
+    <div class="login-error">
+        ❌ Credenciales incorrectas
+    </div>
+<?php endif; ?>
     <h2>Iniciar sesión</h2>
 
     <form method="POST" action="<?= BASE_URL ?>/backend/public/login.php">
@@ -117,6 +121,18 @@ session_start();
         -->
     </div>
 </div>
+<script>
+    if (window.location.search.includes('error')) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
+    setTimeout(() => {
+        const alert = document.querySelector('.login-error');
+        if (alert) {
+            alert.style.transition = "opacity 0.5s";
+            alert.style.opacity = "0";
+        }
+    }, 2500);
+</script>
 </body>
 </html>

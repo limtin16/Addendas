@@ -25,6 +25,7 @@ function sendEmail($to, $subject, $body, $replyTo = null) {
         $mail->SMTPSecure = 'ssl';
         $mail->Host = "smtp.titan.email";
         $mail->Port = 465;
+        $mail->CharSet = 'UTF-8';
 
         $mail->Username = "support@addendafacil.com";
         $mail->Password = "soporteaf.1";
@@ -40,6 +41,7 @@ function sendEmail($to, $subject, $body, $replyTo = null) {
 
         $mail->isHTML(true);
         $mail->Subject = $subject;
+        $mail->Subject = mb_encode_mimeheader($subject, 'UTF-8');
         $mail->Body = $body;
 
         $mail->send();
