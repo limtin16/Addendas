@@ -46,10 +46,8 @@ if ($email) {
         $stmt->bind_param("ssi", $token, $expires, $userId);
         $stmt->execute();
         $stmt->close();
-        echo BASE_URL;
-exit;
 
-        $link = BASE_URL . "/frontend/reset_password.php?token=" . $token;
+        $link = BASE_URL_FULL . "/frontend/reset_password.php?token=" . $token;
 
         $body = "
             <h2>🔐 Recuperar contraseña</h2>
