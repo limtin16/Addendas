@@ -25,8 +25,7 @@ if (!$userId) {
 // obtener datos técnicos
 $ip = $_SERVER['REMOTE_ADDR'];
 $userAgent = $_SERVER['HTTP_USER_AGENT'];
-echo "test";
-exit;
+
 // obtener versión activa
 $stmt = $conn->prepare("
     SELECT version FROM privacy_policy WHERE active = 1 LIMIT 1
@@ -36,7 +35,8 @@ $stmt->bind_result($version);
 $stmt->fetch();
 $version = $version ?: '1.0';
 
-$stmt = $conn->prepare("
+
+$stmt = $conn->prepare(
     INSERT INTO privacy_acceptance 
     (user_id, accepted_at, ip_address, user_agent, version)
     VALUES (?, NOW(), ?, ?, ?)
