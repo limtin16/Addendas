@@ -8,9 +8,9 @@ for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $dbPath = $path;
-$path.="backend/config.php";
-echo "test";
+echo $_SESSION['user_id'];
 exit;
+$path.="backend/config.php";
 $dbPath.="backend/db.php";
 require_once $path;
 require_once $dbPath;
