@@ -13,8 +13,7 @@ $dbPath.="backend/db.php";
 require_once $path;
 require_once $dbPath;
 
-echo "test";
-exit;
+
 session_start();
 $userId = $_SESSION['user_id'] ?? null;
 
@@ -26,7 +25,8 @@ if (!$userId) {
 // obtener datos técnicos
 $ip = $_SERVER['REMOTE_ADDR'];
 $userAgent = $_SERVER['HTTP_USER_AGENT'];
-
+echo "test";
+exit;
 // obtener versión activa
 $stmt = $conn->prepare("
     SELECT version FROM privacy_policy WHERE active = 1 LIMIT 1
