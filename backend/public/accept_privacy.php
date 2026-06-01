@@ -7,10 +7,11 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$dbpath = $path;
 $path.="backend/config.php";
 require_once $path;
-$path.="backend/db.php";
-require_once $path;
+$dbpath.="backend/db.php";
+require_once $dbpath;
 
 session_start();
 $userId = $_SESSION['user_id'] ?? null;
