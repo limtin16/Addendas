@@ -12,10 +12,10 @@ $path.="backend/config.php";
 $dbPath.="backend/db.php";
 require_once $path;
 require_once $dbPath;
-
-session_start();
 echo "test";
 exit;
+session_start();
+
 $userId = $_SESSION['user_id'] ?? null;
 
 if (!$userId) {
