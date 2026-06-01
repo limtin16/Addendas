@@ -9,11 +9,11 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$dbPath = $path . "backend/db.php";
 $path.="backend/config.php";
 require_once $path;
-
+require_once $dbPath;
 session_start();
-require_once dirname(__DIR__) . '/../db.php';
 
 $userId = $_SESSION['user_id'] ?? null;
 
