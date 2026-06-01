@@ -43,7 +43,7 @@ $baseAmount = $prices[$credits];
 $amount = round($baseAmount * 1.16); // ✅ agrega 16%
 
 // ✅ API KEY
-$apiKey = "key_tAsPP4OcAeVh6YcHl1ltOyR"; // ⚠️ privada
+$apiKey = "key_pjjUJpp4qAMEB1HNs5inhWj"; // ⚠️ privada
 $url = "https://api.conekta.io/orders";
 
 // ✅ request

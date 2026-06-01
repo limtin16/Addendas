@@ -7,6 +7,13 @@ require_once "/home/desenti2/PHPMailer/PHPMailer-master/src/PHPMailer.php";
 require_once "/home/desenti2/PHPMailer/PHPMailer-master/src/SMTP.php";
 require_once "/home/desenti2/PHPMailer/PHPMailer-master/src/Exception.php";
 
+function renderTemplate($template, $vars = []) {
+    foreach ($vars as $key => $value) {
+        $template = str_replace('{{' . $key . '}}', $value, $template);
+    }
+    return $template;
+}
+
 function sendEmail($to, $subject, $body, $replyTo = null) {
 
     $mail = new PHPMailer(true);

@@ -151,7 +151,7 @@ function renderCheckout(checkoutId) {
         targetIFrame: "#conektaIframeContainer",
         checkoutRequestId: checkoutId,
 
-        publicKey: "key_test_xxxxx", // ✅ tu public key
+        publicKey: "key_Ecl1wgHTgAdmj1CEw4CF2A0", // ✅ tu public key
 
         paymentMethods: ["Card", "Cash"],
 

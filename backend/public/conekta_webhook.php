@@ -10,9 +10,12 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$mailerPath = $path . "backend/helpers/mailer.php";
+$dbPath = $path . "backend/db.php";
 $path.="backend/config.php";
 require_once $path;
-require_once __DIR__ . '/../db.php';
+require_once $dbPath;
+require_once $mailerPath;
 
 // ✅ leer JSON de Conekta
 $payload = file_get_contents("php://input");
@@ -89,6 +92,36 @@ if ($data->type === "order.paid") {
 
     $stmt->bind_param("iisd", $userId, $credits, $orderId, $amount);
     $stmt->execute();
+
+    $stmt = $conn->prepare("SELECT subject, body FROM email_templates WHERE code = 'purchase_confirmation' LIMIT 1");
+    $stmt->execute();
+    $stmt->bind_result($subject, $templateBody);
+    $stmt->fetch();
+    $stmt->close();
+
+    $vars = [
+        'order_id' => $orderId,
+        'date' => date('Y-m-d H:i'),
+        'credits' => $credits,
+        'amount' => number_format($amount, 2),
+        'dashboard_url' => BASE_URL_FULL . "/frontend/dashboard.php"
+    ];
+
+    $body = renderTemplate($templateBody, $vars);
+
+    // ✅ obtener email del usuario
+    $stmt = $conn->prepare("SELECT email FROM users WHERE id = ?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $stmt->bind_result($userEmail);
+    $stmt->fetch();
+    $stmt->close();
+    
+    sendEmail(
+        $userEmail,
+        $subject,
+        $body
+    );
 
     echo "OK";
     exit;
