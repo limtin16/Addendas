@@ -1,13 +1,4 @@
 <?php
-$path="";
-$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
-if ($count==0){
-    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
-}
-for ($i=0; $i<$count; $i++){
-	$path.="../";
-}
-$path.="backend/config.php";
 require_once $path;
 
 session_start();
@@ -20,17 +11,23 @@ if (!$userId) {
     exit;
 }
 
-// obtener datos técnicos
-$ip = $_SERVER['REMOTE_ADDR'];
-$userAgent = $_SERVER['HTTP_USER_AGENT'];
+$ip = $_SERVER['REMOTE_ADDR'] ?? '';
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
-// obtener versión activa
+// ✅ query sin get_result
 $stmt = $conn->prepare("
     SELECT version FROM privacy_policy WHERE active = 1 LIMIT 1
 ");
+
+if (!$stmt) {
+    die("Error SQL: " . $conn->error);
+}
+
 $stmt->execute();
-$policy = $stmt->get_result()->fetch_assoc();
-$version = $policy['version'] ?? '1.0';
+$stmt->bind_result($version);
+$stmt->fetch();
+
+$version = $version ?: '1.0';
 
 $stmt = $conn->prepare("
     INSERT INTO privacy_acceptance 
@@ -38,11 +35,12 @@ $stmt = $conn->prepare("
     VALUES (?, NOW(), ?, ?, ?)
 ");
 
+if (!$stmt) {
+    die("Error SQL: " . $conn->error);
+}
+
 $stmt->bind_param("isss", $userId, $ip, $userAgent, $version);
 $stmt->execute();
 
-
-
-// redirigir al sistema
 header("Location: " . BASE_URL . "/frontend/dashboard.php");
 exit;
