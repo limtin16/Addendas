@@ -29,9 +29,9 @@ $stmt = $conn->prepare("
     SELECT version FROM privacy_policy WHERE active = 1 LIMIT 1
 ");
 $stmt->execute();
-$policy = $stmt->get_result()->fetch_assoc();
-
-$version = $policy['version'];
+$stmt->bind_result($version);
+$stmt->fetch();
+$version = $version ?: '1.0';
 
 $stmt = $conn->prepare("
     INSERT INTO privacy_acceptance 
