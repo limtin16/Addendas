@@ -31,6 +31,7 @@ $stmt = $conn->prepare("
 $stmt->execute();
 $stmt->bind_result($version);
 $stmt->fetch();
+$stmt->close();
 $version = $version ?: '1.0';
 
 $stmt = $conn->prepare("
