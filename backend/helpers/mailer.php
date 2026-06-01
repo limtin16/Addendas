@@ -19,10 +19,10 @@ function sendEmail($to, $subject, $body, $replyTo = null) {
         $mail->Host = "smtp.titan.email";
         $mail->Port = 465;
 
-        $mail->Username = "rene.limonchi@addendafacil.com";
-        $mail->Password = "TU_PASSWORD_AQUI";
+        $mail->Username = "support@addendafacil.com";
+        $mail->Password = "soporteaf.1";
 
-        $mail->setFrom("rene.limonchi@addendafacil.com", "AddendaFácil");
+        $mail->setFrom("support@addendafacil.com", "AddendaFácil");
 
         $mail->addAddress($to);
 
