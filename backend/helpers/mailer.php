@@ -1,0 +1,46 @@
+<?php
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require_once "/home/desenti2/PHPMailer/PHPMailer-master/src/PHPMailer.php";
+require_once "/home/desenti2/PHPMailer/PHPMailer-master/src/SMTP.php";
+require_once "/home/desenti2/PHPMailer/PHPMailer-master/src/Exception.php";
+
+function sendEmail($to, $subject, $body, $replyTo = null) {
+
+    $mail = new PHPMailer(true);
+
+    try {
+        $mail->isSMTP();
+        $mail->SMTPDebug = 0; // ✅ sin debug en producción
+        $mail->SMTPAuth = true;
+        $mail->SMTPSecure = 'ssl';
+        $mail->Host = "smtp.titan.email";
+        $mail->Port = 465;
+
+        $mail->Username = "rene.limonchi@addendafacil.com";
+        $mail->Password = "TU_PASSWORD_AQUI";
+
+        $mail->setFrom("rene.limonchi@addendafacil.com", "AddendaFácil");
+
+        $mail->addAddress($to);
+
+        // ✅ opcional reply-to (para soporte)
+        if ($replyTo) {
+            $mail->addReplyTo($replyTo);
+        }
+
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $body;
+
+        $mail->send();
+
+        return true;
+
+    } catch (Exception $e) {
+        error_log("Mailer Error: " . $mail->ErrorInfo);
+        return false;
+    }
+}

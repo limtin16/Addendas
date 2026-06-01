@@ -5,12 +5,16 @@ if ($count==0){
     $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
 }
 for ($i=0; $i<$count; $i++){
-	$path.="../";
+    $path.="../";
 }
 $path.="backend/config.php";
 require_once $path;
 
 require_once dirname(__DIR__) . '/db.php';
+
+/* ✅ NUEVO: helper de correo */
+require_once dirname(__DIR__) . '/helpers/mailer.php';
+
 $email = $_POST['email'] ?? '';
 
 if (!$email) {
@@ -41,14 +45,27 @@ $stmt = $conn->prepare("
 $stmt->bind_param("ssi", $token, $expires, $user['id']);
 $stmt->execute();
 
-// ✅ link
-$link = "http://localhost<?= BASE_URL ?>/frontend/reset_password.php?token=$token";
+// ✅ link correcto
+$link = BASE_URL . "/frontend/reset_password.php?token=" . $token;
 
-// ✅ enviar correo (simple)
-$subject = "Recuperación de contraseña";
-$message = "Haz clic aquí para cambiar tu contraseña:\n$link";
+// ✅ contenido del correo
+$body = "
+    <h2>🔐 Recuperar contraseña</h2>
+    <p>Haz clic en el siguiente enlace:</p>
+    <p><a href='$link'>Restablecer contraseña</a></p>
+    <p>Este enlace expira en 1 hora.</p>
+";
 
-mail($email, $subject, $message);
+// ✅ USO DE LA FUNCIÓN REUTILIZABLE
+$sent = sendEmail(
+    $email,
+    "Recuperación de contraseña",
+    $body
+);
 
 // ✅ respuesta
-echo "✅ Se envió un enlace de recuperación (si el correo existe)";
+if ($sent) {
+    echo "✅ Se envió un enlace de recuperación";
+} else {
+    echo "❌ Error al enviar correo";
+}

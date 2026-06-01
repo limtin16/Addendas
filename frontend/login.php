@@ -111,12 +111,11 @@ session_start();
         ¿Olvidaste tu contraseña?
         </a>
     </div>
-<!--
     <div class="guest">
+        <!--
         <a href="<?= BASE_URL ?>/frontend/select_mode.php">Entrar como visitante</a>
+        -->
     </div>
--->
-
 </div>
 
 </body>
