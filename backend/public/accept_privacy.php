@@ -9,11 +9,13 @@ for ($i=0; $i<$count; $i++){
 }
 $dbPath = $path;
 $path.="backend/config.php";
+echo "test";
+exit;
 $dbPath.="backend/db.php";
 require_once $path;
 require_once $dbPath;
-echo "test";
-exit;
+
+
 session_start();
 
 $userId = $_SESSION['user_id'] ?? null;
