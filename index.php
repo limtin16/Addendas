@@ -179,13 +179,14 @@ body {
         <div style="margin-top:20px; font-size:13px; color:#6b7280;">
             ✅ Sin tarjeta · ⚡ Acceso inmediato · 🧾 CFDI 4.0 compatible
         </div>
-
+<!--
         <div class="secondary">
             <div style="margin-bottom:8px;">
                 <a href="<?= BASE_URL ?>/frontend/select_mode.php">
                     Probar sin cuenta →
                 </a>
             </div>
+-->
             <div style="font-size:13px; color:#6b7280;">
                 ¿Ya tienes cuenta? 
                 <a href="<?= BASE_URL ?>/frontend/login.php" style="font-weight:600;">
