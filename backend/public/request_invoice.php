@@ -14,7 +14,8 @@ require_once $path;
 require_once $dbPath;
 require_once $mailerPath;
 session_start();
-
+echo "test";
+exit;
 $userId = $_SESSION['user_id'] ?? null;
 $purchaseId = $_POST['purchase_id'] ?? null;
 
