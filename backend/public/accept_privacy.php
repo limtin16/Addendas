@@ -13,16 +13,16 @@ $dbPath.="backend/db.php";
 require_once $path;
 require_once $dbPath;
 
-
 session_start();
 $userId = $_SESSION['user_id'] ?? null;
 
+echo "test";
+exit;
 if (!$userId) {
     header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
-echo "test";
-exit;
+
 // obtener datos técnicos
 $ip = $_SERVER['REMOTE_ADDR'];
 $userAgent = $_SERVER['HTTP_USER_AGENT'];
