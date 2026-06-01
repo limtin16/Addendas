@@ -13,6 +13,8 @@ $dbPath.="backend/db.php";
 require_once $path;
 require_once $dbPath;
 
+echo "test";
+exit;
 session_start();
 $userId = $_SESSION['user_id'] ?? null;
 
