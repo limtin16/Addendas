@@ -1,7 +1,17 @@
 <?php
 session_start();
-require_once dirname(__DIR__) . '../db.php';
-require_once dirname(__DIR__) . '../src/Services/CreditService.php';
+$path="";
+$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
+if ($count==0){
+    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
+}
+for ($i=0; $i<$count; $i++){
+	$path.="../";
+}
+$dbPath = $path . "backend/db.php";
+$creditsPath = $path . "src/Services/CreditService.php";
+require_once $creditsPath;
+require_once $dbPath;
 
 header('Content-Type: application/json');
 

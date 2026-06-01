@@ -1,9 +1,16 @@
 <?php
 session_start();
-
 header('Content-Type: application/json');
-
-require_once dirname(__DIR__) . '../db.php';
+$path="";
+$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
+if ($count==0){
+    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
+}
+for ($i=0; $i<$count; $i++){
+	$path.="../";
+}
+$dbPath = $path . "backend/db.php";
+require_once $dbPath;
 
 $userId = $_SESSION['user_id'] ?? null;
 

@@ -8,15 +8,14 @@ for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $path.="backend/config.php";
+$dbPath = $path . "backend/db.php";
+$creditsPath = $path . "src/Services/CreditService.php";
 require_once $path;
+require_once $dbPath;
+require_once $creditsPath;
 session_start();
 
 header('Content-Type: application/json');
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-require_once dirname(__DIR__) . '../db.php';
-require_once dirname(__DIR__) . '../src/Services/CreditService.php';
 
 $userId = $_SESSION['user_id'] ?? null;
 $isGuestPaid = $_SESSION['guest_paid'] ?? false;

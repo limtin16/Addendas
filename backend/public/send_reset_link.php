@@ -1,71 +1,60 @@
 <?php
-$path="";
-$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
-if ($count==0){
-    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
-}
-for ($i=0; $i<$count; $i++){
-    $path.="../";
-}
-$path.="backend/config.php";
-require_once $path;
+// ✅ respuesta visual
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperar contraseña</title>
 
-require_once dirname(__DIR__) . '/db.php';
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/styles.css">
 
-/* ✅ NUEVO: helper de correo */
-require_once dirname(__DIR__) . '/helpers/mailer.php';
+    <!-- ⏱ Redirección automática -->
+    <meta http-equiv="refresh" content="4;url=<?= BASE_URL ?>/frontend/login.php">
+</head>
+<body>
 
-$email = $_POST['email'] ?? '';
+<div class="simple-page">
 
-if (!$email) {
-    die("Correo requerido");
-}
+    <div class="simple-box">
 
-// ✅ validar existencia
-$stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
+        <?php if ($sent): ?>
 
-$res = $stmt->get_result();
-$user = $res->fetch_assoc();
+            <h2>✅ Correo enviado</h2>
 
-if (!$user) {
-    die("❌ El correo no existe");
-}
+            <p class="description">
+                Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.
+            </p>
 
-// ✅ generar token
-$token = bin2hex(random_bytes(32));
-$expires = date("Y-m-d H:i:s", strtotime("+1 hour"));
+            <p style="font-size:13px; color:#666;">
+                Serás redirigido al login en unos segundos...
+            </p>
 
-// ✅ guardar token
-$stmt = $conn->prepare("
-    UPDATE users SET reset_token = ?, reset_expires = ?
-    WHERE id = ?
-");
-$stmt->bind_param("ssi", $token, $expires, $user['id']);
-$stmt->execute();
+            <!-- ✅ BOTÓN CORRECTO -->
+            <a href="<?= BASE_URL ?>/frontend/login.php" class="btn blue full">
+                Ir ahora al login
+            </a>
 
-// ✅ link correcto
-$link = BASE_URL . "/frontend/reset_password.php?token=" . $token;
+        <?php else: ?>
 
-// ✅ contenido del correo
-$body = "
-    <h2>🔐 Recuperar contraseña</h2>
-    <p>Haz clic en el siguiente enlace:</p>
-    <p><a href='$link'>Restablecer contraseña</a></p>
-    <p>Este enlace expira en 1 hora.</p>
-";
+            <h2>❌ Error</h2>
 
-// ✅ USO DE LA FUNCIÓN REUTILIZABLE
-$sent = sendEmail(
-    $email,
-    "Recuperación de contraseña",
-    $body
-);
+            <p class="description">
+                Ocurrió un problema al enviar el correo. Intenta nuevamente.
+            </p>
 
-// ✅ respuesta
-if ($sent) {
-    echo "✅ Se envió un enlace de recuperación";
-} else {
-    echo "❌ Error al enviar correo";
-}
+            <!-- ✅ BOTÓN CORRECTO -->
+            <a href="<?= BASE_URL ?>/frontend/forgot_password.php" class="btn gray full">
+                Intentar de nuevo
+            </a>
+
+        <?php endif; ?>
+
+    </div>
+
+</div>
+
+</body>
+</html>
+<?php
+exit;
