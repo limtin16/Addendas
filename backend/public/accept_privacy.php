@@ -1,4 +1,5 @@
 <?php
+session_start();
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
@@ -16,7 +17,7 @@ require_once $path;
 require_once $dbPath;
 
 
-session_start();
+
 
 $userId = $_SESSION['user_id'] ?? null;
 
