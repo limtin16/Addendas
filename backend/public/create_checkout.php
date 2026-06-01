@@ -1,18 +1,43 @@
 <?php
-
-require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../db.php';
+$path="";
+$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
+if ($count==0){
+    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
+}
+for ($i=0; $i<$count; $i++){
+    $path.="../";
+}
+$dbPath = $path . "backend/db.php";
+$path.="backend/config.php";
+require_once $path;
+require_once $dbPath;
 
 session_start();
 
-header('Content-Type: application/json');
-
 $userId = $_SESSION['user_id'] ?? null;
-$email = $_SESSION['email'] ?? null;
 
 if (!$userId) {
     http_response_code(401);
     echo json_encode(["error" => "No autenticado"]);
+    exit;
+}
+
+header('Content-Type: application/json');
+
+$stmt = $conn->prepare("SELECT email FROM users WHERE id = ?");
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$stmt->bind_result($userEmail);
+$stmt->fetch();
+$stmt->close();
+
+if (!$userEmail) {
+    echo json_encode(["error" => "Email no encontrado"]);
+    exit;
+}
+
+if (!filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(["error" => "Email inválido"]);
     exit;
 }
 
@@ -52,7 +77,7 @@ $data = [
 
     "customer_info" => [
         "name" => "Usuario",
-        "email" => $email
+        'email' => $userEmail
     ],
 
     "line_items" => [[
