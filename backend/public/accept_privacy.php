@@ -9,10 +9,9 @@ for ($i=0; $i<$count; $i++){
 }
 $path.="backend/config.php";
 require_once $path;
-echo "test";
-exit;
+
 session_start();
-require_once dirname(__DIR__) . '/../db.php';
+require_once dirname(__DIR__) . '../db.php';
 
 
 $userId = $_SESSION['user_id'] ?? null;
