@@ -8,52 +8,87 @@ for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $dbPath = $path . "backend/db.php";
+$mailerPath = $path . "backend/helpers/mailer.php";
 $path.="backend/config.php";
 require_once $path;
 require_once $dbPath;
+require_once $mailerPath;
 session_start();
 
 $userId = $_SESSION['user_id'] ?? null;
 $purchaseId = $_POST['purchase_id'] ?? null;
 
-if (!$purchaseId) {
-    die("Compra inválida");
+if (!$userId || !$purchaseId) {
+    die("Datos inválidos");
 }
 
 // ✅ guardar solicitud
 $stmt = $conn->prepare("
-INSERT INTO invoice_requests (user_id, purchase_id)
-VALUES (?, ?)
+    INSERT INTO invoice_requests (user_id, purchase_id)
+    VALUES (?, ?)
 ");
 $stmt->bind_param("ii", $userId, $purchaseId);
 $stmt->execute();
+$stmt->close();
 
-// ✅ datos del cliente
-$stmt = $conn->prepare("SELECT * FROM billing_profiles WHERE user_id = ?");
+// ✅ obtener datos fiscales
+$stmt = $conn->prepare("
+    SELECT rfc, name, postal_code, regime, cfdi_use, email
+    FROM billing_profiles
+    WHERE user_id = ?
+");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
-$data = $stmt->get_result()->fetch_assoc();
+$stmt->bind_result($rfc, $name, $postalCode, $regime, $cfdiUse, $email);
+$stmt->fetch();
+$stmt->close();
 
-// ✅ correo
-$to = "rene.limonchi@addendafacil.com";
-$subject = "🧾 Nueva solicitud de factura";
+// ✅ obtener template
+$stmt = $conn->prepare("
+    SELECT subject, body 
+    FROM email_templates 
+    WHERE code = 'invoice_request' 
+    LIMIT 1
+");
+$stmt->execute();
+$stmt->bind_result($subject, $templateBody);
+$stmt->fetch();
+$stmt->close();
 
-$message = "
-Solicitud de factura:
+// ✅ variables para template
+$vars = [
+    'user_id' => $userId,
+    'purchase_id' => $purchaseId,
+    'date' => date('d/m/Y H:i'),
+    'rfc' => $rfc,
+    'name' => $name,
+    'postal_code' => $postalCode,
+    'regime' => $regime,
+    'cfdi_use' => $cfdiUse,
+    'email' => $email
+];
 
-Compra ID: $purchaseId
+// ✅ renderizar template
+$body = renderTemplate($templateBody, $vars);
 
-RFC: {$data['rfc']}
-Nombre: {$data['name']}
-CP: {$data['postal_code']}
-Régimen: {$data['regime']}
-Uso CFDI: {$data['cfdi_use']}
-Email: {$data['email']}
+// ✅ enviar email al soporte
+sendEmail(
+    "support@addendafacil.com",
+    $subject,
+    $body
+);
 
-Fecha: ".date('Y-m-d H:i:s');
+// ✅ opcional: log
+$stmt = $conn->prepare("
+    INSERT INTO email_logs (user_id, email, template_code, status)
+    VALUES (?, ?, ?, ?)
+");
+$templateCode = 'invoice_request';
+$status = 'sent';
+$stmt->bind_param("isss", $userId, $email, $templateCode, $status);
+$stmt->execute();
+$stmt->close();
 
-mail($to, $subject, $message);
-
-// ✅ respuesta elegante
+// ✅ respuesta
 header("Location: " . BASE_URL . "/frontend/billing.php?success=1");
 exit;
