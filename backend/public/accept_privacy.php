@@ -35,6 +35,8 @@ $stmt->bind_result($version);
 $stmt->fetch();
 $version = $version ?: '1.0';
 
+echo "test";
+exit;
 
 $stmt = $conn->prepare(
     INSERT INTO privacy_acceptance 
