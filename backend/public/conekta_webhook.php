@@ -123,6 +123,66 @@ if ($data->type === "order.paid") {
         $body
     );
 
+    // ✅ revisar si auto factura está activada
+        $stmt = $conn->prepare("
+            SELECT auto_invoice, rfc, name, postal_code, regime, cfdi_use, email
+            FROM billing_profiles
+            WHERE user_id = ?
+        ");
+
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $stmt->bind_result($autoInvoice, $rfc, $name, $postalCode, $regime, $cfdiUse, $billingEmail);
+        $stmt->fetch();
+        $stmt->close();
+
+        if ($autoInvoice == 1) {
+
+            // ✅ obtener template de factura
+            $stmt = $conn->prepare("
+                SELECT subject, body 
+                FROM email_templates 
+                WHERE code = 'invoice_request' 
+                LIMIT 1
+            ");
+            $stmt->execute();
+            $stmt->bind_result($invSubject, $invTemplate);
+            $stmt->fetch();
+            $stmt->close();
+
+            // ✅ variables
+            $vars = [
+                'user_id' => $userId,
+                'purchase_id' => $orderId,
+                'date' => date('d/m/Y H:i'),
+                'rfc' => $rfc,
+                'name' => $name,
+                'postal_code' => $postalCode,
+                'regime' => $regime,
+                'cfdi_use' => $cfdiUse,
+                'email' => $billingEmail
+            ];
+
+            // ✅ render
+            $invoiceBody = renderTemplate($invTemplate, $vars);
+
+            // ✅ enviar correo a soporte
+            sendEmail(
+                "support@addendafacil.com",
+                $invSubject,
+                $invoiceBody
+            );
+
+            // ✅ OPCIONAL: guardar solicitud automáticamente
+            $stmt = $conn->prepare("
+                INSERT INTO invoice_requests (user_id, purchase_id)
+                VALUES (?, ?)
+            ");
+            $stmt->bind_param("ii", $userId, $orderId);
+            $stmt->execute();
+            $stmt->close();
+        }
+
     echo "OK";
     exit;
 }
