@@ -21,12 +21,12 @@ if (!$userId) {
     header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
-
+echo "test";
+exit;
 // obtener datos técnicos
 $ip = $_SERVER['REMOTE_ADDR'];
 $userAgent = $_SERVER['HTTP_USER_AGENT'];
-echo "test";
-exit;
+
 // obtener versión activa
 $stmt = $conn->prepare("
     SELECT version FROM privacy_policy WHERE active = 1 LIMIT 1
@@ -34,8 +34,6 @@ $stmt = $conn->prepare("
 $stmt->execute();
 $stmt->bind_result($version);
 $stmt->fetch();
-
-
 
 $stmt = $conn->prepare(
     INSERT INTO privacy_acceptance 
