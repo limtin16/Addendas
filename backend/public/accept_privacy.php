@@ -7,18 +7,11 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
-
+$dbPath = $path;
 $path.="backend/config.php";
+echo $dbPath.="backend/db.php";
 require_once $path;
-
-echo $file = __DIR__ . '/../db.php';
-exit;
-if (!file_exists($file)) {
-    die("NO EXISTE: " . $file);
-}
-
-
-require_once $file;
+require_once $dbPath;
 
 session_start();
 $userId = $_SESSION['user_id'] ?? null;
