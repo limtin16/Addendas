@@ -8,6 +8,7 @@ session_start();
 header('Content-Type: application/json');
 
 $userId = $_SESSION['user_id'] ?? null;
+$email = $_SESSION['email'] ?? null;
 
 if (!$userId) {
     http_response_code(401);
@@ -51,7 +52,7 @@ $data = [
 
     "customer_info" => [
         "name" => "Usuario",
-        "email" => "cliente@test.com" // puedes sacar del usuario después
+        "email" => $email
     ],
 
     "line_items" => [[
