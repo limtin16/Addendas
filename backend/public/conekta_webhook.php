@@ -1,7 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){

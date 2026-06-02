@@ -21,7 +21,11 @@ if (!isset($_SESSION['user_id'])) {
 <!--
 <script src="https://pay.conekta.com/v1.0/js/components.js"></script>
 -->
-<script src="https://www.paypal.com/sdk/js?client-id=Acr83GJ-rP4viuOFLb5FWzOQW7wHINpbF1nk1Z2LTe2CS93s6Kiqoi6CBxCjW4SY7cPBliyqkY_Y4x9Q&currency=MXN&locale=es_MX&buyer-country=MX
+<!--
+<script src="https://www.paypal.com/sdk/js?client-id=Acr83GJ-rP4viuOFLb5FWzOQW7wHINpbF1nk1Z2LTe2CS93s6Kiqoi6CBxCjW4SY7cPBliyqkY_Y4x9Q&currency=MXN&locale=es_MX
+"></script>
+-->
+<script src="https://www.paypal.com/sdk/js?client-id=AVuWRRuwCRhBVVWf7rvlv64erEU5-QxolBokEGVheOK88MwuENfaqGNVW16qEUCuybpb9Cc3IXoakZCn&currency=MXN&locale=es_MX
 "></script>
 </head>
 
@@ -140,15 +144,8 @@ document.addEventListener("DOMContentLoaded", function () {
             },
 
             onApprove: async function(data, actions) {
-
-                const order = await actions.order.capture();
-
-                await fetch('<?= BASE_URL ?>/backend/public/paypal_webhook.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(order)
-                });
-
+                await actions.order.capture();
+                    alert("✅ Pago recibido, procesando...");
                 window.location.href = "<?= BASE_URL ?>/frontend/dashboard.php?paid=1";
             }
 
