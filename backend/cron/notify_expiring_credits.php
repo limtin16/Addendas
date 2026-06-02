@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
@@ -14,10 +16,16 @@ require_once $path;
 require_once $dbPath;
 require_once $mailerPath;
 
-// ✅ evitar repetir envíos (opcional pero recomendado)
+echo "🔄 Iniciando proceso...\n";
+
 $today = date('Y-m-d');
 
-// ✅ buscar créditos que expiran en <= 3 días y aún tienen saldo
+$sentCount = 0;
+$skippedCount = 0;
+$errorCount = 0;
+$errors = [];
+
+// ✅ buscar créditos por expirar
 $stmt = $conn->prepare("
     SELECT b.user_id, b.remaining_credits, b.expires_at, u.email
     FROM user_credit_batches b
@@ -40,12 +48,11 @@ $stmtTpl->bind_result($subject, $templateBody);
 $stmtTpl->fetch();
 $stmtTpl->close();
 
-// ✅ procesar resultados
 while ($row = $result->fetch_assoc()) {
 
     $userId = $row['user_id'];
 
-    // ✅ evitar duplicados (una vez por día por usuario)
+    // ✅ evitar duplicados
     $check = $conn->prepare("
         SELECT id FROM email_logs 
         WHERE user_id = ? 
@@ -57,31 +64,29 @@ while ($row = $result->fetch_assoc()) {
     $exists = $check->get_result()->fetch_assoc();
 
     if ($exists) {
-        continue; // ya enviado hoy
+        $skippedCount++;
+        echo "⏭ Usuario $userId ya notificado hoy\n";
+        continue;
     }
 
-    // ✅ variables
-    $vars = [
-        'remaining' => $row['remaining_credits'],
-        'expires_at' => date('d/m/Y', strtotime($row['expires_at'])),
-        'dashboard_url' => BASE_URL_FULL . "/frontend/dashboard.php"
-    ];
+    try {
 
-    // ✅ render template
-    $body = renderTemplate($templateBody, $vars);
+        $vars = [
+            'remaining' => $row['remaining_credits'],
+            'expires_at' => date('d/m/Y', strtotime($row['expires_at'])),
+            'dashboard_url' => BASE_URL_FULL . "/frontend/dashboard.php"
+        ];
 
-    // ✅ enviar correo
-    sendEmail($row['email'], $subject, $body);
-    /*
-    // ✅ log
-    $log = $conn->prepare("
-        INSERT INTO email_logs (user_id, email, template_code, status)
-        VALUES (?, ?, 'credits_expiring', 'sent')
-    ");
-    $log->bind_param("is", $userId, $row['email']);
-    $log->execute();
-    $log->close();
-    */
-}
+        $body = renderTemplate($templateBody, $vars);
 
-echo "OK";
+        // ✅ enviar correo
+        $sent = sendEmail($row['email'], $subject, $body);
+
+        if ($sent) {
+            $sentCount++;
+            echo "✅ Email enviado a: " . $row['email'] . "\n";
+
+            $log = $conn->prepare("
+                INSERT INTO email_logs (user_id, email, template_code, status)
+                VALUES (?, ?, 'credits_expiring', 'sent')
+            ");
