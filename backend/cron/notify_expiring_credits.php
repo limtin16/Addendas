@@ -83,6 +83,10 @@ while ($row = $result->fetch_assoc()) {
         // ✅ enviar correo
         $sent = sendEmail($row['email'], $subject, $body);
 
+        if (!$sent) {
+            file_put_contents(__DIR__ . "/cron_error.txt", "ERROR EMAIL: " . $row['email'] . "\n", FILE_APPEND);
+        }
+
         if ($sent) {
             $sentCount++;
             echo "✅ Email enviado a: " . $row['email'] . "\n";
