@@ -115,8 +115,6 @@ if (!isset($_SESSION['user_id'])) {
 <!-- ✅ SCRIPT CORRECTO -->
 <script>
 
-console.log("SCRIPT CARGADO ✅");
-
 // ✅ ESPERAR A QUE EL DOM EXISTA
 document.addEventListener("DOMContentLoaded", function () {
 
