@@ -125,7 +125,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     containers.forEach(container => {
 
-        const credits = container.dataset.credits;
+        const userId = <?= (int) $_SESSION['user_id'] ?>;
+        const credits = parseInt(container.dataset.credits);
         const amount = container.dataset.amount;
 
         paypal.Buttons({
@@ -137,6 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             value: amount
                         },
                         custom_id: JSON.stringify({
+                            user_id: userId,
                             credits: credits
                         })
                     }]
@@ -145,7 +147,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             onApprove: async function(data, actions) {
                 await actions.order.capture();
-                    alert("✅ Pago recibido, procesando...");
+
+                alert("✅ Pago recibido, procesando...");
+
                 window.location.href = "<?= BASE_URL ?>/frontend/dashboard.php?paid=1";
             }
 
