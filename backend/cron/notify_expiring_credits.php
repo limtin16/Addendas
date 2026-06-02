@@ -34,24 +34,13 @@ $stmt = $conn->prepare("
     WHERE b.remaining_credits > 0
     AND b.expires_at BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 3 DAY)
 ");
+
 $stmt->execute();
-$result = $stmt->get_result();
+$stmt->bind_result($userId, $remainingCredits, $expiresAt, $email);
 
-// ✅ obtener template
-$stmtTpl = $conn->prepare("
-    SELECT subject, body 
-    FROM email_templates 
-    WHERE code = 'credits_expiring' 
-    LIMIT 1
-");
-$stmtTpl->execute();
-$stmtTpl->bind_result($subject, $templateBody);
-$stmtTpl->fetch();
-$stmtTpl->close();
+while ($stmt->fetch()) {
 
-while ($row = $result->fetch_assoc()) {
-
-    $userId = $row['user_id'];
+    file_put_contents(__DIR__ . "/cron_debug.txt", "Procesando usuario: $userId\n", FILE_APPEND);
 
     // ✅ evitar duplicados
     $check = $conn->prepare("
@@ -62,54 +51,35 @@ while ($row = $result->fetch_assoc()) {
     ");
     $check->bind_param("is", $userId, $today);
     $check->execute();
-    $exists = $check->get_result()->fetch_assoc();
+    $check->bind_result($existsId);
+    $check->fetch();
+    $check->close();
 
-    if ($exists) {
-        $skippedCount++;
-        echo "⏭ Usuario $userId ya notificado hoy\n";
+    if ($existsId) {
         continue;
     }
 
     try {
 
         $vars = [
-            'remaining' => $row['remaining_credits'],
-            'expires_at' => date('d/m/Y', strtotime($row['expires_at'])),
+            'remaining' => $remainingCredits,
+            'expires_at' => date('d/m/Y', strtotime($expiresAt)),
             'dashboard_url' => BASE_URL_FULL . "/frontend/dashboard.php"
         ];
 
         $body = renderTemplate($templateBody, $vars);
 
-        // ✅ enviar correo
-        $sent = sendEmail($row['email'], $subject, $body);
+        $sent = sendEmail($email, $subject, $body);
 
         if (!$sent) {
-            file_put_contents(__DIR__ . "/cron_error.txt", "ERROR EMAIL: " . $row['email'] . "\n", FILE_APPEND);
-        }
-
-        if ($sent) {
-            $sentCount++;
-            echo "✅ Email enviado a: " . $row['email'] . "\n";
-
-            $log = $conn->prepare("
-                INSERT INTO email_logs (user_id, email, template_code, status)
-                VALUES (?, ?, 'credits_expiring', 'sent')
-            ");
-            $log->bind_param("is", $userId, $row['email']);
-            $log->execute();
-            $log->close();
-
-        } else {
             throw new Exception("Error al enviar correo");
         }
 
     } catch (Exception $e) {
-        $errorCount++;
-        $errors[] = "User $userId: " . $e->getMessage();
-
-        echo "❌ Error con usuario $userId: " . $e->getMessage() . "\n";
+        file_put_contents(__DIR__ . "/cron_error.txt", $e->getMessage() . "\n", FILE_APPEND);
     }
 }
+
 
 // ✅ resumen final
 echo "\n========================\n";
