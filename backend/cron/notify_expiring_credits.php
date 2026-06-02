@@ -85,7 +85,7 @@ while ($row = $result->fetch_assoc()) {
         if ($sent) {
             $sentCount++;
             echo "✅ Email enviado a: " . $row['email'] . "\n";
-/*
+
             $log = $conn->prepare("
                 INSERT INTO email_logs (user_id, email, template_code, status)
                 VALUES (?, ?, 'credits_expiring', 'sent')
@@ -93,7 +93,6 @@ while ($row = $result->fetch_assoc()) {
             $log->bind_param("is", $userId, $row['email']);
             $log->execute();
             $log->close();
-            */
 
         } else {
             throw new Exception("Error al enviar correo");
