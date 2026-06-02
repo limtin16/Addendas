@@ -7,20 +7,26 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$dbPath = $path . "backend/db.php";
+$creditServicePath = $path . "backend/src/Services/CreditService.php";
+$authPath = $path . "backend/helpers/auth.php";
 $path.="backend/config.php";
 require_once $path;
+require_once $dbPath;
+require_once $creditServicePath;
+require_once $authPath;
 
 session_start();
-require_once __DIR__ . '/../backend/db.php';
-require_once dirname(__DIR__) . '/backend/helpers/auth.php';
+
+$userId = requireAuthAndPrivacy($conn);
+$creditService = new CreditService($conn);
+$credits = $creditService->getAvailableCredits($userId);
 
 // ✅ PROTEGER: solo usuarios logueados
 if (!isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
-
-$userId = requireAuthAndPrivacy($conn);
 
 // ✅ obtener templates del usuario
 $stmt = $conn->prepare("
