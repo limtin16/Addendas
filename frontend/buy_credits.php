@@ -17,8 +17,12 @@ if (!isset($_SESSION['user_id'])) {
 
  <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 
-<!-- ✅ SCRIPT CONEKTA -->
+<!-- ✅ SCRIPT CONEKTA Temporalmente desactivado-->
+<!--
 <script src="https://pay.conekta.com/v1.0/js/components.js"></script>
+-->
+<script src="https://www.paypal.com/sdk/js?client-id=AVuWRRuwCRhBVVWf7rvlv64erEU5-QxolBokEGVheOK88MwuENfaqGNVW16qEUCuybpb9Cc3IXoakZCn&currency=MXN&locale=es_MX&buyer-country=MX
+"></script>
 </head>
 
 <body>
@@ -73,10 +77,23 @@ if (!isset($_SESSION['user_id'])) {
                 ⏳ Expira en <?= $p['expires'] ?>
             </div>
 
+            <div class="payment-options">
+
+            <!-- ✅ PAYPAL -->
+            <div class="paypal-button-container"
+                data-credits="<?= $p['credits'] ?>"
+                data-amount="<?= $total ?>">
+            </div>
+
+            <!-- ✅ CONEKTA (DESACTIVADO TEMPORALMENTE) -->
+            <!--
             <button class="generate-checkout btn blue"
                     data-credits="<?= $p['credits'] ?>">
                 Pagar con tarjeta / OXXO
             </button>
+            -->
+
+        </div>
         </div>
 
         <?php endforeach; ?>
@@ -94,10 +111,49 @@ console.log("SCRIPT CARGADO ✅");
 // ✅ ESPERAR A QUE EL DOM EXISTA
 document.addEventListener("DOMContentLoaded", function () {
 
-    console.log("DOM LISTO ✅");
+     // ✅ PAYPAL
+    const containers = document.querySelectorAll('.paypal-button-container');
+
+    containers.forEach(container => {
+
+        const credits = container.dataset.credits;
+        const amount = container.dataset.amount;
+
+        paypal.Buttons({
+
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: amount
+                        },
+                        custom_id: JSON.stringify({
+                            credits: credits
+                        })
+                    }]
+                });
+            },
+
+            onApprove: async function(data, actions) {
+
+                const order = await actions.order.capture();
+
+                await fetch('<?= BASE_URL ?>/backend/public/paypal_webhook.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(order)
+                });
+
+                window.location.href = "<?= BASE_URL ?>/frontend/dashboard.php?paid=1";
+            }
+
+        }).render(container);
+
+    });
+
+    /*
 
     const buttons = document.querySelectorAll('.generate-checkout');
-    console.log("Botones encontrados:", buttons.length);
 
     buttons.forEach(btn => {
 
@@ -130,8 +186,10 @@ document.addEventListener("DOMContentLoaded", function () {
             btn.parentNode.appendChild(conektaBtn);
         });
     });
+    */
 });
-
+/*
+//Conekta temporalmente desactivado
 function renderCheckout(checkoutId) {
 
     console.log("Renderizando checkout:", checkoutId);
@@ -160,6 +218,7 @@ function renderCheckout(checkoutId) {
         }
     });
 }
+*/
 
 </script>
 

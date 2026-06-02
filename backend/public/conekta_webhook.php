@@ -49,7 +49,7 @@ if ($data->type === "order.paid") {
     // ✅ evitar duplicados (muy importante)
     $orderId = $order->id;
 
-    $stmt = $conn->prepare("SELECT id FROM payments WHERE conekta_order_id = ?");
+    $stmt = $conn->prepare("SELECT id FROM payments WHERE external_order_id = ? AND provider = 'conekta'");
     $stmt->bind_param("s", $orderId);
     $stmt->execute();
     $exists = $stmt->get_result()->fetch_assoc();
@@ -83,14 +83,17 @@ if ($data->type === "order.paid") {
     }
 
     // ✅ guardar historial
-    $stmt = $conn->prepare("
-        INSERT INTO payments (user_id, credits, conekta_order_id, amount)
-        VALUES (?, ?, ?, ?)
-    ");
+   $provider = 'conekta';
+
+$stmt = $conn->prepare("
+    INSERT INTO payments 
+    (user_id, credits, provider, external_order_id, amount)
+    VALUES (?, ?, ?, ?, ?)
+");
 
     $amount = $order->amount / 100; // centavos → pesos
 
-    $stmt->bind_param("iisd", $userId, $credits, $orderId, $amount);
+    $stmt->bind_param("iissd", $userId, $credits, $provider, $orderId, $amount);
     $stmt->execute();
 
     $stmt = $conn->prepare("SELECT subject, body FROM email_templates WHERE code = 'purchase_confirmation' LIMIT 1");
