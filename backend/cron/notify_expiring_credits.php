@@ -1,6 +1,7 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+file_put_contents(__DIR__ . "/cron_debug.txt", "SCRIPT EJECUTADO: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
