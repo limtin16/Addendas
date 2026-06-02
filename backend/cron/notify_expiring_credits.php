@@ -90,3 +90,34 @@ while ($row = $result->fetch_assoc()) {
                 INSERT INTO email_logs (user_id, email, template_code, status)
                 VALUES (?, ?, 'credits_expiring', 'sent')
             ");
+            $log->bind_param("is", $userId, $row['email']);
+            $log->execute();
+            $log->close();
+
+        } else {
+            throw new Exception("Error al enviar correo");
+        }
+
+    } catch (Exception $e) {
+        $errorCount++;
+        $errors[] = "User $userId: " . $e->getMessage();
+
+        echo "❌ Error con usuario $userId: " . $e->getMessage() . "\n";
+    }
+}
+
+// ✅ resumen final
+echo "\n========================\n";
+echo "📊 RESUMEN:\n";
+echo "✅ Enviados: $sentCount\n";
+echo "⏭ Omitidos: $skippedCount\n";
+echo "❌ Errores: $errorCount\n";
+
+if (!empty($errors)) {
+    echo "\n🔴 DETALLE ERRORES:\n";
+    foreach ($errors as $err) {
+        echo $err . "\n";
+    }
+}
+
+echo "✅ Proceso terminado\n";
