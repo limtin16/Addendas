@@ -168,18 +168,16 @@ $stmt->execute();
 $stmt->bind_result($userEmail);
 $stmt->fetch();
 $stmt->close();
-
-// ✅ enviar
+// ✅ enviar correo
 $status = sendEmail($userEmail, $subject, $body) ? 'sent' : 'error';
-VALUES (?, ?, 'purchase_confirmation', ?)
 
 // ✅ registrar envío de correo
 $logStmt = $conn->prepare("
     INSERT INTO email_logs (user_id, email, template_code, status)
-    VALUES (?, ?, 'purchase_confirmation', 'sent')
+    VALUES (?, ?, 'purchase_confirmation', ?)
 ");
 
-$logStmt->bind_param("is", $userId, $userEmail);
+$logStmt->bind_param("iss", $userId, $userEmail, $status);
 $logStmt->execute();
 $logStmt->close();
 
