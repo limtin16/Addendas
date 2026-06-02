@@ -7,10 +7,31 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$dbPath = $path . "backend/db.php";
+$creditServicePath = $path . "backend/src/Services/CreditService.php";
 $path.="backend/config.php";
 require_once $path;
+require_once $dbPath;
+require_once $creditServicePath;
 
 session_start();
+
+// ✅ validar sesión
+if (!isset($_SESSION['user_id'])) {
+    header("Location: " . BASE_URL . "/frontend/login.php");
+    exit;
+}
+
+$userId = $_SESSION['user_id'];
+
+// ✅ verificar créditos
+$creditService = new CreditService($conn);
+$credits = $creditService->getAvailableCredits($userId);
+
+if ($credits <= 0) {
+    header("Location: " . BASE_URL . "/frontend/buy_credits.php?error=no_credits");
+    exit;
+}
 unset($_SESSION['using_template']);
 ?>
 

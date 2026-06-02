@@ -31,6 +31,11 @@ if (!isset($_SESSION['user_id'])) {
 
 <div class="main">
     <div class="container">
+        <?php if (isset($_GET['error']) && $_GET['error'] === 'no_credits'): ?>
+            <div class="login-error">
+                ❌ No tienes créditos disponibles para continuar
+            </div>
+        <?php endif; ?>
 
         <div class="header-center">
             <h2>💳 Comprar Créditos</h2>
@@ -220,6 +225,9 @@ function renderCheckout(checkoutId) {
 }
 */
 
+if (window.location.search.includes('error')) {
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
 </script>
 
 </body>

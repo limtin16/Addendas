@@ -76,7 +76,7 @@ $credits = $creditService->getAvailableCredits($userId);
             <div class="card">
                 <h3>🆕 Crear Addenda</h3>
                 <p>Genera una nueva addenda desde cero</p>
-                <a href="<?= BASE_URL ?>/frontend/select_mode.php" class="btn blue">
+                <a href="<?= BASE_URL ?>/frontend/select_mode.php" class="btn blue" id="btn-create">
                     Crear
                 </a>
             </div>
@@ -113,13 +113,34 @@ $credits = $creditService->getAvailableCredits($userId);
 
             // ✅ pequeño delay para asegurar webhook
             setTimeout(() => {
-                window.location.reload();
-            }, 800);
+                //window.location.reload();
+            }, 3000);
 
         } else {
             sessionStorage.removeItem("reload_paid");
         }
     }
+    const userCredits = <?= (int)$credits ?>;
+
+document.getElementById('btn-create').addEventListener('click', function(e) {
+
+    if (userCredits <= 0) {
+        e.preventDefault();
+
+        const msg = document.createElement("div");
+        msg.className = "login-error";
+        msg.innerText = "❌ No tienes créditos disponibles";
+
+        document.querySelector(".container").prepend(msg);
+
+        setTimeout(() => {
+            window.location.href = "<?= BASE_URL ?>/frontend/buy_credits.php";
+        }, 3000);
+
+        window.location.href = "<?= BASE_URL ?>/frontend/buy_credits.php";
+    }
+
+});
 </script>
 </body>
 </html>
