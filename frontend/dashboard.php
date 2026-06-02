@@ -7,15 +7,16 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$dbPath = $path . "backend/db.php";
+$creditServicePath = $path . "backend/src/Services/CreditService.php";
+$authPath = $path . "backend/helpers/auth.php";
 $path.="backend/config.php";
 require_once $path;
+require_once $dbPath;
+require_once $creditServicePath;
+require_once $authPath;
 
 session_start();
-
-require_once dirname(__DIR__) . '/backend/db.php';
-require_once dirname(__DIR__) . '/backend/src/Services/CreditService.php';
-require_once dirname(__DIR__) . '/backend/helpers/auth.php';
-
 
 // ✅ validar sesión primero
 if (!isset($_SESSION['user_id'])) {
@@ -42,8 +43,8 @@ $credits = $creditService->getAvailableCredits($userId);
 <div class="main">
     <div class="container">
         <?php if (isset($_GET['paid'])): ?>
-            <div style="background:#d1fae5;padding:15px;margin-bottom:20px;border-radius:8px;">
-                ✅ Pago exitoso. Tus créditos han sido agregados.
+            <div id="paid-msg" style="background:#d1fae5;padding:15px;margin-bottom:20px;border-radius:8px;">
+                ✅ Pago exitoso. Tus créditos han sido agregados. Los cambios pueden tardar unos segundos en reflejarse. Si no ves el cambio, intenta recargar la página.
             </div>
         <?php endif; ?>
         <div class="welcome">
@@ -113,7 +114,7 @@ $credits = $creditService->getAvailableCredits($userId);
 
             // ✅ pequeño delay para asegurar webhook
             setTimeout(() => {
-                //window.location.reload();
+                window.location.reload();
             }, 3000);
 
         } else {
@@ -141,6 +142,14 @@ document.getElementById('btn-create').addEventListener('click', function(e) {
     }
 
 });
+
+const msg = document.getElementById("paid-msg");
+
+if (msg) {
+    setTimeout(() => {
+        window.location.reload();
+    }, 5000); // 5 segundos
+}
 </script>
 </body>
 </html>
