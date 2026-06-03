@@ -103,10 +103,6 @@ if (!$doc->loadXML($originalCfdi)) {
     exit;
 }
 
-// crear nodo Addenda
-$addendaNode = $doc->createElementNS($cfdiNamespace, 'cfdi:Addenda');
-
-// insertar XML como fragmento
 $fragment = $doc->createDocumentFragment();
 
 if (!$fragment->appendXML($newAddendaXml)) {
@@ -115,8 +111,6 @@ if (!$fragment->appendXML($newAddendaXml)) {
     ]);
     exit;
 }
-
-$addendaNode->appendChild($fragment);
 
 // ubicar comprobante
 $xpath = new DOMXPath($doc);
@@ -131,8 +125,7 @@ if (!$comprobante) {
     exit;
 }
 
-// insertar
-$comprobante->appendChild($addendaNode);
+$comprobante->appendChild($fragment);
 
 $finalCfdi = $doc->saveXML();
 

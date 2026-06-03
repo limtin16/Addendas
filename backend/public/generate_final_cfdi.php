@@ -43,6 +43,7 @@ if (trim($originalCfdi) === '') {
 
 $newAddendaXml = trim($_POST['addenda_xml']);
 
+
 /* =======================================================
    3. Detectar formato del CFDI original
    ======================================================= */
@@ -56,28 +57,10 @@ if (preg_match('/\n([ \t]+)<cfdi:/', $originalCfdi, $m)) {
 }
 
 /* =======================================================
-   4. Preparar Addenda respetando el formato original
-   ======================================================= */
-
-$addendaIndented = $newline . $newAddendaXml . $newline;
-
-// ✅ ENVOLVER EN cfdi:Addenda
-$addendaWrapped =
-    $newline .
-    $baseIndent . '<cfdi:Addenda xmlns:cfdi="' . $cfdiNamespace . '">'.
-    $addendaIndented .
-    $newline .
-    $baseIndent . '</cfdi:Addenda>' .
-    $newline;
-
-/* =======================================================
    5. Insertar Addenda sin tocar el resto del CFDI
    ======================================================= */
 $doc = new DOMDocument();
 $doc->loadXML($originalCfdi);
-
-// crear nodo Addenda
-$addendaNode = $doc->createElementNS($cfdiNamespace, 'cfdi:Addenda');
 
 // ✅ usar fragmento XML
 $fragment = $doc->createDocumentFragment();
@@ -85,8 +68,6 @@ $fragment = $doc->createDocumentFragment();
 if (!$fragment->appendXML($newAddendaXml)) {
     die('❌ Error al insertar XML de addenda');
 }
-
-$addendaNode->appendChild($fragment);
 
 // obtener comprobante
 $xpath = new DOMXPath($doc);
@@ -99,7 +80,7 @@ if (!$comprobante) {
 }
 
 // insertar correctamente
-$comprobante->appendChild($addendaNode);
+$comprobante->appendChild($fragment);
 
 $finalCfdi = $doc->saveXML();
 

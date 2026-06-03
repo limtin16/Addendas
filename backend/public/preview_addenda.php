@@ -151,6 +151,20 @@ applyValues($doc->documentElement, $input, $resolver);
 // ===============================
 $output = $doc->saveXML($doc->documentElement);
 
-// ✅ limpieza de espacios
-echo trim($output);
+// ===============================
+// ✅ WRAP CFDI ADDENDA
+// ===============================
+$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4';
+
+if (isset($_SESSION['target_cfdi_xml']) &&
+    preg_match('/xmlns:cfdi="([^"]+)"/', $_SESSION['target_cfdi_xml'], $m)) {
+    $cfdiNamespace = $m[1];
+}
+
+$wrapped =
+    "<cfdi:Addenda xmlns:cfdi=\"{$cfdiNamespace}\">" .
+    trim($output) .
+    "</cfdi:Addenda>";
+
+echo $wrapped;
 exit;
