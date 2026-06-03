@@ -40,5 +40,5 @@ $structure = [
 // ✅ Crear template
 $template = $service->save($name, $location, $structure);
 
-header('Location: " . BASE_URL . "/frontend/wizard_step2.php?template_id=' . urlencode($template->id));
+header("Location: " . BASE_URL . "/frontend/wizard_step2.php?template_id=" . urlencode($template->id));
 exit;

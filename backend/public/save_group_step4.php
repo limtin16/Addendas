@@ -85,7 +85,7 @@ if (!$isFinalizing) {
     $_SESSION['current_group'] = null;
 
     // ✅ regresar a step4
-    header('Location: " . BASE_URL . "/frontend/wizard_step4.php?template_id=' . urlencode($templateId));
+    header("Location: " . BASE_URL . "/frontend/wizard_step4.php?template_id=" . urlencode($templateId));
     exit;
 }
 // ✅ ASEGURAR QUE EL GRUPO ACTIVO TAMBIÉN SE GUARDE
@@ -189,5 +189,5 @@ $_SESSION['addenda_instance'] = [
 // ===============================
 // ✅ REDIRIGIR A FORM FINAL
 // ===============================
-header('Location: " . BASE_URL . "/frontend/render_instance_form.php');
+header("Location: " . BASE_URL . "/frontend/render_instance_form.php");
 exit;

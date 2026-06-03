@@ -21,5 +21,5 @@ $_SESSION['current_group'] = [
     'children' => []
 ];
 
-header('Location: " . BASE_URL . "/frontend/wizard_step4.php?template_id=' . $_POST['template_id']);
+header("Location: " . BASE_URL . "/frontend/wizard_step4.php?template_id=" . urlencode($_POST['template_id']));
 exit;

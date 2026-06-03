@@ -15,7 +15,7 @@ if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
 }
 
 define('BACKEND_ROOT', __DIR__);
-define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/Storage/templates');
+define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/src/Storage/templates');
 define('PAYPAL_ENV', 'live'); // 'sandbox' o 'live'
 //sandbox credentials
 //define('PAYPAL_CLIENT_ID', 'AVuWRRuwCRhBVVWf7rvlv64erEU5-QxolBokEGVheOK88MwuENfaqGNVW16qEUCuybpb9Cc3IXoakZCn');

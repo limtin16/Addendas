@@ -7,9 +7,9 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
-$path.="backend/config.php";
 $dbPath = $path . "backend/db.php";
-$creditsPath = $path . "src/Services/CreditService.php";
+$creditsPath = $path . "backend/src/Services/CreditService.php";
+$path.="backend/config.php";
 require_once $path;
 require_once $dbPath;
 require_once $creditsPath;

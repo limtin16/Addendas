@@ -94,8 +94,11 @@ function parseAddendaNode(DOMElement $element): array
 {
     $node = [
         'type' => 'node',
-        'name' => $element->localName, // ✅ importante
+        'name' => $element->localName,
+        'prefix' => $element->prefix,
+        'namespace' => $element->namespaceURI,
         'children' => []
+
     ];
 
     // ✅ 1. NAMESPACES (solo guardar)
@@ -178,5 +181,5 @@ $_SESSION['addenda_instance'] = [
    8. REDIRIGIR
    ======================================================= */
 
-header('Location: " . BASE_URL . "/frontend/render_instance_form.php');
+header("Location: " . BASE_URL . "/frontend/render_instance_form.php");
 exit;

@@ -18,11 +18,11 @@ require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
 use App\Services\AddendaXmlBuilder;
 use App\Services\XsdToArrayConverter;
 
-if (!isset($_FILES['xsd'])) {
+if (!isset($_FILES['xsd_file'])) {
     die('No se subió archivo XSD');
 }
 
-$xsd = file_get_contents($_FILES['xsd']['tmp_name']);
+$xsd = file_get_contents($_FILES['xsd_file']['tmp_name']);
 
 $converter = new XsdToArrayConverter();
 $structure = $converter->convert($xsd);
@@ -42,5 +42,5 @@ $_SESSION['addenda_instance'] = [
 ];
 
 // ✅ redirigir
-header('Location: " . BASE_URL . "/frontend/render_instance_form.php');
+header("Location: " . BASE_URL . "/frontend/render_instance_form.php");
 exit;

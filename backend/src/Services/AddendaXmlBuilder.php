@@ -20,10 +20,11 @@ class AddendaXmlBuilder
             isset($structure['children'][0]['type']) &&
             $structure['children'][0]['type'] === 'node'
         ) {
+            // ✅ CONTENIDO XSD (root real)
             $rootNode = $structure['children'][0];
-
             $rootElement = $this->buildNodeFromXsd($doc, $rootNode);
 
+            // ✅ usarlo como root del documento
             $doc->appendChild($rootElement);
 
             return $doc->saveXML($doc->documentElement);
@@ -52,6 +53,7 @@ class AddendaXmlBuilder
             $qualifiedName
         );
 
+        // ✅ AHORA SÍ LO AGREGAS
         $doc->appendChild($root);
 
         foreach ($children as $child) {
@@ -81,7 +83,18 @@ class AddendaXmlBuilder
         $namespace = $node['namespace'] ?? null;
 
         if ($namespace) {
-            $element = $doc->createElementNS($namespace, $name);
+            $name = $this->cleanName($node['name']);
+            $prefix = $node['prefix'] ?? '';
+            $namespace = $node['namespace'] ?? null;
+
+            $qualifiedName = $prefix
+                ? $prefix . ':' . $name
+                : $name;
+
+            $element = $doc->createElementNS(
+                $namespace ?: null,
+                $qualifiedName
+            );
         } else {
             $element = $doc->createElement($name);
         }
