@@ -13,6 +13,8 @@ require_once $path;
 // upload_xsd.php
 session_start();
 
+$_SESSION['addenda_mode'] = 'xsd';
+
 if (
     !isset($_SESSION['user_id']) &&
     !isset($_SESSION['guest_paid'])

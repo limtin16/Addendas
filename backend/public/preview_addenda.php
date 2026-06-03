@@ -66,6 +66,18 @@ if (isset($_SESSION['target_cfdi_xml'])) {
     $resolver = new CfdiValueResolver($cfdiMap);
 }
 
+function prettyXml($xml) {
+    $doc = new DOMDocument('1.0', 'UTF-8');
+    $doc->preserveWhiteSpace = false;
+    $doc->formatOutput = true;
+
+    if (!$doc->loadXML($xml)) {
+        return $xml;
+    }
+
+    return $doc->saveXML($doc->documentElement);
+}
+
 function normalizeCfdiPath(string $path): string
 {
     // cfdi:Comprobante.@Moneda → moneda
@@ -149,7 +161,14 @@ applyValues($doc->documentElement, $input, $resolver);
 // ===============================
 // ✅ SALIDA (SOLO ADDENDA)
 // ===============================
-$output = $doc->saveXML($doc->documentElement);
+$output = trim($doc->saveXML($doc->documentElement));
+
+$mode = $_SESSION['addenda_mode'] ?? 'manual';
+
+if ($mode !== 'xml') {
+    $output = prettyXml($output);
+}
+
 
 // ===============================
 // ✅ WRAP CFDI ADDENDA

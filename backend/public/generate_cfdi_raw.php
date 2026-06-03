@@ -25,6 +25,172 @@ if (!$userId && !$isGuestPaid) {
     exit;
 }
 
+function prettyXml($xml) {
+    $doc = new DOMDocument('1.0', 'UTF-8');
+    $doc->preserveWhiteSpace = false;
+    $doc->formatOutput = true;
+
+    if (!$doc->loadXML($xml)) {
+        return $xml;
+    }
+
+    return $doc->saveXML($doc->documentElement);
+}
+
+function extractInnerAddenda(string $xml): string
+{
+    if (strpos($xml, '<cfdi:Addenda') === false) {
+        return $xml;
+    }
+
+    $doc = new DOMDocument();
+
+    if (!$doc->loadXML($xml)) {
+        return $xml;
+    }
+
+    $xpath = new DOMXPath($doc);
+    $xpath->registerNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
+
+    $node = $xpath->query('//cfdi:Addenda')->item(0);
+
+    if (!$node) {
+        return $xml;
+    }
+
+    $inner = '';
+
+    foreach ($node->childNodes as $child) {
+        $inner .= $doc->saveXML($child);
+    }
+
+    return trim($inner);
+}
+
+function indentXmlContent(string $xml, string $baseIndent): string
+{
+    $lines = explode("\n", trim($xml));
+
+    $result = [];
+
+    foreach ($lines as $line) {
+        $result[] = $baseIndent . $line;
+    }
+
+    return implode("\n", $result);
+}
+
+function detectIndentationStyle(string $xml): string
+{
+    if (preg_match('/\n([ \t]+)<cfdi:/', $xml, $m)) {
+        return $m[1]; // puede ser espacios o tabs
+    }
+
+    return "    "; // fallback (4 espacios)
+}
+
+function findInsertPosition(string $xml): int
+{
+    // buscar cierre de comprobante
+    $pos = strpos($xml, '</cfdi:Comprobante>');
+
+    return $pos !== false ? $pos : -1;
+}
+
+function detectLastChildIndent(string $xml): string
+{
+    if (preg_match('/\n([ \t]+)<\/cfdi:Comprobante>/', $xml, $m)) {
+        return $m[1];
+    }
+
+    return detectIndentationStyle($xml);
+}
+
+function reindentXml(string $xml, string $baseIndent, string $indentUnit): string
+{
+    // ✅ CLAVE: separar etiquetas en líneas
+    $xml = preg_replace('/>\s*</', ">\n<", trim($xml));
+
+    $lines = explode("\n", $xml);
+
+    $level = 0;
+    $result = [];
+
+    foreach ($lines as $line) {
+
+        $trim = trim($line);
+
+        // ✅ cierre → bajar nivel antes
+        if (preg_match('/^<\/.+>$/', $trim)) {
+            $level--;
+        }
+
+        $result[] = $baseIndent . str_repeat($indentUnit, max($level, 0)) . $trim;
+
+        // ✅ apertura → subir nivel después
+        if (
+            preg_match('/^<[^\/!?][^>]*[^\/]>$/', $trim)
+        ) {
+            $level++;
+        }
+    }
+
+    return implode("\n", $result);
+}
+
+function removeExistingAddenda(string $xml): string
+{
+    return preg_replace(
+        '/<cfdi:Addenda[\s\S]*?<\/cfdi:Addenda>/',
+        '',
+        $xml
+    );
+}
+
+function processAddendaForInsert(string $originalCfdi, string $newAddendaXml): string
+{
+    $mode = $_SESSION['addenda_mode'] ?? 'manual';
+
+    // ✅ detectar estilo real
+    $indentBase = detectLastChildIndent($originalCfdi);
+    $indentUnit = substr($indentBase, 0, 1) === "\t" ? "\t" : "  ";
+
+    // ✅ limpiar addenda previa SI existe
+    $originalCfdi = removeExistingAddenda($originalCfdi);
+
+    // ✅ formatear dependiendo del modo
+    if ($mode !== 'xml') {
+        $newAddendaXml = prettyXml($newAddendaXml);
+    } else {
+        $newAddendaXml = trim($newAddendaXml);
+    }
+
+    // ✅ reindentar conforme al CFDI
+    $formattedAddenda = reindentXml(
+        $newAddendaXml,
+        $indentBase,
+        $indentUnit
+    );
+
+    // ✅ encontrar posición real
+    $pos = findInsertPosition($originalCfdi);
+
+    if ($pos === -1) {
+        return $originalCfdi; // fallback
+    }
+
+    // ✅ insertar EXACTAMENTE en el punto correcto
+    $before = substr($originalCfdi, 0, $pos);
+    $after  = substr($originalCfdi, $pos);
+
+    // ✅ eliminar saltos extra antes de insertar
+    $before = rtrim($before, "\r\n") . "\n";
+
+    return $before
+        . $formattedAddenda . "\n"
+        . $after;
+}
+
 $creditService = new CreditService($conn);
 
 // ✅ SOLO validar créditos si es usuario logueado
@@ -92,42 +258,11 @@ if (preg_match('/xmlns:cfdi="([^"]+)"/', $originalCfdi, $matches)) {
 // ===============================
 // ✅ INSERTAR ADDENDA CON DOM
 // ===============================
-libxml_use_internal_errors(true);
 
-$doc = new DOMDocument('1.0', 'UTF-8');
-
-if (!$doc->loadXML($originalCfdi)) {
-    echo json_encode([
-        'error' => 'CFDI inválido'
-    ]);
-    exit;
-}
-
-$fragment = $doc->createDocumentFragment();
-
-if (!$fragment->appendXML($newAddendaXml)) {
-    echo json_encode([
-        'error' => 'Addenda XML inválido'
-    ]);
-    exit;
-}
-
-// ubicar comprobante
-$xpath = new DOMXPath($doc);
-$xpath->registerNamespace('cfdi', $cfdiNamespace);
-
-$comprobante = $xpath->query('//cfdi:Comprobante')->item(0);
-
-if (!$comprobante) {
-    echo json_encode([
-        'error' => 'Comprobante no encontrado'
-    ]);
-    exit;
-}
-
-$comprobante->appendChild($fragment);
-
-$finalCfdi = $doc->saveXML();
+$finalCfdi = processAddendaForInsert(
+    $originalCfdi,
+    $newAddendaXml
+);
 
 // ✅ VALIDACIÓN FINAL (muy importante)
 if (!$finalCfdi || trim($finalCfdi) === '') {

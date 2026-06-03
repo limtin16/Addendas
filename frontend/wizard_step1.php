@@ -13,6 +13,8 @@ require_once $path;
 // wizard_step1.php
 session_start();
 
+$_SESSION['addenda_mode'] = 'manual';
+
 if (
     !isset($_SESSION['user_id']) &&
     !isset($_SESSION['guest_paid'])
