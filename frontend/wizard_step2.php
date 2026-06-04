@@ -36,13 +36,13 @@ require_once $path;
                 <input type="text" id="root_name" name="root_name" required>
                 <div class="hint">
                     Normalmente lo especifica tu cliente.  
-                    Ejemplos: <b>Factura</b>, <b>AddendaDCG</b>, <b>Invoice</b>
+                    Ejemplos: <b>Factura</b>, <b>AddendaDCM</b>, <b>Invoice</b>
                 </div>
 
                 <label for="prefix">Prefijo del formato (opcional)</label>
                 <input type="text" id="prefix" name="prefix">
                 <div class="hint">
-                    Ejemplos: <b>THY</b>, <b>mabe</b>.  
+                    Ejemplos: <b>THY</b>, <b>mabee</b>.  
                     Si tu cliente no indicó ninguno, puedes dejarlo vacío.
                 </div>
                 <label for="namespace">Namespace del formato</label>
@@ -54,7 +54,7 @@ require_once $path;
                 >
                 <div class="hint">
                     Este valor normalmente lo proporciona el cliente o viene en el XML/XSD.<br>
-                    Ejemplo: <code>http://www.thyssenkrupp.com/schema</code>
+                    Ejemplo: <code>http://www.mycorp.com/schema</code>
                 </div>
 
                 <button type="submit">Continuar al Paso 3</button>

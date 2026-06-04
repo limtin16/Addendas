@@ -14,9 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 <head>
 <meta charset="UTF-8">
 <title>Comprar Créditos</title>
-
  <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
-
 <!-- ✅ SCRIPT CONEKTA Temporalmente desactivado-->
 <!--
 <script src="https://pay.conekta.com/v1.0/js/components.js"></script>
@@ -28,11 +26,8 @@ if (!isset($_SESSION['user_id'])) {
 "></script>
 -->
 </head>
-
 <body>
-
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
-
 <div class="main">
     <div class="container">
         <?php if (isset($_GET['error']) && $_GET['error'] === 'no_credits'): ?>
