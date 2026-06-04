@@ -216,7 +216,7 @@ function processAddendaForInsert(string $originalCfdi, string $newAddendaXml): s
 
     $final = $before
     . rtrim($formattedAddenda)
-    . "\n"
+    . PHP_EOL
     . ltrim($after);
 
     return $final;
