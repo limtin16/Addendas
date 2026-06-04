@@ -67,6 +67,40 @@ function extractInnerAddenda(string $xml): string
     return trim($inner);
 }
 
+function detectIndentUnit(string $xml): string
+{
+    if (preg_match('/\n([ \t]+)<cfdi:/', $xml, $m)) {
+
+        $indent = $m[1];
+
+        // ✅ detectar si es tab
+        if (strpos($indent, "\t") !== false) {
+            return "\t";
+        }
+
+        // ✅ detectar número de espacios (2, 4, etc.)
+        preg_match('/^ +/', $indent, $spaces);
+        return $spaces[0] ?? "  ";
+    }
+
+    return "  "; // fallback
+}
+
+function findSemanticInsertPosition(string $xml): int
+{
+    // ✅ si hay Complemento → insertar después
+    if (preg_match('/<\/cfdi:Complemento>/', $xml, $m, PREG_OFFSET_CAPTURE)) {
+        return $m[0][1] + strlen($m[0][0]);
+    }
+
+    // ✅ si no hay Complemento → antes del cierre
+    if (preg_match('/<\/cfdi:Comprobante>/', $xml, $m, PREG_OFFSET_CAPTURE)) {
+        return $m[0][1];
+    }
+
+    return -1;
+}
+
 function indentXmlContent(string $xml, string $baseIndent): string
 {
     $lines = explode("\n", trim($xml));
@@ -108,7 +142,6 @@ function detectLastChildIndent(string $xml): string
 
 function reindentXml(string $xml, string $baseIndent, string $indentUnit): string
 {
-    // ✅ CLAVE: separar etiquetas en líneas
     $xml = preg_replace('/>\s*</', ">\n<", trim($xml));
 
     $lines = explode("\n", $xml);
@@ -120,17 +153,15 @@ function reindentXml(string $xml, string $baseIndent, string $indentUnit): strin
 
         $trim = trim($line);
 
-        // ✅ cierre → bajar nivel antes
         if (preg_match('/^<\/.+>$/', $trim)) {
             $level--;
         }
 
-        $result[] = $baseIndent . str_repeat($indentUnit, max($level, 0)) . $trim;
+        $result[] = $baseIndent
+            . str_repeat($indentUnit, max($level, 0))
+            . $trim;
 
-        // ✅ apertura → subir nivel después
-        if (
-            preg_match('/^<[^\/!?][^>]*[^\/]>$/', $trim)
-        ) {
+        if (preg_match('/^<[^\/!?][^>]*[^\/]>$/', $trim)) {
             $level++;
         }
     }
@@ -141,7 +172,7 @@ function reindentXml(string $xml, string $baseIndent, string $indentUnit): strin
 function removeExistingAddenda(string $xml): string
 {
     return preg_replace(
-        '/<cfdi:Addenda[\s\S]*?<\/cfdi:Addenda>/',
+        '/\n?[ \t]*<cfdi:Addenda[\s\S]*?<\/cfdi:Addenda>/',
         '',
         $xml
     );
@@ -151,44 +182,44 @@ function processAddendaForInsert(string $originalCfdi, string $newAddendaXml): s
 {
     $mode = $_SESSION['addenda_mode'] ?? 'manual';
 
-    // ✅ detectar estilo real
     $indentBase = detectLastChildIndent($originalCfdi);
-    $indentUnit = substr($indentBase, 0, 1) === "\t" ? "\t" : "  ";
+    $indentUnit = detectIndentUnit($originalCfdi);
 
-    // ✅ limpiar addenda previa SI existe
+    // ✅ limpiar Addenda anterior
     $originalCfdi = removeExistingAddenda($originalCfdi);
 
-    // ✅ formatear dependiendo del modo
+    // ✅ formateo
     if ($mode !== 'xml') {
         $newAddendaXml = prettyXml($newAddendaXml);
     } else {
         $newAddendaXml = trim($newAddendaXml);
     }
 
-    // ✅ reindentar conforme al CFDI
+    // ✅ reindentar correctamente
     $formattedAddenda = reindentXml(
         $newAddendaXml,
         $indentBase,
         $indentUnit
     );
 
-    // ✅ encontrar posición real
-    $pos = findInsertPosition($originalCfdi);
+    // ✅ posición semántica
+    $pos = findSemanticInsertPosition($originalCfdi);
 
     if ($pos === -1) {
-        return $originalCfdi; // fallback
+        return $originalCfdi;
     }
 
-    // ✅ insertar EXACTAMENTE en el punto correcto
     $before = substr($originalCfdi, 0, $pos);
     $after  = substr($originalCfdi, $pos);
 
-    // ✅ eliminar saltos extra antes de insertar
     $before = rtrim($before, "\r\n") . "\n";
 
-    return $before
-        . $formattedAddenda . "\n"
-        . $after;
+    $final = $before
+    . rtrim($formattedAddenda)
+    . "\n"
+    . ltrim($after);
+
+    return $final;
 }
 
 $creditService = new CreditService($conn);

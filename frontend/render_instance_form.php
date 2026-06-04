@@ -534,7 +534,6 @@ function updatePreview() {
     .then(response => response.text())
     .then(xml => {
 
-        console.log("PREVIEW:", xml);
 
         if (requestId !== previewRequestId) return;
 
