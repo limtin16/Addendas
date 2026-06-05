@@ -177,6 +177,7 @@ $template->structure['root'] = [
     'uploaded_at' => date('c')
 ];
 
+
 $_SESSION['addenda_instance'] = $template->structure;
 
 /* =======================================================

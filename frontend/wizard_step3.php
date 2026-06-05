@@ -5,6 +5,13 @@ require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
 
 use App\Services\TemplateService;
 
+if (
+    isset($_SESSION['addenda_template']['root']['addenda_extra_ns'])
+) {
+    $_SESSION['addenda_instance']['addenda_extra_ns'] =
+        $_SESSION['addenda_template']['root']['addenda_extra_ns'];
+}
+
 $templateId = $_GET['template_id'] ?? null;
 if (!$templateId) {
     header("Location: " . BASE_URL . "/frontend/wizard_step1.php");

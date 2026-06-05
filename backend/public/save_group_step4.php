@@ -67,7 +67,7 @@ if (!$isFinalizing) {
     }
 
     // ✅ agregar grupo al template
-    $template->structure['root']['children'][] = $currentGroup;
+    $template->structure['children'][] = $currentGroup;
 
     // ✅ guardar template
     $service->update($templateId, $template->structure);
@@ -85,11 +85,11 @@ if (
     is_array($_SESSION['current_group']) &&
     !empty($_SESSION['current_group'])
 ) {
-    if (!isset($template->structure['root']['children'])) {
-        $template->structure['root']['children'] = [];
+    if (!isset($template->structure['children'])) {
+        $template->structure['children'] = [];
     }
 
-    $template->structure['root']['children'][] = $_SESSION['current_group'];
+    $template->structure['children'][] = $_SESSION['current_group'];
 
     // ✅ guardar en BD
     $service->update($templateId, $template->structure);
@@ -159,7 +159,7 @@ function convertNode($node)
     return null;
 }
 
-$root = $template->structure['root'] ?? [];
+$root = $template->structure ?? [];
 
 $instanceStructure = [
     'type' => 'node',
@@ -172,8 +172,8 @@ $instanceStructure = [
 // ===============================
 // ✅ GUARDAR INSTANCE EN SESSION
 // ===============================
-$addendaExtraNs = $template->structure['root']['addenda_extra_ns'] ?? '';
-$template->structure['root'] = [
+$addendaExtraNs = $template->structure['addenda_extra_ns'] ?? '';
+$template->structure = [
     'structure' => $instanceStructure,
     'addenda_xml_template' => $addendaXmlTemplate,
     'addenda_extra_ns' => $addendaExtraNs

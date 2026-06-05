@@ -69,12 +69,6 @@ if (!$xmlTemplate) {
     die("❌ Template sin XML (debe re-guardarse)");
 }
 
-// guardar todo
-$_SESSION['addenda_instance'] = [
-    'structure' => $structure,
-    'addenda_xml_template' => $xmlTemplate
-];
-
 $template->structure['root'] = [
     'structure' => $structure,
     'addenda_xml_template' => $xmlTemplate,

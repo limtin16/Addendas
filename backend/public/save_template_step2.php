@@ -61,6 +61,7 @@ $service->update($templateId, $template->structure);
 // ✅ SOLO guardar template (NO mezclar con instance)
 $_SESSION['addenda_instance'] = $template->structure;
 
+
 // ===============================
 // ✅ REDIRIGIR A STEP 3
 // ===============================

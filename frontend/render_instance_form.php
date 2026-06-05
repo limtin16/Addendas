@@ -23,8 +23,8 @@ if (!$templateId) {
 
 $service = new TemplateService();
 $template = $service->get($templateId);
-$namespace = $template->structure['root']['addenda_extra_ns'] ?? '';
-//$structure = $template->structure['root']['structure'] ?? '';
+$namespace = $template->structure['addenda_extra_ns'] ?? '';
+//$structure = $template->structure['structure'] ?? '';
 
 
 if (!isset($template)) {

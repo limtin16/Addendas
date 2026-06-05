@@ -41,6 +41,7 @@ $template->structure['root'] = [
     'origin' => 'xsd'
 ];
 
+
 $_SESSION['addenda_instance'] = $template->structure;
 
 // ✅ redirigir

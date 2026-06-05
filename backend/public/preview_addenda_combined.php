@@ -47,8 +47,8 @@ if (!$template) {
 // ✅ ASEGURAR ROOT
 // ===============================
 if (
-    !isset($template->structure['root']) ||
-    empty($template->structure['root']['name'])
+    !isset($template->structure) ||
+    empty($template->structure['name'])
 ) {
     echo json_encode([
         'structurePreview' => '❌ Root inválido'
@@ -79,7 +79,7 @@ if (
         $group['item_name'] = 'Item';
     }
 
-    $template->structure['root']['children'][] = $group;
+    $template->structure['children'][] = $group;
 }
 
 // ===============================
