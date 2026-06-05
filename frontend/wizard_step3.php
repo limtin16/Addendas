@@ -1,6 +1,5 @@
 <?php
-
-
+session_start();
 require_once dirname(__DIR__) . '/backend/config.php';
 require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
 
@@ -50,8 +49,8 @@ if (!$template) {
 
                 <label>Representación</label>
                 <select name="representation" required>
+                    <option selected="selected" value="attribute">Como atributo</option>
                     <option value="node">Como nodo</option>
-                    <option value="attribute">Como atributo</option>
                 </select>
 
                 <button type="submit">Agregar campo</button>

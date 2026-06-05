@@ -170,35 +170,26 @@ private function normalizeNode(array $node): array
      */
 private function normalizeStructure(array $structure): array
 {
-    // ✅ Si no existe root, lo creamos
     if (!isset($structure['root']) || !is_array($structure['root'])) {
-        $structure['root'] = [
-            'name' => null,
-            'prefix' => null,
-            'namespace' => null,
-            'children' => [],
+        return [
+            'root' => [
+                'name' => null,
+                'prefix' => null,
+                'namespace' => null,
+                'children' => [],
+            ]
         ];
-        return ['root' => $structure['root']];
     }
 
-    // ✅ Preservar valores existentes
     $root = $structure['root'];
 
-    $normalizedRoot = [
-        'name' => $root['name'] ?? null,
-        'prefix' => $root['prefix'] ?? null,
-        'namespace' => $root['namespace'] ?? null,
-        'children' => [],
-    ];
-
-    // ✅ Preservar children existentes
-    if (isset($root['children']) && is_array($root['children'])) {
-        $normalizedRoot['children'] = $root['children'];
+    // ✅ NO destruir propiedades adicionales
+    if (!isset($root['children']) || !is_array($root['children'])) {
+        $root['children'] = [];
     }
 
-    // ✅ RETORNAR SOLO root (nada más)
     return [
-        'root' => $normalizedRoot
+        'root' => $root
     ];
 }
 

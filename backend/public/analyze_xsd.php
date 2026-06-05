@@ -42,5 +42,5 @@ $_SESSION['addenda_instance'] = [
 ];
 
 // ✅ redirigir
-header("Location: " . BASE_URL . "/frontend/render_instance_form.php");
+header("Location: " . BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId));
 exit;

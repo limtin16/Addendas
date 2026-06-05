@@ -1,5 +1,5 @@
 <?php
-
+session_start();
 define('BASE_PATH', dirname(__DIR__));
 
 $path="";

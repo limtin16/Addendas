@@ -33,28 +33,46 @@ require_once $path;
                 <input type="hidden" name="template_id" value="<?php echo $_GET['template_id'] ?? ''; ?>">
 
                 <label for="root">Nombre de la sección principal</label>
-                <input type="text" id="root_name" name="root_name" required>
-                <div class="hint">
-                    Normalmente lo especifica tu cliente.  
-                    Ejemplos: <b>Factura</b>, <b>AddendaDCM</b>, <b>Invoice</b>
-                </div>
+                <input type="text" id="root_name" name="root_name" required placeholder="Ej: Factura, AddendaDCM, Invoice">
+                    <div class="hint">
+                        <small>
+                            Normalmente lo especifica tu cliente.
+                        </small>
+                    </div>
+                <br>
 
                 <label for="prefix">Prefijo del formato (opcional)</label>
-                <input type="text" id="prefix" name="prefix">
-                <div class="hint">
-                    Ejemplos: <b>THY</b>, <b>mabee</b>.  
-                    Si tu cliente no indicó ninguno, puedes dejarlo vacío.
-                </div>
+                <input type="text" id="prefix" name="prefix" placeholder="Ej: THY, mabee">
+                    <div class="hint">
+                        <small>   
+                            Si tu cliente no indicó ninguno, puedes dejarlo vacío.
+                        </small>
+                    </div>
+                <br>
                 <label for="namespace">Namespace del formato</label>
                 <input
                     type="text"
                     id="namespace"
                     name="namespace"
+                    placeholder="Ej: http://www.mycorp.com/schema"
                     required
                 >
                 <div class="hint">
-                    Este valor normalmente lo proporciona el cliente o viene en el XML/XSD.<br>
-                    Ejemplo: <code>http://www.mycorp.com/schema</code>
+                    <small>   
+                        Este valor normalmente lo proporciona el cliente o viene en el <b>XML/XSD</b>.<br>
+                    </small>
+                </div>
+                <br>
+                <label>Namespace para etiqueta Addenda (opcional)</label>
+                <input 
+                    type="text" 
+                    name="addenda_extra_ns" 
+                    placeholder="Ej: xmlns:abc='http://cliente.com/addenda'"
+                >
+                <div class="hint">
+                    <small>
+                        Se agregará directamente en la etiqueta &lt;cfdi:Addenda&gt;
+                    </small>
                 </div>
 
                 <button type="submit">Continuar al Paso 3</button>

@@ -26,15 +26,17 @@ if (!$templateId) {
 
 $service = new TemplateService();
 $template = $service->get($templateId);
+$root = $template->structure['root'] ?? [];
+$groups = $root['children'] ?? [];
+
 if (!$template) {
     header("Location: " . BASE_URL . "/frontend/wizard_step1.php");
     exit;
 }
 
-// Inicializar grupo activo
-if (!isset($_SESSION['current_group'])) {
-    $_SESSION['current_group'] = null;
-}
+// ✅ grupos existentes SIEMPRE vienen de DB
+$groups = $template->structure['root']['children'] ?? [];
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -57,7 +59,8 @@ if (!isset($_SESSION['current_group'])) {
                 <h2>Crear addenda – Paso 4</h2>
                 <p>Agrega grupos repetibles y sus campos.</p>
 
-                <?php if ($_SESSION['current_group'] === null): ?>
+                <?php $currentGroup = $_SESSION['current_group'] ?? null; ?>
+                <?php if ($currentGroup === null): ?>
 
                 <h3>Nuevo grupo</h3>
 
@@ -75,11 +78,11 @@ if (!isset($_SESSION['current_group'])) {
 
                 <?php else: ?>
 
-                <h3>Grupo: <?= htmlspecialchars($_SESSION['current_group']['name']) ?></h3>
+                <h3>Grupo: <?= htmlspecialchars($currentGroup['name']) ?></h3>
 
                 <p>Campos del grupo:</p>
                 <ul>
-                <?php foreach ($_SESSION['current_group']['children'] as $field): ?>
+                <?php foreach (($currentGroup['children'] ?? []) as $field): ?>
                     <li><?= htmlspecialchars($field['name']) ?> (<?= htmlspecialchars($field['representation']) ?>)</li>
                 <?php endforeach; ?>
                 </ul>
@@ -121,6 +124,18 @@ if (!isset($_SESSION['current_group'])) {
                 </form>
 
                 <hr>
+                <h3>📦 Grupos ya guardados</h3>
+
+                <ul>
+                <?php foreach ($groups as $group): ?>
+                    <?php if (($group['type'] ?? '') === 'group'): ?>
+                        <li>
+                            <?= htmlspecialchars($group['name']) ?>
+                            (<?= htmlspecialchars($group['item_name'] ?? '') ?>)
+                        </li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                </ul>
             </div> <!-- fin card formulario -->
     </div>
             <!-- 🔥 PREVIEW SEPARADO -->

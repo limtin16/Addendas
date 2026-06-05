@@ -25,6 +25,7 @@ $rootName   = trim($_POST['root_name'] ?? '');
 $prefix     = trim($_POST['prefix'] ?? '');
 $namespace  = trim($_POST['namespace'] ?? '');
 
+
 // ===============================
 // ✅ VALIDAR
 // ===============================
@@ -38,16 +39,7 @@ if ($templateId === '' || $rootName === '' || $namespace === '') {
 $service = new TemplateService();
 $template = $service->get($templateId);
 
-if (!$template) {
-    die('❌ Template no encontrado.');
-}
-
-// ===============================
-// ✅ ASEGURAR ESTRUCTURA
-// ===============================
-if (!isset($template->structure['root'])) {
-    $template->structure['root'] = [];
-}
+$addendaExtraNs = trim($_POST['addenda_extra_ns'] ?? '');
 
 // ===============================
 // ✅ ACTUALIZAR ROOT
@@ -55,6 +47,7 @@ if (!isset($template->structure['root'])) {
 $template->structure['root']['name'] = $rootName;
 $template->structure['root']['prefix'] = $prefix !== '' ? $prefix : null;
 $template->structure['root']['namespace'] = $namespace;
+$template->structure['root']['addenda_extra_ns'] = $addendaExtraNs;
 
 // 👇 CRÍTICO: asegurar children SIEMPRE
 if (!isset($template->structure['root']['children']) || !is_array($template->structure['root']['children'])) {
@@ -65,6 +58,8 @@ if (!isset($template->structure['root']['children']) || !is_array($template->str
 // ✅ GUARDAR
 // ===============================
 $service->update($templateId, $template->structure);
+// ✅ SOLO guardar template (NO mezclar con instance)
+$_SESSION['addenda_instance'] = $template->structure;
 
 // ===============================
 // ✅ REDIRIGIR A STEP 3
