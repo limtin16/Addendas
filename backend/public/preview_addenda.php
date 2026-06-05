@@ -9,13 +9,18 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$templateServicePath = $path . "backend/src/Services/TemplateService.php";
 $path.="backend/config.php";
 require_once $path;
+require_once $templateServicePath;
 require_once BACKEND_ROOT . '/src/Services/CFDIParserService.php';
 require_once BACKEND_ROOT . '/src/Services/CfdiValueResolver.php';
+require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
 
 use App\Services\CFDIParserService;
 use App\Services\CfdiValueResolver;
+use App\Services\TemplateService;
+use App\Services\AddendaXmlBuilder;
 
 ob_clean();
 header('Content-Type: text/plain');
@@ -32,7 +37,14 @@ if (
     exit;
 }
 
-$templateXml = $_SESSION['addenda_instance']['addenda_xml_template'];
+$input = json_decode(file_get_contents('php://input'), true);
+
+$templateId = $input['template_id'] ?? null;
+
+$service = new TemplateService();
+$template = $service->get($templateId); //el error esta aqui
+
+$templateXml = (new AddendaXmlBuilder())->build($template->structure);
 
 // ===============================
 // ✅ INPUT DEL FORM
@@ -44,6 +56,8 @@ $input = json_decode($raw, true);
 if (!is_array($input)) {
     $input = [];
 }
+$templateNs = $input['addenda_namespace'] ?? '';
+$templateNs = trim($templateNs);
 
 // ===============================
 // ✅ CARGAR XML
@@ -169,21 +183,27 @@ if ($mode !== 'xml') {
     $output = prettyXml($output);
 }
 
+// ✅ tomar namespace definido en el template (si existe)
+$templateNs = trim($templateNs);
 
-// ===============================
-// ✅ WRAP CFDI ADDENDA
-// ===============================
-$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4';
-
-if (isset($_SESSION['target_cfdi_xml']) &&
-    preg_match('/xmlns:cfdi="([^"]+)"/', $_SESSION['target_cfdi_xml'], $m)) {
-    $cfdiNamespace = $m[1];
+// ✅ normalizar si no incluye xmlns
+if ($templateNs && !str_contains($templateNs, 'xmlns')) {
+    $templateNs = 'xmlns:' . ltrim($templateNs);
 }
 
+// ✅ construir apertura dinámicamente
+$addendaOpen = '<cfdi:Addenda';
+
+if ($templateNs !== '') {
+    $addendaOpen .= ' ' . $templateNs;
+}
+
+$addendaOpen .= '>';
+
 $wrapped =
-    "<cfdi:Addenda xmlns:cfdi=\"{$cfdiNamespace}\">" .
+    $addendaOpen .
     trim($output) .
-    "</cfdi:Addenda>";
+    '</cfdi:Addenda>';
 
 echo $wrapped;
 exit;

@@ -1,5 +1,5 @@
 {
-    "id": "tpl_6a21c2bb2273e0.85433293",
+    "id": "tpl_6a21feec234ab1.16957012",
     "name": "test",
     "location": "ADDENDA",
     "structure": {
@@ -26,6 +26,11 @@
                             "representation": "attribute"
                         }
                     ]
+                },
+                {
+                    "type": "field",
+                    "name": "NumeroDeFacturaDelProveedor",
+                    "representation": "attribute"
                 }
             ]
         }

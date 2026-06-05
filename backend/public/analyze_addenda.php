@@ -170,12 +170,14 @@ $addendaXmlTemplate = $builder->build($builderStructure);
    7. GUARDAR EN SESSION (INSTANCIA LIMPIA)
    ======================================================= */
 
-$_SESSION['addenda_instance'] = [
+$template->structure['root'] = [
     'structure' => $structure,
     'addenda_xml_template' => $addendaXmlTemplate,
     'origin' => 'upload',
     'uploaded_at' => date('c')
 ];
+
+$_SESSION['addenda_instance'] = $template->structure;
 
 /* =======================================================
    8. REDIRIGIR

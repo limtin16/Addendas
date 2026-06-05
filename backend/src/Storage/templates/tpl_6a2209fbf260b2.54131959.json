@@ -1,5 +1,5 @@
 {
-    "id": "tpl_6a21c2bb2273e0.85433293",
+    "id": "tpl_6a2209fbf260b2.54131959",
     "name": "test",
     "location": "ADDENDA",
     "structure": {
@@ -12,6 +12,20 @@
                     "type": "field",
                     "name": "NumeroDeFacturaDelProveedor",
                     "representation": "attribute"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "item_name": "part",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "NumeroDeOrdenDeCompra",
+                            "representation": "attribute"
+                        }
+                    ]
                 },
                 {
                     "type": "group",

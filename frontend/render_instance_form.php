@@ -1,11 +1,38 @@
 <?php
 session_start();
+$path="";
+$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
+if ($count==0){
+    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
+}
+for ($i=0; $i<$count; $i++){
+	$path.="../";
+}
+$templateServicePath = $path . "backend/src/Services/TemplateService.php";
+$path.="backend/config.php";
+require_once $path;
+require_once $templateServicePath;
 
-if (!isset($_SESSION['addenda_instance']['structure'])) {
+use App\Services\TemplateService;
+
+$templateId = $_GET['template_id'] ?? null;
+if (!$templateId) {
+    header("Location: " . BASE_URL . "/frontend/wizard_step1.php");
+    exit;
+}
+
+$service = new TemplateService();
+$template = $service->get($templateId);
+$namespace = $template->structure['root']['addenda_extra_ns'] ?? '';
+//$structure = $template->structure['root']['structure'] ?? '';
+
+
+if (!isset($template)) {
     die('❌ No hay una addenda cargada para instanciar.');
 }
 
-$structure = $_SESSION['addenda_instance']['structure'];
+$structure = $_SESSION['addenda_instance']['structure'] ?? [];
+//$namespace = $_SESSION['addenda_instance']['addenda_extra_ns'] ?? '';
 
 function renderFields(array $nodes, string $prefix = ''): void
 {
@@ -273,6 +300,9 @@ function renderFields(array $nodes, string $prefix = ''): void
                     ⚠️ Para usar el autofill debes subir primero la factura destino.
                 </div>
                 <form id="instanceForm">
+                    <input type="hidden"
+                    id="addendaNamespace"
+                    value="<?= htmlspecialchars($namespace) ?>">
                     <?php renderFields([$structure], ''); ?>
                 </form>
             </div>
@@ -303,6 +333,8 @@ function renderFields(array $nodes, string $prefix = ''): void
     </div>
 </div>
 <script>
+const TEMPLATE_ID = "<?= htmlspecialchars($templateId) ?>";
+const templateNamespace = document.getElementById('addendaNamespace').value
 const form = document.getElementById('instanceForm');
 const previewBox = document.getElementById('preview');
 // Controlador global para cancelar previews anteriores
@@ -367,6 +399,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
     const formData = new FormData();
     formData.append('addenda_xml', xmlAddenda);
     formData.append('cfdi', targetFile);
+    formData.append("addenda_namespace", templateNamespace);
 
     // ✅ generar CFDI
     const res = await fetch('/addendas/backend/public/generate_cfdi_raw.php', {
@@ -525,10 +558,14 @@ function updatePreview() {
 
     previewAbortController = new AbortController();
 
+    const payload = getValues();
+    payload.addenda_namespace = templateNamespace;
+    payload.template_id = TEMPLATE_ID;
+
     fetch('/addendas/backend/public/preview_addenda.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(getValues()),
+        body: JSON.stringify(payload),
         signal: previewAbortController.signal
     })
     .then(response => response.text())

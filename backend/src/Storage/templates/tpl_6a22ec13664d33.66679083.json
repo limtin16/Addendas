@@ -1,5 +1,5 @@
 {
-    "id": "tpl_6a21c2bb2273e0.85433293",
+    "id": "tpl_6a22ec13664d33.66679083",
     "name": "test",
     "location": "ADDENDA",
     "structure": {
@@ -19,13 +19,7 @@
                     "item_name": "part",
                     "repeatable": true,
                     "source": null,
-                    "children": [
-                        {
-                            "type": "field",
-                            "name": "NumeroDeOrdenDeCompra",
-                            "representation": "attribute"
-                        }
-                    ]
+                    "children": []
                 }
             ]
         }

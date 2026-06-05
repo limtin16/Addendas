@@ -35,11 +35,13 @@ $addendaXmlTemplate = $builder->build([
 ]);
 
 // ✅ guardar igual que flujo XML
-$_SESSION['addenda_instance'] = [
+$template->structure['root'] = [
     'structure' => $structure,
     'addenda_xml_template' => $addendaXmlTemplate,
     'origin' => 'xsd'
 ];
+
+$_SESSION['addenda_instance'] = $template->structure;
 
 // ✅ redirigir
 header("Location: " . BASE_URL . "/frontend/render_instance_form.php");

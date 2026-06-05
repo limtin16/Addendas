@@ -1,10 +1,9 @@
 <?php
-session_start();
 
 /* =======================================================
    1. Validaciones básicas
    ======================================================= */
-   
+
 if (!isset($_FILES['cfdi']) || $_FILES['cfdi']['error'] !== UPLOAD_ERR_OK) {
     die('❌ Debes subir un CFDI válido');
 }
@@ -14,62 +13,42 @@ $originalCfdi = file_get_contents($_FILES['cfdi']['tmp_name']);
 if (!$originalCfdi || trim($originalCfdi) === '') {
     die('❌ El CFDI está vacío');
 }
+
 if (!isset($_POST['addenda_xml']) || trim($_POST['addenda_xml']) === '') {
     die('❌ No se recibió la Addenda generada.');
 }
 
+$newAddendaXml = trim($_POST['addenda_xml']);
+
 /* =======================================================
-   2. Cargar CFDI desde form (si viene)
+   2. Detectar namespace cfdi dinámicamente
    ======================================================= */
-$originalCfdi = file_get_contents($_FILES['cfdi']['tmp_name']);
 
-if (!$originalCfdi || trim($originalCfdi) === '') {
-    die('❌ El CFDI está vacío');
-}
-
-// =======================================
-// ✅ DETECTAR NAMESPACE cfdi DINÁMICAMENTE
-// =======================================
-
-$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4'; // fallback
+$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4';
 
 if (preg_match('/xmlns:cfdi="([^"]+)"/', $originalCfdi, $matches)) {
     $cfdiNamespace = $matches[1];
 }
 
-if (trim($originalCfdi) === '') {
-    die('❌ El CFDI original está vacío en sesión');
-}
-
-$newAddendaXml = trim($_POST['addenda_xml']);
-
-
 /* =======================================================
-   3. Detectar formato del CFDI original
+   3. Insertar Addenda con DOM
    ======================================================= */
 
-$newline = str_contains($originalCfdi, "\r\n") ? "\r\n" : "\n";
+libxml_use_internal_errors(true);
 
-if (preg_match('/\n([ \t]+)<cfdi:/', $originalCfdi, $m)) {
-    $baseIndent = $m[1];
-} else {
-    $baseIndent = "  ";
-}
-
-/* =======================================================
-   5. Insertar Addenda sin tocar el resto del CFDI
-   ======================================================= */
 $doc = new DOMDocument();
-$doc->loadXML($originalCfdi);
+if (!$doc->loadXML($originalCfdi)) {
+    die('❌ XML CFDI inválido');
+}
 
-// ✅ usar fragmento XML
+// ✅ crear fragmento
 $fragment = $doc->createDocumentFragment();
 
 if (!$fragment->appendXML($newAddendaXml)) {
     die('❌ Error al insertar XML de addenda');
 }
 
-// obtener comprobante
+// xpath
 $xpath = new DOMXPath($doc);
 $xpath->registerNamespace('cfdi', $cfdiNamespace);
 
@@ -79,13 +58,13 @@ if (!$comprobante) {
     die('❌ No se encontró Comprobante');
 }
 
-// insertar correctamente
+// ✅ insertar
 $comprobante->appendChild($fragment);
 
 $finalCfdi = $doc->saveXML();
 
 /* =======================================================
-   6. Salida del CFDI final
+   4. Salida
    ======================================================= */
 
 header('Content-Type: application/xml; charset=UTF-8');

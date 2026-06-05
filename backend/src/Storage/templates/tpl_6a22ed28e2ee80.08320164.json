@@ -1,0 +1,24 @@
+{
+    "id": "tpl_6a22ed28e2ee80.08320164",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": [
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "item_name": "part",
+                    "repeatable": true,
+                    "source": null,
+                    "children": []
+                }
+            ],
+            "addenda_extra_ns": "http:\/\/testaddenda.com"
+        }
+    },
+    "createdAt": null
+}

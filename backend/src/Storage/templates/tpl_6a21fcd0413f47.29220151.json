@@ -1,5 +1,5 @@
 {
-    "id": "tpl_6a21c2bb2273e0.85433293",
+    "id": "tpl_6a21fcd0413f47.29220151",
     "name": "test",
     "location": "ADDENDA",
     "structure": {
@@ -10,7 +10,7 @@
             "children": [
                 {
                     "type": "field",
-                    "name": "NumeroDeFacturaDelProveedor",
+                    "name": "NumeroDeOrdenDeCompra",
                     "representation": "attribute"
                 },
                 {
@@ -22,7 +22,7 @@
                     "children": [
                         {
                             "type": "field",
-                            "name": "NumeroDeOrdenDeCompra",
+                            "name": "NumeroDeFacturaDelProveedor",
                             "representation": "attribute"
                         }
                     ]

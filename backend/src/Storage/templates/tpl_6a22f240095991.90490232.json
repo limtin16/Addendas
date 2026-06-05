@@ -1,6 +1,6 @@
 {
-    "id": "tpl_6a21c2bb2273e0.85433293",
-    "name": "test",
+    "id": "tpl_6a22f240095991.90490232",
+    "name": "testTHY",
     "location": "ADDENDA",
     "structure": {
         "root": {
@@ -22,12 +22,13 @@
                     "children": [
                         {
                             "type": "field",
-                            "name": "NumeroDeOrdenDeCompra",
+                            "name": "NumeroDeFacturaDelProveedor",
                             "representation": "attribute"
                         }
                     ]
                 }
-            ]
+            ],
+            "addenda_extra_ns": "http:\/\/testaddenda.com"
         }
     },
     "createdAt": null

@@ -1,15 +1,4 @@
 <?php
-$path="";
-$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
-if ($count==0){
-    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
-}
-for ($i=0; $i<$count; $i++){
-	$path.="../";
-}
-$path.="backend/config.php";
-require_once $path;
-
 session_start();
 
 $path="";
@@ -48,9 +37,11 @@ if (!$templateId) {
 // ===============================
 // ✅ VALIDAR GRUPO (solo si NO finaliza)
 // ===============================
+$currentGroup = $_SESSION['current_group'] ?? null;
+
 if (
     !$isFinalizing &&
-    (!isset($_SESSION['current_group']) || empty($_SESSION['current_group']))
+    (empty($currentGroup))
 ) {
     die('No hay grupo activo para guardar');
 }
@@ -71,12 +62,12 @@ if (!$template) {
 if (!$isFinalizing) {
 
     // asegurar estructura válida
-    if (!isset($_SESSION['current_group']['children'])) {
-        $_SESSION['current_group']['children'] = [];
+    if (!isset($currentGroup['children'])) {
+        $currentGroup['children'] = [];
     }
 
     // ✅ agregar grupo al template
-    $template->structure['root']['children'][] = $_SESSION['current_group'];
+    $template->structure['root']['children'][] = $currentGroup;
 
     // ✅ guardar template
     $service->update($templateId, $template->structure);
@@ -181,13 +172,17 @@ $instanceStructure = [
 // ===============================
 // ✅ GUARDAR INSTANCE EN SESSION
 // ===============================
-$_SESSION['addenda_instance'] = [
+$addendaExtraNs = $template->structure['root']['addenda_extra_ns'] ?? '';
+$template->structure['root'] = [
     'structure' => $instanceStructure,
-    'addenda_xml_template' => $addendaXmlTemplate
+    'addenda_xml_template' => $addendaXmlTemplate,
+    'addenda_extra_ns' => $addendaExtraNs
 ];
+
+$_SESSION['addenda_instance'] = $template->structure;
 
 // ===============================
 // ✅ REDIRIGIR A FORM FINAL
 // ===============================
-header("Location: " . BASE_URL . "/frontend/render_instance_form.php");
+header("Location: " . BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId));
 exit;

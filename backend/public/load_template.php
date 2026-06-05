@@ -75,6 +75,13 @@ $_SESSION['addenda_instance'] = [
     'addenda_xml_template' => $xmlTemplate
 ];
 
+$template->structure['root'] = [
+    'structure' => $structure,
+    'addenda_xml_template' => $xmlTemplate,
+];
+
+$_SESSION['addenda_instance'] = $template->structure;
+
 $_SESSION['using_template'] = true;
 
 // ✅ redirigir al formulario

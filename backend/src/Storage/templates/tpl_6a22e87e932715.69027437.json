@@ -1,12 +1,12 @@
 {
-    "id": "tpl_6a21c2bb2273e0.85433293",
+    "id": "tpl_6a22e87e932715.69027437",
     "name": "test",
     "location": "ADDENDA",
     "structure": {
         "root": {
             "name": "Factura",
             "prefix": "THY",
-            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
             "children": [
                 {
                     "type": "field",
@@ -22,7 +22,7 @@
                     "children": [
                         {
                             "type": "field",
-                            "name": "NumeroDeOrdenDeCompra",
+                            "name": "PosicionDeOrdenDeCompra",
                             "representation": "attribute"
                         }
                     ]
