@@ -30,7 +30,7 @@ $data = json_decode(file_get_contents("php://input"), true);
 $templateId =  $data['template_id'];
 
 $template = $service->get($templateId);
- 
+
 // ===============================
 // ✅ VALIDACIÓN SEGURA
 // ===============================
@@ -185,16 +185,29 @@ if ($mode !== 'xml') {
 // ✅ tomar namespace definido en el template (si existe)
 $templateNs = trim($templateNs);
 
-// ✅ normalizar si no incluye xmlns
-if ($templateNs && !str_contains($templateNs, 'xmlns')) {
-    $templateNs = 'xmlns:' . ltrim($templateNs);
+// ✅ detectar prefijo del tag (cfdi:Addenda)
+$prefix = 'cfdi'; // fallback
+
+if (preg_match('/^<([a-zA-Z0-9_]+):Addenda/', $templateXml, $m)) {
+    $prefix = $m[1];
 }
 
-// ✅ construir apertura dinámicamente
-$addendaOpen = '<cfdi:Addenda';
+// ✅ construir namespace correcto
+$xmlnsAttr = '';
 
 if ($templateNs !== '') {
-    $addendaOpen .= ' ' . $templateNs;
+    if ($prefix !== '') {
+        $xmlnsAttr = 'xmlns:' . $prefix . '="' . htmlspecialchars($templateNs) . '"';
+    } else {
+        $xmlnsAttr = 'xmlns="' . htmlspecialchars($templateNs) . '"';
+    }
+}
+
+// ✅ construir apertura
+$addendaOpen = '<' . ($prefix ? $prefix . ':' : '') . 'Addenda';
+
+if ($xmlnsAttr !== '') {
+    $addendaOpen .= ' ' . $xmlnsAttr;
 }
 
 $addendaOpen .= '>';

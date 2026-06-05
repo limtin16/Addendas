@@ -24,11 +24,11 @@ if (!$templateId) {
 $service = new TemplateService();
 $template = $service->get($templateId);
 $namespace = $template->structure['root']['addenda_extra_ns'] ?? '';
-$structure = $template->structure['root']['structure'] ?? '';
+//$structure = $template->structure['structure'] ?? '';
+$structure = $template->structure['root']['instance'] ?? null;
 
-
-if (!isset($template)) {
-    die('❌ No hay una addenda cargada para instanciar.');
+if (!$template) {
+    die('❌ No hay template');
 }
 
 //$structure = $_SESSION['addenda_instance']['structure'] ?? [];

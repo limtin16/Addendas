@@ -10,11 +10,16 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$templateServicePath = $path . "backend/src/Services/TemplateService.php";
 $path.="backend/config.php";
 require_once $path;
+require_once $templateServicePath;
 require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
 
 use App\Services\AddendaXmlBuilder;
+use App\Services\TemplateService;
+
+$service = new TemplateService();
 
 /* =======================================================
    1. Validar archivo
@@ -43,6 +48,37 @@ if (!$originalDom->loadXML($xmlContent)) {
     die('❌ El archivo no es un XML válido.');
 }
 
+// ✅ detectar namespace real del CFDI (cfdi)
+$cfdiNs = '';
+
+// ✅ 1. intentar desde Addenda
+foreach ($addendaWrapper->attributes as $attr) {
+    if ($attr->prefix === 'xmlns' && $attr->localName === 'cfdi') {
+        $cfdiNs = $attr->nodeValue;
+        break;
+    }
+}
+
+// ✅ 2. fallback desde Comprobante
+if (!$cfdiNs) {
+    $comprobante = $originalDom->documentElement;
+
+    if ($comprobante instanceof DOMElement) {
+        foreach ($comprobante->attributes as $attr) {
+            if ($attr->prefix === 'xmlns' && $attr->localName === 'cfdi') {
+                $cfdiNs = $attr->nodeValue;
+                break;
+            }
+        }
+    }
+}
+
+// ✅ validación (opcional pero útil)
+if (!$cfdiNs) {
+    // no rompas ejecución, pero loggea
+    error_log('No se pudo detectar namespace CFDI');
+}
+
 /* =======================================================
    3. EXTRAER Addenda
    ======================================================= */
@@ -55,6 +91,14 @@ $addendaWrapper = $xpathOriginal
 
 if (!$addendaWrapper) {
     die('❌ No se encontró Addenda');
+}
+
+foreach ($addendaWrapper->attributes as $attr) {
+
+    if ($attr->prefix === 'xmlns' && $attr->localName === 'cfdi') {
+        $cfdiNs = $attr->nodeValue;
+        break;
+    }
 }
 
 // ✅ TOMAR EL HIJO REAL (IMPORTANTÍSIMO)
@@ -72,7 +116,7 @@ if (!$realAddendaNode) {
 }
 
 // ✅ guardar CFDI completo para autofill
-$_SESSION['original_cfdi_xml'] = $originalDom->saveXML();
+//$_SESSION['original_cfdi_xml'] = $originalDom->saveXML();
 
 /* =======================================================
    4. CREAR DOM LIMPIO SOLO CON ADDENDA
@@ -166,20 +210,74 @@ $builderStructure = [
 
 $addendaXmlTemplate = $builder->build($builderStructure);
 
-/* =======================================================
-   7. GUARDAR EN SESSION (INSTANCIA LIMPIA)
-   ======================================================= */
+// ✅ construir INSTANCE (igual que wizard)
+function convertNode($node)
+{
+    if (!is_array($node)) return null;
 
-$_SESSION['addenda_instance'] = [
-    'structure' => $structure,
-    'addenda_xml_template' => $addendaXmlTemplate,
-    'origin' => 'upload',
-    'uploaded_at' => date('c')
+    $type = $node['type'] ?? '';
+
+    if ($type === 'field') {
+        return [
+            'type' => 'field',
+            'name' => $node['name']
+        ];
+    }
+
+    if ($type === 'node') {
+        return [
+            'type' => 'node',
+            'name' => $node['name'],
+            'children' => array_values(array_filter(
+                array_map('convertNode', $node['children'] ?? [])
+            ))
+        ];
+    }
+
+    return null;
+}
+
+// ✅ root original
+$root = [
+    'name' => $rootName,
+    'prefix' => $prefix,
+    'namespace' => $namespace,
+    'children' => $structure['children'] ?? []
 ];
 
+// ✅ INSTANCE ESTÁNDAR
+$instance = [
+    'type' => 'node',
+    'name' => $rootName,
+    'children' => array_values(array_filter(
+        array_map('convertNode', $root['children'])
+    ))
+];
+/* =======================================================
+   7. GUARDAR EN DB y genera ID
+   ======================================================= */
+
+$template = $service->save(
+    'Addenda Upload',
+    'ADDENDA',
+    [
+        'root' => [
+            'name' => $rootName,
+            'prefix' => $prefix,
+            'namespace' => $namespace,
+            'children' => $structure['children'],
+            'instance' => $instance,
+            'addenda_xml_template' => $addendaXmlTemplate,
+            // ✅ CLAVE (igual que modo manual)
+            'addenda_extra_ns' => $cfdiNs
+        ]
+    ]
+);
+
+// ✅ AQUÍ obtienes el ID REAL
+$templateId = $template->id;
 /* =======================================================
    8. REDIRIGIR
    ======================================================= */
-
 header("Location: " . BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId));
 exit;

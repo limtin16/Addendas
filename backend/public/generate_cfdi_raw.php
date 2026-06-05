@@ -26,46 +26,37 @@ if (!$userId && !$isGuestPaid) {
 }
 
 function prettyXml($xml) {
-    $doc = new DOMDocument('1.0', 'UTF-8');
-    $doc->preserveWhiteSpace = false;
-    $doc->formatOutput = true;
 
-    if (!$doc->loadXML($xml)) {
-        return $xml;
+    if (strpos($xml, '<cfdi:Addenda') === 0) {
+
+        // ✅ extraer OPEN TAG COMPLETO
+        if (preg_match('/^(<cfdi:Addenda[^>]*>)([\s\S]*)(<\/cfdi:Addenda>)$/', $xml, $m)) {
+
+            $openTag = $m[1];   // mantiene namespace ✅
+            $inner   = $m[2];
+            $closeTag= $m[3];
+
+            $doc = new DOMDocument('1.0', 'UTF-8');
+            $doc->preserveWhiteSpace = false;
+            $doc->formatOutput = true;
+
+            libxml_use_internal_errors(true);
+            // ✅ envolver solo contenido
+            if ($doc->loadXML('<root>' . $inner . '</root>')) {
+
+                $formatted = $doc->saveXML($doc->documentElement);
+
+                $formatted = preg_replace('/^<root>|<\/root>$/', '', $formatted);
+
+                // ✅ reconstruir SIN perder namespace
+                return $openTag . trim($formatted) . $closeTag;
+            }
+        }
     }
 
-    return $doc->saveXML($doc->documentElement);
+    return $xml;
 }
 
-function extractInnerAddenda(string $xml): string
-{
-    if (strpos($xml, '<cfdi:Addenda') === false) {
-        return $xml;
-    }
-
-    $doc = new DOMDocument();
-
-    if (!$doc->loadXML($xml)) {
-        return $xml;
-    }
-
-    $xpath = new DOMXPath($doc);
-    $xpath->registerNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
-
-    $node = $xpath->query('//cfdi:Addenda')->item(0);
-
-    if (!$node) {
-        return $xml;
-    }
-
-    $inner = '';
-
-    foreach ($node->childNodes as $child) {
-        $inner .= $doc->saveXML($child);
-    }
-
-    return trim($inner);
-}
 
 function detectIndentUnit(string $xml): string
 {
@@ -101,18 +92,6 @@ function findSemanticInsertPosition(string $xml): int
     return -1;
 }
 
-function indentXmlContent(string $xml, string $baseIndent): string
-{
-    $lines = explode("\n", trim($xml));
-
-    $result = [];
-
-    foreach ($lines as $line) {
-        $result[] = $baseIndent . $line;
-    }
-
-    return implode("\n", $result);
-}
 
 function detectIndentationStyle(string $xml): string
 {
@@ -121,14 +100,6 @@ function detectIndentationStyle(string $xml): string
     }
 
     return "    "; // fallback (4 espacios)
-}
-
-function findInsertPosition(string $xml): int
-{
-    // buscar cierre de comprobante
-    $pos = strpos($xml, '</cfdi:Comprobante>');
-
-    return $pos !== false ? $pos : -1;
 }
 
 function detectLastChildIndent(string $xml): string
@@ -194,6 +165,9 @@ function processAddendaForInsert(string $originalCfdi, string $newAddendaXml): s
     } else {
         $newAddendaXml = trim($newAddendaXml);
     }
+
+    // ✅ limpiar líneas basura tipo ">" suelta
+    $newAddendaXml = preg_replace('/^\s*>\s*$/m', '', $newAddendaXml);
 
     // ✅ reindentar correctamente
     $formattedAddenda = reindentXml(
@@ -275,16 +249,48 @@ if (
     exit;
 }
 
-$newAddendaXml = trim($_POST['addenda_xml']);
+$xmlInput = trim($_POST['addenda_xml']);
 
-// ===============================
-// ✅ DETECTAR NAMESPACE CFDI
-// ===============================
-$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4';
+// ✅ tomar namespace del template
+$templateNs = $_POST['addenda_namespace'] ?? '';
+$templateNs = trim($templateNs);
 
-if (preg_match('/xmlns:cfdi="([^"]+)"/', $originalCfdi, $matches)) {
-    $cfdiNamespace = $matches[1];
+// ✅ detectar prefijo del tag cfdi:Addenda
+$prefix = '';
+if (preg_match('/^<([a-zA-Z0-9_]+):Addenda/', $xmlInput, $m)) {
+    $prefix = $m[1];
 }
+
+// ✅ construir atributo namespace correcto
+$xmlnsAttr = '';
+
+if ($templateNs !== '') {
+
+    if ($prefix !== '') {
+        // ✅ usar mismo prefijo de la etiqueta
+        $xmlnsAttr = 'xmlns:' . $prefix . '="' . htmlspecialchars($templateNs) . '"';
+    } else {
+        // ✅ sin prefijo (fallback)
+        $xmlnsAttr = 'xmlns="' . htmlspecialchars($templateNs) . '"';
+    }
+}
+
+// ✅ construir SIEMPRE el tag correcto
+$openTag = '<cfdi:Addenda';
+
+if ($xmlnsAttr !== '') {
+    $openTag .= ' ' . $xmlnsAttr;
+}
+
+$openTag .= '>';
+
+// ✅ REESCRIBIR SIEMPRE el tag de apertura
+$newAddendaXml = preg_replace(
+    '/<[a-zA-Z0-9_]+:Addenda[^>]*>/',
+    $openTag,
+    $xmlInput,
+    1
+);
 
 // ===============================
 // ✅ INSERTAR ADDENDA CON DOM
@@ -329,7 +335,5 @@ $_SESSION['cfdi_generated'] = true;
 echo json_encode([
     'xml' => $finalCfdi
 ]);
-unset($_SESSION['addenda_instance']);
-unset($_SESSION['target_cfdi_xml']);
 
 exit;
