@@ -1,0 +1,34 @@
+{
+    "id": "tpl_6a1083f27e0e23.54096181",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "NumeroDeOrdenDeCompra",
+                    "representation": "attribute"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "item_name": "part",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "NumeroDeFacturaDelProveedor",
+                            "representation": "attribute"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

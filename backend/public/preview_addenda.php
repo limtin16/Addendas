@@ -13,6 +13,11 @@ $templateServicePath = $path . "backend/src/Services/TemplateService.php";
 $path.="backend/config.php";
 require_once $path;
 require_once $templateServicePath;
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> rescue-namespace
 require_once BACKEND_ROOT . '/src/Services/CFDIParserService.php';
 require_once BACKEND_ROOT . '/src/Services/CfdiValueResolver.php';
 require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
@@ -20,23 +25,33 @@ require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
 use App\Services\CFDIParserService;
 use App\Services\CfdiValueResolver;
 use App\Services\TemplateService;
+<<<<<<< HEAD
 use App\Services\AddendaXmlBuilder;
+=======
+
+$service = new TemplateService();
+>>>>>>> rescue-namespace
 
 ob_clean();
 header('Content-Type: text/plain');
+$data = json_decode(file_get_contents("php://input"), true);
+$templateId =  $data['template_id'];
+
+$template = $service->get($templateId);
 
 // ===============================
 // ✅ VALIDACIÓN SEGURA
 // ===============================
+$structure = $template->structure['root']['addenda_xml_template'];
 if (
-    !isset($_SESSION['addenda_instance']) ||
-    !isset($_SESSION['addenda_instance']['addenda_xml_template'])
+    null == ($structure)
 ) {
     http_response_code(400);
     echo '❌ No hay template de addenda disponible en sesión';
     exit;
 }
 
+<<<<<<< HEAD
 $input = json_decode(file_get_contents('php://input'), true);
 
 $templateId = $input['template_id'] ?? null;
@@ -46,6 +61,10 @@ $template = $service->get($templateId); //el error esta aqui
 
 $templateXml = (new AddendaXmlBuilder())->build($template->structure);
 
+=======
+//$templateXml = $_SESSION['addenda_instance']['addenda_xml_template'];
+$templateXml = $template->structure['root']['addenda_xml_template'];
+>>>>>>> rescue-namespace
 // ===============================
 // ✅ INPUT DEL FORM
 // ===============================
@@ -186,6 +205,7 @@ if ($mode !== 'xml') {
 // ✅ tomar namespace definido en el template (si existe)
 $templateNs = trim($templateNs);
 
+<<<<<<< HEAD
 // ✅ normalizar si no incluye xmlns
 if ($templateNs && !str_contains($templateNs, 'xmlns')) {
     $templateNs = 'xmlns:' . ltrim($templateNs);
@@ -196,14 +216,60 @@ $addendaOpen = '<cfdi:Addenda';
 
 if ($templateNs !== '') {
     $addendaOpen .= ' ' . $templateNs;
+=======
+// ✅ detectar prefijo del tag (cfdi:Addenda)
+$prefix = 'cfdi'; // fallback
+
+if (preg_match('/^<([a-zA-Z0-9_]+):Addenda/', $templateXml, $m)) {
+    $prefix = $m[1];
+}
+
+// ✅ construir namespace correcto
+$xmlnsAttr = '';
+
+if ($templateNs !== '') {
+    if ($prefix !== '') {
+        $xmlnsAttr = 'xmlns:' . $prefix . '="' . htmlspecialchars($templateNs) . '"';
+    } else {
+        $xmlnsAttr = 'xmlns="' . htmlspecialchars($templateNs) . '"';
+    }
+}
+
+// ✅ construir apertura
+$addendaOpen = '<' . ($prefix ? $prefix . ':' : '') . 'Addenda';
+
+if ($xmlnsAttr !== '') {
+    $addendaOpen .= ' ' . $xmlnsAttr;
+>>>>>>> rescue-namespace
 }
 
 $addendaOpen .= '>';
 
+<<<<<<< HEAD
 $wrapped =
     $addendaOpen .
     trim($output) .
     '</cfdi:Addenda>';
+=======
+$output = trim($output);
+
+// ✅ detectar si ya es Addenda completa
+if (preg_match('/^<([a-zA-Z0-9_]+:)?Addenda\b/i', $output)) {
+
+    // ✅ ya viene envuelto → no volver a envolver
+    echo $output;
+    exit;
+}
+
+// ✅ si NO → envolver normalmente
+$wrapped =
+    $addendaOpen .
+    $output .
+    '</cfdi:Addenda>';
+
+echo $wrapped;
+exit;
+>>>>>>> rescue-namespace
 
 echo $wrapped;
 exit;

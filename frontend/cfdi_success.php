@@ -39,6 +39,7 @@ $userId = $_SESSION['user_id'] ?? null;
 $cfdi = null;
 
 $id = $_GET['id'] ?? null;
+$templateId = $_GET['template_id'] ?? null;
 
 if (!$id) {
     die("❌ ID no proporcionado");
@@ -126,6 +127,7 @@ if ($isLogged) {
             <input type="text" name="name" placeholder="Nombre del template" required>
             <!-- ✅ enviar ID del CFDI -->
             <input type="hidden" name="cfdi_id" value="<?= $cfdi['id'] ?>">
+            <input type="hidden" name="template_id" value="<?= $templateId ?>">
             <button class="btn green">💾 Guardar template</button>
         </form>
         <?php unset($_SESSION['using_template']); ?>

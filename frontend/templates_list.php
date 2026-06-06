@@ -30,7 +30,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // ✅ obtener templates del usuario
 $stmt = $conn->prepare("
-    SELECT id, name, created_at 
+    SELECT id, name, created_at, template_id 
     FROM templates 
     WHERE user_id = ?
     ORDER BY created_at DESC
@@ -67,7 +67,7 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
 
                 <div class="actions">
 
-                <a href="<?= BASE_URL ?>/backend/public/load_template.php?id=<?= $tpl['id'] ?>" class="btn blue">
+                <a href="<?= BASE_URL ?>/frontend/render_instance_form.php?template_id=<?= $tpl['template_id'] ?>" class="btn blue">
                     Usar template
                 </a>
 

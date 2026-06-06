@@ -1,0 +1,12 @@
+{
+    "id": "tpl_69e64b36ced984.98905159",
+    "name": "Addenda Thyssenkrupp Factura",
+    "location": "ADDENDA",
+    "structure": {
+        "root": null,
+        "location": "ADDENDA",
+        "fields": [],
+        "groups": []
+    },
+    "createdAt": "2026-04-20T17:50:14+02:00"
+}

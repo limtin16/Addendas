@@ -255,6 +255,7 @@ $xmlInput = trim($_POST['addenda_xml']);
 $templateNs = $_POST['addenda_namespace'] ?? '';
 $templateNs = trim($templateNs);
 
+<<<<<<< HEAD
 // ✅ normalizar si no tiene xmlns
 if ($templateNs && !str_contains($templateNs, 'xmlns')) {
     $templateNs = 'xmlns:' . ltrim($templateNs);
@@ -265,13 +266,44 @@ $openTag = '<cfdi:Addenda';
 
 if ($templateNs !== '') {
     $openTag .= ' ' . $templateNs;
+=======
+// ✅ detectar prefijo del tag cfdi:Addenda
+$prefix = '';
+if (preg_match('/^<([a-zA-Z0-9_]+):Addenda/', $xmlInput, $m)) {
+    $prefix = $m[1];
+}
+
+// ✅ construir atributo namespace correcto
+$xmlnsAttr = '';
+
+if ($templateNs !== '') {
+
+    if ($prefix !== '') {
+        // ✅ usar mismo prefijo de la etiqueta
+        $xmlnsAttr = 'xmlns:' . $prefix . '="' . htmlspecialchars($templateNs) . '"';
+    } else {
+        // ✅ sin prefijo (fallback)
+        $xmlnsAttr = 'xmlns="' . htmlspecialchars($templateNs) . '"';
+    }
+}
+
+// ✅ construir SIEMPRE el tag correcto
+$openTag = '<cfdi:Addenda';
+
+if ($xmlnsAttr !== '') {
+    $openTag .= ' ' . $xmlnsAttr;
+>>>>>>> rescue-namespace
 }
 
 $openTag .= '>';
 
 // ✅ REESCRIBIR SIEMPRE el tag de apertura
 $newAddendaXml = preg_replace(
+<<<<<<< HEAD
     '/<cfdi:Addenda[^>]*>/',
+=======
+    '/<[a-zA-Z0-9_]+:Addenda[^>]*>/',
+>>>>>>> rescue-namespace
     $openTag,
     $xmlInput,
     1

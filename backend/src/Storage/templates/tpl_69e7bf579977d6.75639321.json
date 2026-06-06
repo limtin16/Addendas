@@ -1,0 +1,14 @@
+{
+    "id": "tpl_69e7bf579977d6.75639321",
+    "name": "Addenda Thy",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": []
+        }
+    },
+    "createdAt": null
+}

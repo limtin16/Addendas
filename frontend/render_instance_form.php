@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
@@ -8,31 +9,32 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$dbPath = $path . "backend/db.php";
 $templateServicePath = $path . "backend/src/Services/TemplateService.php";
 $path.="backend/config.php";
 require_once $path;
 require_once $templateServicePath;
+require_once $dbPath;
 
 use App\Services\TemplateService;
 
 $templateId = $_GET['template_id'] ?? null;
+
 if (!$templateId) {
-    header("Location: " . BASE_URL . "/frontend/wizard_step1.php");
+    header("Location: " . BASE_URL . "/frontend/select_mode.php");
     exit;
 }
 
 $service = new TemplateService();
 $template = $service->get($templateId);
-$namespace = $template->structure['addenda_extra_ns'] ?? '';
-//$structure = $template->structure['structure'] ?? '';
-
-
-if (!isset($template)) {
-    die('❌ No hay una addenda cargada para instanciar.');
+if (!$template) {
+    die('❌ No hay template');
 }
 
-$structure = $_SESSION['addenda_instance']['structure'] ?? [];
-//$namespace = $_SESSION['addenda_instance']['addenda_extra_ns'] ?? '';
+$namespace = $template->structure['root']['addenda_extra_ns'] ?? '';
+$structure = $template->structure['root']['instance'] ?? null;
+
+$template = $service->get($templateId);
 
 function renderFields(array $nodes, string $prefix = ''): void
 {
@@ -438,7 +440,8 @@ document.getElementById('generateBtn').addEventListener('click', async function 
     const saved = await storeRes.json();
 
     // ✅ redirect final
-    window.location.href = '/addendas/frontend/cfdi_success.php?id=' + saved.id;
+    window.location.href = '/addendas/frontend/cfdi_success.php?id='
+    + saved.id + '&template_id=<?= htmlspecialchars($templateId) ?>';
 });
 
 const targetCfdiInput = document.getElementById('targetCfdi');

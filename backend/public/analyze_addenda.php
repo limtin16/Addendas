@@ -1,7 +1,5 @@
 <?php
-
 session_start();
-
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
@@ -12,164 +10,174 @@ for ($i=0; $i<$count; $i++){
 }
 $path.="backend/config.php";
 require_once $path;
+require_once BACKEND_ROOT . '/src/Services/TemplateService.php';
 require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
 
+use App\Services\TemplateService;
 use App\Services\AddendaXmlBuilder;
 
+$service = new TemplateService();
+
 /* =======================================================
-   1. Validar archivo
+   1. VALIDAR
    ======================================================= */
 
 if (
     !isset($_FILES['addenda_xml']) ||
     $_FILES['addenda_xml']['error'] !== UPLOAD_ERR_OK
 ) {
-    die('❌ Error al subir el archivo XML.');
+    die('❌ Error al subir XML');
 }
 
 $xmlContent = file_get_contents($_FILES['addenda_xml']['tmp_name']);
+
 if (!$xmlContent || trim($xmlContent) === '') {
-    die('❌ El archivo XML está vacío.');
+    die('❌ XML vacío');
 }
 
 /* =======================================================
-   2. Cargar XML original (CFDI o Addenda)
+   2. LOAD XML
    ======================================================= */
 
+$dom = new DOMDocument('1.0', 'UTF-8');
 libxml_use_internal_errors(true);
 
-$originalDom = new DOMDocument('1.0', 'UTF-8');
-if (!$originalDom->loadXML($xmlContent)) {
-    die('❌ El archivo no es un XML válido.');
+if (!$dom->loadXML($xmlContent)) {
+    die('❌ XML inválido');
 }
 
 /* =======================================================
-   3. EXTRAER Addenda
+   3. DETECTAR ADDENDA COMPLETA
    ======================================================= */
 
-$xpathOriginal = new DOMXPath($originalDom);
+$xpath = new DOMXPath($dom);
 
-$addendaWrapper = $xpathOriginal
+$addendaNode = $xpath
     ->query('//*[local-name()="Addenda"]')
     ->item(0);
 
-if (!$addendaWrapper) {
-    die('❌ No se encontró Addenda');
+if (!$addendaNode) {
+    die('❌ No hay Addenda');
 }
 
-// ✅ TOMAR EL HIJO REAL (IMPORTANTÍSIMO)
-$realAddendaNode = null;
+/* =======================================================
+   ✅ CLAVE: TOMAR TODO EL XML INTERNO SIN TOCAR
+   ======================================================= */
 
-foreach ($addendaWrapper->childNodes as $child) {
-    if ($child instanceof DOMElement) {
-        $realAddendaNode = $child;
-        break;
+$innerXml = '';
+
+foreach ($addendaNode->childNodes as $child) {
+    $innerXml .= $dom->saveXML($child);
+}
+
+$innerXml = trim($innerXml);
+
+if ($innerXml === '') {
+    die('❌ Addenda vacía');
+}
+
+/* =======================================================
+   4. DETECTAR NAMESPACE CFDI REAL (CORRECTO)
+   ======================================================= */
+
+$cfdiNs = '';
+
+// ✅ buscar Addenda original como string
+if (preg_match('/<([a-zA-Z0-9_]+:)?Addenda\b([^>]*)>/i', $xmlContent, $matches)) {
+
+    $attrs = $matches[2] ?? '';
+
+    // ✅ buscar específicamente xmlns:cfdi SOLO en ese tag
+    if (preg_match('/xmlns:cfdi="([^"]+)"/i', $attrs, $nsMatch)) {
+        $cfdiNs = $nsMatch[1];
     }
 }
 
-if (!$realAddendaNode) {
-    die('❌ La Addenda no tiene contenido');
-}
-
-// ✅ guardar CFDI completo para autofill
-$_SESSION['original_cfdi_xml'] = $originalDom->saveXML();
 
 /* =======================================================
-   4. CREAR DOM LIMPIO SOLO CON ADDENDA
+   5. PARSEAR SOLO PARA GENERAR FORM (STRUCTURE)
    ======================================================= */
 
-$addendaDom = new DOMDocument('1.0', 'UTF-8');
-
-$cleanAddenda = $addendaDom->importNode($realAddendaNode, true);
-$addendaDom->appendChild($cleanAddenda);
-
-// ✅ ahora sí XPath sobre addenda
-$xpath = new DOMXPath($addendaDom);
-
-/* =======================================================
-   5. PARSEAR ADDENDA (SIN VALORES)
-   ======================================================= */
-
-function parseAddendaNode(DOMElement $element): array
-{
+function parseNode(DOMElement $el) {
     $node = [
         'type' => 'node',
-        'name' => $element->localName,
-        'prefix' => $element->prefix,
-        'namespace' => $element->namespaceURI,
+        'name' => $el->localName,
         'children' => []
-
     ];
 
-    // ✅ 1. NAMESPACES (solo guardar)
-    if ($element->hasAttributes()) {
-        foreach ($element->attributes as $attr) {
-            if (strpos($attr->nodeName, 'xmlns') === 0) {
-                $node['namespaces'][$attr->nodeName] = $attr->nodeValue;
-            }
-        }
+    // atributos → fields
+    foreach ($el->attributes ?? [] as $attr) {
+        if (strpos($attr->nodeName, 'xmlns') === 0) continue;
+
+        $node['children'][] = [
+            'type' => 'field',
+            'name' => $attr->localName
+        ];
     }
 
-    // ✅ 2. ATRIBUTOS (CORRECTO)
-    if ($element->hasAttributes()) {
-        foreach ($element->attributes as $attr) {
-
-            // ❌ ignorar xmlns
-            if (strpos($attr->nodeName, 'xmlns') === 0) {
-                continue;
-            }
-
-            $node['children'][] = [
-                'type' => 'field',
-                'name' => $attr->localName, // ✅ SIN @
-                'origin' => [
-                    'type' => 'fixed',
-                    'value' => ''
-                ],
-                'representation' => 'attribute'
-            ];
-        }
-    }
-
-    // ✅ 3. HIJOS RECURSIVOS
-    foreach ($element->childNodes as $child) {
+    // hijos
+    foreach ($el->childNodes as $child) {
         if ($child instanceof DOMElement) {
-            $node['children'][] = parseAddendaNode($child);
+            $node['children'][] = parseNode($child);
         }
     }
 
     return $node;
 }
 
-$addendaRoot = $addendaDom->documentElement;
+$first = null;
+foreach ($addendaNode->childNodes as $child) {
+    if ($child instanceof DOMElement) {
+        $first = $child;
+        break;
+    }
+}
 
-$structure = parseAddendaNode($addendaRoot);
+if (!$first) {
+    die('❌ Addenda inválida');
+}
 
 /* =======================================================
-   6. GENERAR TEMPLATE XML (LIMPIO)
+   6. CREAR INSTANCE (FORM)
    ======================================================= */
 
-$builder = new AddendaXmlBuilder();
+$instance = parseNode($first);
 
-$rootName = $addendaRoot->localName; // ✅ SIN prefijo
-$prefix = $addendaRoot->prefix ?: '';
-$namespace = $addendaRoot->namespaceURI ?: '';
+/* =======================================================
+   7. GUARDAR TEMPLATE
+   ======================================================= */
 
-$builderStructure = [
-    'root' => [
-        'name' => $rootName,
-        'prefix' => $prefix,
-        'namespace' => $namespace,
-        'children' => $structure['children'] ?? []
+$template = $service->save(
+    'Addenda Upload',
+    'ADDENDA',
+    [
+        'root' => [
+
+            // ✅ estos sí los usa el sistema
+            'name' => $first->localName,
+            'prefix' => $first->prefix,
+            'namespace' => $first->namespaceURI,
+
+            // ✅ FORM
+            'instance' => $instance,
+
+            // ✅ 🔥 CLAVE REAL
+            // guardamos el XML ORIGINAL TAL CUAL
+            'addenda_xml_template' => $innerXml,
+
+            // ✅ namespace CFDI REAL
+            'addenda_extra_ns' => $cfdiNs
+        ]
     ]
-];
+);
 
-$addendaXmlTemplate = $builder->build($builderStructure);
+$templateId = $template->id;
 
 /* =======================================================
-   7. GUARDAR EN SESSION (INSTANCIA LIMPIA)
+   8. REDIRECT
    ======================================================= */
 
+<<<<<<< HEAD
 $template->structure['root'] = [
     'structure' => $structure,
     'addenda_xml_template' => $addendaXmlTemplate,
@@ -185,4 +193,7 @@ $_SESSION['addenda_instance'] = $template->structure;
    ======================================================= */
 
 header("Location: " . BASE_URL . "/frontend/render_instance_form.php");
+=======
+header("Location: " . BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId));
+>>>>>>> rescue-namespace
 exit;

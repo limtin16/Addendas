@@ -1,0 +1,32 @@
+{
+    "id": "tpl_69e6513d242819.05156131",
+    "name": "THY",
+    "location": "ADDENDA",
+    "structure": {
+        "root": "Factura",
+        "prefix": "THY",
+        "namespace": "http://www.thyssenkrupp.com/schema",
+        "location": "ADDENDA",
+        "fields": [
+            {
+                "name": "NumeroOrdenCompra",
+                "type": "string",
+                "required": true
+            }
+        ],
+        "groups": [
+            {
+                "name": "Conceptos",
+                "repeatable": true,
+                "fields": [
+                    {
+                        "name": "Cantidad",
+                        "type": "number",
+                        "required": true
+                    }
+                ]
+            }
+        ]
+    },
+    "createdAt": "2026-04-20T18:15:57+02:00"
+}

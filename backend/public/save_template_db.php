@@ -7,11 +7,13 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$dbPath= $path . "backend/db.php";
 $path.="backend/config.php";
 require_once $path;
+require_once $dbPath;
 
 session_start();
-require_once dirname(__DIR__) . '/db.php';
+
 
 $userId = $_SESSION['user_id'] ?? null;
 
@@ -21,40 +23,19 @@ if (!$userId) {
 
 $name = $_POST['name'] ?? null;
 $cfdiId = $_POST['cfdi_id'] ?? null;
+$templateId = $_POST['template_id'] ?? null;
 
-if (!$name || !$cfdiId) {
+if (!$name || !$templateId) {
     die("Datos incompletos");
 }
 
-// ✅ obtener XML desde BD
-$stmt = $conn->prepare("
-    SELECT xml 
-    FROM generated_cfdis 
-    WHERE id = ? AND user_id = ?
-");
-$stmt->bind_param("ii", $cfdiId, $userId);
-$stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
-
-if (!$row) {
-    die("CFDI no encontrado");
-}
-
-$xml = $row['xml'];
-
 // ✅ guardar template
 $stmt = $conn->prepare("
-    INSERT INTO templates (user_id, name, structure, xml_template, created_at) 
-    VALUES (?, ?, ?, ?, NOW())
+    INSERT INTO templates (user_id, name, template_id) 
+    VALUES (?, ?, ?)
 ");
 
-
-$structure = json_encode([
-    'type' => 'cfdi_template',
-    'source' => 'generated_cfdi'
-]); // 👈 valor por defecto
-$stmt->bind_param("isss", $userId, $name, $structure, $xml);
+$stmt->bind_param("iss", $userId, $name, $templateId);
 $stmt->execute();
 
 // ✅ redirigir bonito

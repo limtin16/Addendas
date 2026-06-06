@@ -1,0 +1,41 @@
+{
+    "id": "tpl_69e7bc404902d6.23262637",
+    "name": "Addenda Thy",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": null,
+            "prefix": null,
+            "namespace": null,
+            "children": [
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "Cantidad",
+                            "representation": "attribute"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "Cantidad",
+                            "representation": "attribute"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

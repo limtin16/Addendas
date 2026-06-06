@@ -1,0 +1,21 @@
+{
+    "id": "tpl_69e78b15701de2.02627233",
+    "name": "Addenda_LGM",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": null,
+            "prefix": null,
+            "namespace": null,
+            "children": [
+                {
+                    "type": "field",
+                    "name": "Folio",
+                    "representation": "node",
+                    "source": "cfdi.folio"
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

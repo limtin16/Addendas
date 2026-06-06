@@ -1,0 +1,594 @@
+{
+    "id": "tpl_6a246ae6573ef8.84605326",
+    "name": "Addenda XSD",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "",
+            "namespace": "https:\/\/recepcionfe.mabempresa.com\/cfd\/addenda\/v1",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "version",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "tipoDocumento",
+                    "type_data": "enum",
+                    "options": [
+                        "FACTURA",
+                        "NOTA CREDITO",
+                        "NOTA CARGO"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "name": "folio",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "fecha",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "ordenCompra",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "referencia1",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "referencia2",
+                    "type_data": "string"
+                },
+                {
+                    "type": "node",
+                    "name": "Moneda",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "tipoMoneda",
+                            "type_data": "enum",
+                            "options": [
+                                "MXN",
+                                "USD",
+                                "YEN",
+                                "EUR",
+                                "VEF"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "name": "tipoCambio",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "importeConLetra",
+                            "type_data": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Proveedor",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "codigo",
+                            "type_data": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Entrega",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "plantaEntrega",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "calle",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "noExterior",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "noInterior",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "codigoPostal",
+                            "type_data": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Detalles",
+                    "children": [
+                        {
+                            "type": "node",
+                            "name": "Detalle",
+                            "children": [
+                                {
+                                    "type": "field",
+                                    "name": "noLineaArticulo",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "codigoArticulo",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "descripcion",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "unidad",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "cantidad",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "precioSinIva",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "precioConIva",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "importeSinIva",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "importeConIva",
+                                    "type_data": "string"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Descuentos",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "tipo",
+                            "type_data": "enum",
+                            "options": [
+                                "NA",
+                                "CARGO",
+                                "DESCUENTO"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "name": "descripcion",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "importe",
+                            "type_data": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Subtotal",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "importe",
+                            "type_data": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Traslados",
+                    "children": [
+                        {
+                            "type": "node",
+                            "name": "Traslado",
+                            "children": [
+                                {
+                                    "type": "field",
+                                    "name": "tipo",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "tasa",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "importe",
+                                    "type_data": "string"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Retenciones",
+                    "children": [
+                        {
+                            "type": "node",
+                            "name": "Retencion",
+                            "children": [
+                                {
+                                    "type": "field",
+                                    "name": "tipo",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "tasa",
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "importe",
+                                    "type_data": "string"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Total",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "importe",
+                            "type_data": "string"
+                        }
+                    ]
+                }
+            ],
+            "instance": {
+                "type": "node",
+                "name": "Factura",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "version",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "tipoDocumento",
+                        "type_data": "enum",
+                        "options": [
+                            "FACTURA",
+                            "NOTA CREDITO",
+                            "NOTA CARGO"
+                        ]
+                    },
+                    {
+                        "type": "field",
+                        "name": "folio",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "fecha",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "ordenCompra",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "referencia1",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "referencia2",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "node",
+                        "name": "Moneda",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "tipoMoneda",
+                                "type_data": "enum",
+                                "options": [
+                                    "MXN",
+                                    "USD",
+                                    "YEN",
+                                    "EUR",
+                                    "VEF"
+                                ]
+                            },
+                            {
+                                "type": "field",
+                                "name": "tipoCambio",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "importeConLetra",
+                                "type_data": "string",
+                                "options": []
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Proveedor",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "codigo",
+                                "type_data": "string",
+                                "options": []
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Entrega",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "plantaEntrega",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "calle",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "noExterior",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "noInterior",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "codigoPostal",
+                                "type_data": "string",
+                                "options": []
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Detalles",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "Detalle",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "noLineaArticulo",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "codigoArticulo",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "descripcion",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "unidad",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "cantidad",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "precioSinIva",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "precioConIva",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "importeSinIva",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "importeConIva",
+                                        "type_data": "string",
+                                        "options": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Descuentos",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "tipo",
+                                "type_data": "enum",
+                                "options": [
+                                    "NA",
+                                    "CARGO",
+                                    "DESCUENTO"
+                                ]
+                            },
+                            {
+                                "type": "field",
+                                "name": "descripcion",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "importe",
+                                "type_data": "string",
+                                "options": []
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Subtotal",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "importe",
+                                "type_data": "string",
+                                "options": []
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Traslados",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "Traslado",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "tipo",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "tasa",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "importe",
+                                        "type_data": "string",
+                                        "options": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Retenciones",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "Retencion",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "tipo",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "tasa",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "importe",
+                                        "type_data": "string",
+                                        "options": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Total",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "importe",
+                                "type_data": "string",
+                                "options": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<Factura xmlns=\"https:\/\/recepcionfe.mabempresa.com\/cfd\/addenda\/v1\" version=\"\" tipoDocumento=\"\" folio=\"\" fecha=\"\" ordenCompra=\"\" referencia1=\"\" referencia2=\"\">\n  <Moneda tipoMoneda=\"\" tipoCambio=\"\" importeConLetra=\"\"\/>\n  <Proveedor codigo=\"\"\/>\n  <Entrega plantaEntrega=\"\" calle=\"\" noExterior=\"\" noInterior=\"\" codigoPostal=\"\"\/>\n  <Detalles>\n    <Detalle noLineaArticulo=\"\" codigoArticulo=\"\" descripcion=\"\" unidad=\"\" cantidad=\"\" precioSinIva=\"\" precioConIva=\"\" importeSinIva=\"\" importeConIva=\"\"\/>\n  <\/Detalles>\n  <Descuentos tipo=\"\" descripcion=\"\" importe=\"\"\/>\n  <Subtotal importe=\"\"\/>\n  <Traslados>\n    <Traslado tipo=\"\" tasa=\"\" importe=\"\"\/>\n  <\/Traslados>\n  <Retenciones>\n    <Retencion tipo=\"\" tasa=\"\" importe=\"\"\/>\n  <\/Retenciones>\n  <Total importe=\"\"\/>\n<\/Factura>",
+            "addenda_extra_ns": ""
+        }
+    },
+    "createdAt": null
+}

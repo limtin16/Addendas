@@ -1,0 +1,42 @@
+{
+    "id": "tpl_69e7c1189a9fb9.67020870",
+    "name": "Addenda Thy",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": null,
+            "prefix": null,
+            "namespace": null,
+            "children": [
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "Cantidad",
+                            "representation": "attribute"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "Cantidad",
+                            "representation": "attribute"
+                        }
+                    ],
+                    "source": "cfdi.conceptos"
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

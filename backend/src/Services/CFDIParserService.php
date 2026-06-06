@@ -22,7 +22,11 @@ class CFDIParserService
         $doc->loadXML($cfdiXml); // ✅ USAR LA VARIABLE CORRECTA
 
         $xpath = new DOMXPath($doc);
-        $xpath->registerNamespace('cfdi', 'http://www.sat.gob.mx/cfd/4');
+        $cfdiNs = $doc->lookupNamespaceURI('cfdi');
+
+        if ($cfdiNs) {
+            $xpath->registerNamespace('cfdi', $cfdiNs);
+        }
 
         $map = new CfdiMap();
 

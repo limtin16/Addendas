@@ -50,7 +50,7 @@ if (
                 <label for="location">¿Dónde se usará esta información?</label>
                 <select id="location" name="location" required>
                     <option value="">Selecciona una opción</option>
-                    <option selected="selected" value="ADDENDA">Addenda (información adicional del cliente)</option>
+                    <option hidden selected="selected" value="ADDENDA">Addenda (información adicional del cliente)</option>
                     <option value="COMPLEMENTO">Complemento (información técnica especial)</option>
                 </select>
 

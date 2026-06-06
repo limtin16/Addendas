@@ -39,9 +39,9 @@ class AddendaXmlBuilder
 
         $rootDef = $structure['root'];
 
-        $name      = $rootDef['name'];
-        $prefix    = $rootDef['prefix'];
-        $namespace = $rootDef['namespace'];
+        $name      = $rootDef['name'] ?? 'Addenda';
+        $prefix    = $rootDef['prefix'] ?? '';
+        $namespace = $rootDef['namespace'] ?? '';
         $children  = $rootDef['children'] ?? [];
 
        $qualifiedName = $prefix

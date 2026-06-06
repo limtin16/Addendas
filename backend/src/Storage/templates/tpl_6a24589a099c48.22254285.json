@@ -1,0 +1,230 @@
+{
+    "id": "tpl_6a24589a099c48.22254285",
+    "name": "Addenda Upload",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "mabe",
+            "namespace": "https:\/\/recepcionfe.mabempresa.com\/cfd\/addenda\/v1",
+            "instance": {
+                "type": "node",
+                "name": "Factura",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "schemaLocation"
+                    },
+                    {
+                        "type": "field",
+                        "name": "version"
+                    },
+                    {
+                        "type": "field",
+                        "name": "tipoDocumento"
+                    },
+                    {
+                        "type": "field",
+                        "name": "folio"
+                    },
+                    {
+                        "type": "field",
+                        "name": "fecha"
+                    },
+                    {
+                        "type": "field",
+                        "name": "ordenCompra"
+                    },
+                    {
+                        "type": "field",
+                        "name": "referencia1"
+                    },
+                    {
+                        "type": "field",
+                        "name": "referencia2"
+                    },
+                    {
+                        "type": "node",
+                        "name": "Moneda",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "tipoMoneda"
+                            },
+                            {
+                                "type": "field",
+                                "name": "importeConLetra"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Proveedor",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "codigo"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Entrega",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "plantaEntrega"
+                            },
+                            {
+                                "type": "field",
+                                "name": "calle"
+                            },
+                            {
+                                "type": "field",
+                                "name": "noExterior"
+                            },
+                            {
+                                "type": "field",
+                                "name": "noInterior"
+                            },
+                            {
+                                "type": "field",
+                                "name": "codigoPostal"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Detalles",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "Detalle",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "noLineaArticulo"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "codigoArticulo"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "descripcion"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "unidad"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "cantidad"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "precioSinIva"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "importeSinIva"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Subtotal",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "importe"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Traslados",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "Traslado",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "tipo"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "tasa"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "importe"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Retenciones",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "Retencion",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "tipo"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "tasa"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "importe"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "node",
+                                "name": "Retencion",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "tipo"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "tasa"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "importe"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Total",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "importe"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<mabe:Factura xmlns:mabe=\"https:\/\/recepcionfe.mabempresa.com\/cfd\/addenda\/v1\" xmlns:xsi=\"http:\/\/www.w3.org\/2001\/XMLSchema-instance\" xsi:schemaLocation=\"https:\/\/recepcionfe.mabempresa.com\/cfd\/addenda\/v1 https:\/\/recepcionfe.mabempresa.com\/cfd\/addenda\/v1\/mabev1.xsd\" version=\"1.0\" tipoDocumento=\"FACTURA\" folio=\"1184\" fecha=\"2025-06-04\" ordenCompra=\"9501216431\" referencia1=\"F1184\" referencia2=\"9501216431\">\n\t\t\t<mabe:Moneda tipoMoneda=\"MXN\" importeConLetra=\"QUINCE MIL SEISCIENTOS DOCE  PESOS 50\/100 M.N.\"\/>\n\t\t\t<mabe:Proveedor codigo=\"4009330\"\/>\n\t\t\t<mabe:Entrega plantaEntrega=\"A004\" calle=\"CARRETERA FEDERAL NO 51 KM 110\" noExterior=\"NA\" noInterior=\"NA\" codigoPostal=\"38158\"\/>\n\t\t\t\t<mabe:Detalles>\n\t\t\t\t\t<mabe:Detalle noLineaArticulo=\"1\" codigoArticulo=\"N\/A\" descripcion=\"Entrenamiento en linea mediante pl\" unidad=\"UNI\" cantidad=\"1.00\" precioSinIva=\"15000.00\" importeSinIva=\"15000.00\"\/>\n\t\t\t\t<\/mabe:Detalles>\n\t\t\t\t<mabe:Subtotal importe=\"15000.00\"\/>\n\t\t\t\t<mabe:Traslados>\n\t\t\t\t\t<mabe:Traslado tipo=\"IVA\" tasa=\"0.16\" importe=\"2400.00\"\/>\n\t\t\t\t<\/mabe:Traslados>\n\t\t\t\t<mabe:Retenciones>\n\t\t\t\t\t<mabe:Retencion tipo=\"IVA\" tasa=\"0.1066\" importe=\"1600.00\"\/>\n\t\t\t\t\t<mabe:Retencion tipo=\"ISR\" tasa=\"0.0125\" importe=\"187.5\"\/>\n\t\t\t\t<\/mabe:Retenciones>\n\t\t\t\t<mabe:Total importe=\"15612.50\"\/>\n\t\t<\/mabe:Factura>",
+            "addenda_extra_ns": "",
+            "children": []
+        }
+    },
+    "createdAt": null
+}

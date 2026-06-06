@@ -67,7 +67,11 @@ if (!$isFinalizing) {
     }
 
     // ✅ agregar grupo al template
+<<<<<<< HEAD
     $template->structure['children'][] = $currentGroup;
+=======
+    $template->structure['root']['children'][] = $currentGroup;
+>>>>>>> rescue-namespace
 
     // ✅ guardar template
     $service->update($templateId, $template->structure);
@@ -106,6 +110,12 @@ if (
 // ===============================
 
 $builder = new AddendaXmlBuilder();
+
+$root = $template->structure['root'] ?? [];
+
+if (empty($root['name'])) {
+    die('❌ Root sin nombre');
+}
 
 // ✅ generar XML base (TEMPLATE)
 $addendaXmlTemplate = $builder->build($template->structure);
@@ -172,12 +182,21 @@ $instanceStructure = [
 // ===============================
 // ✅ GUARDAR INSTANCE EN SESSION
 // ===============================
+<<<<<<< HEAD
 $addendaExtraNs = $template->structure['addenda_extra_ns'] ?? '';
 $template->structure = [
     'structure' => $instanceStructure,
     'addenda_xml_template' => $addendaXmlTemplate,
     'addenda_extra_ns' => $addendaExtraNs
 ];
+=======
+$template->structure['root']['instance'] = $instanceStructure;
+$template->structure['root']['addenda_xml_template'] = $addendaXmlTemplate;
+
+$service->update($templateId, $template->structure);
+
+$_SESSION['addenda_instance'] = $template->structure;
+>>>>>>> rescue-namespace
 
 $_SESSION['addenda_instance'] = $template->structure;
 

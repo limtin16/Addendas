@@ -1,0 +1,168 @@
+{
+    "id": "tpl_6a23546e128289.66475653",
+    "name": "Addenda Upload",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "NumeroDeFacturaDelProveedor",
+                    "origin": {
+                        "type": "fixed",
+                        "value": ""
+                    },
+                    "representation": "attribute"
+                },
+                {
+                    "type": "field",
+                    "name": "FechaDeFactura",
+                    "origin": {
+                        "type": "fixed",
+                        "value": ""
+                    },
+                    "representation": "attribute"
+                },
+                {
+                    "type": "field",
+                    "name": "Moneda",
+                    "origin": {
+                        "type": "fixed",
+                        "value": ""
+                    },
+                    "representation": "attribute"
+                },
+                {
+                    "type": "node",
+                    "name": "Conceptos",
+                    "prefix": "THY",
+                    "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+                    "children": [
+                        {
+                            "type": "node",
+                            "name": "part",
+                            "prefix": "THY",
+                            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+                            "children": [
+                                {
+                                    "type": "field",
+                                    "name": "NumeroDeOrdenDeCompra",
+                                    "origin": {
+                                        "type": "fixed",
+                                        "value": ""
+                                    },
+                                    "representation": "attribute"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "PosicionDeOrdenDeCompra",
+                                    "origin": {
+                                        "type": "fixed",
+                                        "value": ""
+                                    },
+                                    "representation": "attribute"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "CantidadPorPosicion",
+                                    "origin": {
+                                        "type": "fixed",
+                                        "value": ""
+                                    },
+                                    "representation": "attribute"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "PrecioPorPosicion",
+                                    "origin": {
+                                        "type": "fixed",
+                                        "value": ""
+                                    },
+                                    "representation": "attribute"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "UnidadPorPosicion",
+                                    "origin": {
+                                        "type": "fixed",
+                                        "value": ""
+                                    },
+                                    "representation": "attribute"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "Remision",
+                                    "origin": {
+                                        "type": "fixed",
+                                        "value": ""
+                                    },
+                                    "representation": "attribute"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "instance": {
+                "type": "node",
+                "name": "Factura",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "NumeroDeFacturaDelProveedor"
+                    },
+                    {
+                        "type": "field",
+                        "name": "FechaDeFactura"
+                    },
+                    {
+                        "type": "field",
+                        "name": "Moneda"
+                    },
+                    {
+                        "type": "node",
+                        "name": "Conceptos",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "part",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "NumeroDeOrdenDeCompra"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "PosicionDeOrdenDeCompra"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "CantidadPorPosicion"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "PrecioPorPosicion"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "UnidadPorPosicion"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "Remision"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<THY:Factura xmlns:THY=\"http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd\" NumeroDeFacturaDelProveedor=\"\" FechaDeFactura=\"\" Moneda=\"\">\n  <THY:Conceptos>\n    <THY:part NumeroDeOrdenDeCompra=\"\" PosicionDeOrdenDeCompra=\"\" CantidadPorPosicion=\"\" PrecioPorPosicion=\"\" UnidadPorPosicion=\"\" Remision=\"\"\/>\n  <\/THY:Conceptos>\n<\/THY:Factura>",
+            "addenda_extra_ns": ""
+        }
+    },
+    "createdAt": null
+}

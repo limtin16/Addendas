@@ -24,11 +24,22 @@ $newAddendaXml = trim($_POST['addenda_xml']);
    2. Detectar namespace cfdi dinámicamente
    ======================================================= */
 
+<<<<<<< HEAD
 $cfdiNamespace = 'http://www.sat.gob.mx/cfd/4';
-
-if (preg_match('/xmlns:cfdi="([^"]+)"/', $originalCfdi, $matches)) {
-    $cfdiNamespace = $matches[1];
+=======
+if (!$originalCfdi || trim($originalCfdi) === '') {
+    die('❌ El CFDI está vacío');
 }
+
+// =======================================
+// ✅ DETECTAR NAMESPACE cfdi DINÁMICAMENTE
+// =======================================
+
+$doc = new DOMDocument();
+$doc->loadXML($originalCfdi);
+>>>>>>> rescue-namespace
+
+$cfdiNamespace = $doc->lookupNamespaceURI('cfdi') ?: '';
 
 /* =======================================================
    3. Insertar Addenda con DOM

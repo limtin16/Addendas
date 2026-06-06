@@ -1,0 +1,17 @@
+{
+    "id": "tpl_69e6c762b3baf8.77746195",
+    "name": "Addenda_LGM",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": null,
+            "prefix": null,
+            "namespace": null,
+            "children": []
+        },
+        "location": "ADDENDA",
+        "fields": [],
+        "groups": []
+    },
+    "createdAt": null
+}
