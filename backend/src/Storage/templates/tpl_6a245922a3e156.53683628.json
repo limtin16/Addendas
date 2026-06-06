@@ -1,0 +1,54 @@
+{
+    "id": "tpl_6a245922a3e156.53683628",
+    "name": "Addenda Upload",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "AddendaDCG",
+            "prefix": "",
+            "namespace": "http:\/\/www.dcg.com\/CFD\/Addenda\/Receptor",
+            "instance": {
+                "type": "node",
+                "name": "AddendaDCG",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "noPedido"
+                    },
+                    {
+                        "type": "field",
+                        "name": "moneda"
+                    },
+                    {
+                        "type": "field",
+                        "name": "mailContactoDeloitte"
+                    },
+                    {
+                        "type": "field",
+                        "name": "oficina"
+                    },
+                    {
+                        "type": "field",
+                        "name": "origenFactura"
+                    },
+                    {
+                        "type": "field",
+                        "name": "numeroProveedor"
+                    },
+                    {
+                        "type": "field",
+                        "name": "mailProveedor"
+                    },
+                    {
+                        "type": "field",
+                        "name": "nombreContactoProveedor"
+                    }
+                ]
+            },
+            "addenda_xml_template": "<AddendaDCG xmlns=\"http:\/\/www.dcg.com\/CFD\/Addenda\/Receptor\" noPedido=\"4999999999\" moneda=\"MXP\" mailContactoDeloitte=\"adrvalencia@deloitte.com\" oficina=\"MEX\" origenFactura=\"EGRESO\" numeroProveedor=\"40360630\" mailProveedor=\"danieladm@desentisconsulting.com\" nombreContactoProveedor=\"Daniela Desentis Megchun\"\/>",
+            "addenda_extra_ns": "",
+            "children": []
+        }
+    },
+    "createdAt": null
+}

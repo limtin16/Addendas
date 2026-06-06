@@ -212,10 +212,24 @@ if ($xmlnsAttr !== '') {
 
 $addendaOpen .= '>';
 
+$output = trim($output);
+
+// ✅ detectar si ya es Addenda completa
+if (preg_match('/^<([a-zA-Z0-9_]+:)?Addenda\b/i', $output)) {
+
+    // ✅ ya viene envuelto → no volver a envolver
+    echo $output;
+    exit;
+}
+
+// ✅ si NO → envolver normalmente
 $wrapped =
     $addendaOpen .
-    trim($output) .
+    $output .
     '</cfdi:Addenda>';
+
+echo $wrapped;
+exit;
 
 echo $wrapped;
 exit;

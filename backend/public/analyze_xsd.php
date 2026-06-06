@@ -52,6 +52,7 @@ $structure = $converter->convert($xsd);
 
 $builder = new AddendaXmlBuilder();
 
+//esto puede que duplique la etiquta addenda
 $addendaXmlTemplate = $builder->build([
     'children' => [$structure] // ✅ modo XSD
 ]);
@@ -69,7 +70,11 @@ function convertNode($node)
     if ($type === 'field') {
         return [
             'type' => 'field',
-            'name' => $node['name']
+            'name' => $node['name'],
+
+            // ✅ conservar metadata si existe
+            'type_data' => $node['type_data'] ?? null,
+            'options' => $node['options'] ?? []
         ];
     }
 

@@ -31,11 +31,10 @@ if (!$originalCfdi || trim($originalCfdi) === '') {
 // ✅ DETECTAR NAMESPACE cfdi DINÁMICAMENTE
 // =======================================
 
-$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4'; // fallback
+$doc = new DOMDocument();
+$doc->loadXML($originalCfdi);
 
-if (preg_match('/xmlns:cfdi="([^"]+)"/', $originalCfdi, $matches)) {
-    $cfdiNamespace = $matches[1];
-}
+$cfdiNamespace = $doc->lookupNamespaceURI('cfdi') ?: '';
 
 if (trim($originalCfdi) === '') {
     die('❌ El CFDI original está vacío en sesión');

@@ -80,7 +80,19 @@ if ($innerXml === '') {
    4. DETECTAR NAMESPACE CFDI REAL (CORRECTO)
    ======================================================= */
 
-$cfdiNs = $dom->lookupNamespaceURI('cfdi') ?: '';
+$cfdiNs = '';
+
+// ✅ buscar Addenda original como string
+if (preg_match('/<([a-zA-Z0-9_]+:)?Addenda\b([^>]*)>/i', $xmlContent, $matches)) {
+
+    $attrs = $matches[2] ?? '';
+
+    // ✅ buscar específicamente xmlns:cfdi SOLO en ese tag
+    if (preg_match('/xmlns:cfdi="([^"]+)"/i', $attrs, $nsMatch)) {
+        $cfdiNs = $nsMatch[1];
+    }
+}
+
 
 /* =======================================================
    5. PARSEAR SOLO PARA GENERAR FORM (STRUCTURE)
