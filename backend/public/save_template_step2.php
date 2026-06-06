@@ -60,10 +60,6 @@ if (!isset($template->structure['root']['children']) || !is_array($template->str
 $service->update($templateId, $template->structure);
 // ✅ SOLO guardar template (NO mezclar con instance)
 $_SESSION['addenda_instance'] = $template->structure;
-<<<<<<< HEAD
-
-=======
->>>>>>> rescue-namespace
 
 // ===============================
 // ✅ REDIRIGIR A STEP 3
