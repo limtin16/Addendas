@@ -147,7 +147,7 @@ function renderFields(array $nodes, string $prefix = ''): void
 <head>
 <meta charset="UTF-8">
 <title>Rellenar Addenda</title>
-<link rel="stylesheet" href="/addendas/frontend/assets/styles.css">
+<link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 <style>
         /* 🎯 ROOT SOLO PARA ESTA PÁGINA */
         .render-main {

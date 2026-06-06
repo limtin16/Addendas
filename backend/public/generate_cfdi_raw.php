@@ -266,7 +266,8 @@ $openTag = '<cfdi:Addenda';
 
 if ($templateNs !== '') {
     $openTag .= ' ' . $templateNs;
-=======
+}
+
 // ✅ detectar prefijo del tag cfdi:Addenda
 $prefix = '';
 if (preg_match('/^<([a-zA-Z0-9_]+):Addenda/', $xmlInput, $m)) {
