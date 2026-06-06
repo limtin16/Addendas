@@ -1,0 +1,34 @@
+{
+    "id": "tpl_6a0c8a515657b1.20857968",
+    "name": "test5",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "NumeroDeOrdenDeCompra",
+                    "representation": "attribute"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "item_name": "part",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "NumeroDeFacturaDelProveedor",
+                            "representation": "attribute"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

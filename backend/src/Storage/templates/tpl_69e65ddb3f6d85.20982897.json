@@ -1,0 +1,32 @@
+{
+    "id": "tpl_69e65ddb3f6d85.20982897",
+    "name": "Addenda Thyssenkrupp Factura",
+    "location": "ADDENDA",
+    "structure": {
+        "root": "Factura",
+        "location": "ADDENDA",
+        "fields": [
+            {
+                "name": "NumeroOrdenCompra",
+                "type": "string",
+                "required": true
+            }
+        ],
+        "groups": [
+            {
+                "name": "Conceptos",
+                "repeatable": true,
+                "fields": [
+                    {
+                        "name": "Cantidad",
+                        "type": "number",
+                        "required": true
+                    }
+                ]
+            }
+        ],
+        "prefix": "THY",
+        "namespace": "http:\/\/www.thyssenkrupp.com\/schema"
+    },
+    "createdAt": "2026-04-20T19:09:47+02:00"
+}

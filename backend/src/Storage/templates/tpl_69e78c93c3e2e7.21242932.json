@@ -1,0 +1,14 @@
+{
+    "id": "tpl_69e78c93c3e2e7.21242932",
+    "name": "Addenda_LGM",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "LGM",
+            "namespace": "http:\/\/www.lagermex.com\/schema\/addenda",
+            "children": []
+        }
+    },
+    "createdAt": null
+}

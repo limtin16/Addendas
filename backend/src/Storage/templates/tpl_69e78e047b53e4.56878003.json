@@ -1,0 +1,34 @@
+{
+    "id": "tpl_69e78e047b53e4.56878003",
+    "name": "Addenda_LGM",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "LGM",
+            "namespace": "http:\/\/www.lagermex.com\/schema\/addenda",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "Folio",
+                    "representation": "node",
+                    "source": "cfdi.folio"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "Cantidad",
+                            "representation": "attribute"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

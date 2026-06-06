@@ -1,0 +1,78 @@
+{
+    "id": "tpl_69e7ca82bcf870.57338263",
+    "name": "Addenda Thyssen",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "NumeroDeFacturaDelProveedor",
+                    "representation": "attribute",
+                    "source": "Folio"
+                },
+                {
+                    "type": "field",
+                    "name": "FechaDeFactura",
+                    "representation": "attribute",
+                    "source": "Fecha"
+                },
+                {
+                    "type": "field",
+                    "name": "Moneda",
+                    "representation": "attribute",
+                    "source": "Moneda"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "part",
+                    "repeatable": true,
+                    "source": "cfdi.conceptos",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "NumeroDeOrdenDeCompra",
+                            "representation": "attribute"
+                        },
+                        {
+                            "type": "field",
+                            "name": "PosicionDeOrdenDeCompra",
+                            "representation": "attribute"
+                        },
+                        {
+                            "type": "field",
+                            "name": "CantidadPorPosicion",
+                            "representation": "attribute"
+                        },
+                        {
+                            "type": "field",
+                            "name": "PrecioPorPosicion",
+                            "representation": "attribute"
+                        },
+                        {
+                            "type": "field",
+                            "name": "UnidadPorPosicion",
+                            "representation": "attribute"
+                        },
+                        {
+                            "type": "field",
+                            "name": "Remision",
+                            "representation": "attribute"
+                        }
+                    ]
+                },
+                {
+                    "type": "field",
+                    "name": "NumeroDeFacturaDelProveedor",
+                    "representation": "attribute",
+                    "source": "cfdi.folio"
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

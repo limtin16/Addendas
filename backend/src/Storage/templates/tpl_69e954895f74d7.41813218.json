@@ -1,0 +1,57 @@
+{
+    "id": "tpl_69e954895f74d7.41813218",
+    "name": "Test3",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "Folio",
+                    "representation": "attribute",
+                    "source": "cfdi.folio"
+                },
+                {
+                    "type": "group",
+                    "name": "Concepto",
+                    "itemName": "item",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "Test5",
+                            "representation": "attribute",
+                            "source": "cfdi.cantidad"
+                        },
+                        {
+                            "type": "field",
+                            "name": "test6",
+                            "representation": "attribute",
+                            "value": "2"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos5",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "test",
+                            "representation": "attribute",
+                            "source": "cfdi.cantidad"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

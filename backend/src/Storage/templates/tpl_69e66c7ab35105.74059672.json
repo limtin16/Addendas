@@ -1,0 +1,44 @@
+"groups": [
+  {
+    "Name": "part",    "name": "Conceptos",
+    "fields": [
+      {
+        "name": "NumeroDeOrdenDeCompra",
+        "type": "string",
+        "representation": "attribute",
+        "source": "@pago20:Pago/NumOperacion"
+      },
+      {
+        "name": "PosicionDeOrdenDeCompra",
+        "type": "string",
+        "representation": "attribute",
+        "source": "@pago20:DoctoRelacionado/NumParcialidad"
+      },
+      {
+        "name": "CantidadPorPosicion",
+        "type": "string",
+        "representation": "attribute",
+        "source": "#const:1"
+      },
+      {
+        "name": "PrecioPorPosicion",
+        "type": "string",
+        "representation": "attribute",
+        "source": "@pago20:TrasladoDR/BaseDR"
+      },
+      {
+        "name": "UnidadPorPosicion",
+        "type": "string",
+        "representation": "attribute",
+        "source": "#const:SRV"
+      },
+      {
+        "name": "Remision",
+        "type": "string",
+        "representation": "attribute",
+        "source": "@pago20:DoctoRelacionado/IdDocumento"
+      }
+    ]
+  }
+]
+    "repeatable": true,

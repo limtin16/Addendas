@@ -1,0 +1,78 @@
+{
+    "id": "tpl_69fd25144b4bf5.44075519",
+    "name": "TEst2",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "NumeroDeFacturaDelProveedor",
+                    "representation": "attribute",
+                    "source": "cfdi."
+                },
+                {
+                    "type": "field",
+                    "name": "FechaDeFactura",
+                    "representation": "attribute",
+                    "source": "cfdi."
+                },
+                {
+                    "type": "field",
+                    "name": "NumeroDeOrdenDeCompra",
+                    "representation": "attribute",
+                    "value": "4500078412"
+                },
+                {
+                    "type": "field",
+                    "name": "Moneda",
+                    "representation": "attribute",
+                    "source": "cfdi."
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "part",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "NumeroDeFacturaDelProveedor",
+                            "representation": "attribute",
+                            "value": "4500078412"
+                        },
+                        {
+                            "type": "field",
+                            "name": "PosicionDeOrdenDeCompra",
+                            "representation": "attribute",
+                            "value": "10"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "part",
+                    "repeatable": true,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "NumeroDeFacturaDelProveedor",
+                            "representation": "attribute"
+                        },
+                        {
+                            "type": "field",
+                            "name": "FechaDeFactura",
+                            "representation": "attribute"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

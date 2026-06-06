@@ -1,0 +1,14 @@
+{
+    "id": "tpl_69eaa99075afb4.51805575",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "test",
+            "prefix": "HM",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": []
+        }
+    },
+    "createdAt": null
+}

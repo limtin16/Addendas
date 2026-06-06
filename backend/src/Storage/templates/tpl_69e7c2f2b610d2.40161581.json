@@ -1,0 +1,21 @@
+{
+    "id": "tpl_69e7c2f2b610d2.40161581",
+    "name": "Addenda Thy1",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": null,
+            "prefix": null,
+            "namespace": null,
+            "children": [
+                {
+                    "type": "field",
+                    "name": "Folio",
+                    "representation": "node",
+                    "source": "cfdi.folio"
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}

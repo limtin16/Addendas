@@ -1,0 +1,35 @@
+{
+    "id": "tpl_69e7c3cf52b982.61670894",
+    "name": "Addenda Thy2",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY2",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "Folio",
+                    "representation": "node",
+                    "source": "cfdi.folio"
+                },
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "itemName": "Item",
+                    "repeatable": true,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "Cantidad",
+                            "representation": "attribute"
+                        }
+                    ],
+                    "source": "cfdi.conceptos"
+                }
+            ]
+        }
+    },
+    "createdAt": null
+}
