@@ -255,7 +255,7 @@ $xmlInput = trim($_POST['addenda_xml']);
 $templateNs = $_POST['addenda_namespace'] ?? '';
 $templateNs = trim($templateNs);
 
-<<<<<<< HEAD
+
 // ✅ normalizar si no tiene xmlns
 if ($templateNs && !str_contains($templateNs, 'xmlns')) {
     $templateNs = 'xmlns:' . ltrim($templateNs);
@@ -292,18 +292,14 @@ $openTag = '<cfdi:Addenda';
 
 if ($xmlnsAttr !== '') {
     $openTag .= ' ' . $xmlnsAttr;
->>>>>>> rescue-namespace
 }
 
 $openTag .= '>';
 
 // ✅ REESCRIBIR SIEMPRE el tag de apertura
 $newAddendaXml = preg_replace(
-<<<<<<< HEAD
-    '/<cfdi:Addenda[^>]*>/',
-=======
+
     '/<[a-zA-Z0-9_]+:Addenda[^>]*>/',
->>>>>>> rescue-namespace
     $openTag,
     $xmlInput,
     1

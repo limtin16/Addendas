@@ -176,24 +176,5 @@ $templateId = $template->id;
 /* =======================================================
    8. REDIRECT
    ======================================================= */
-
-<<<<<<< HEAD
-$template->structure['root'] = [
-    'structure' => $structure,
-    'addenda_xml_template' => $addendaXmlTemplate,
-    'origin' => 'upload',
-    'uploaded_at' => date('c')
-];
-
-
-$_SESSION['addenda_instance'] = $template->structure;
-
-/* =======================================================
-   8. REDIRIGIR
-   ======================================================= */
-
-header("Location: " . BASE_URL . "/frontend/render_instance_form.php");
-=======
 header("Location: " . BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId));
->>>>>>> rescue-namespace
 exit;

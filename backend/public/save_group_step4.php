@@ -67,11 +67,8 @@ if (!$isFinalizing) {
     }
 
     // ✅ agregar grupo al template
-<<<<<<< HEAD
-    $template->structure['children'][] = $currentGroup;
-=======
+
     $template->structure['root']['children'][] = $currentGroup;
->>>>>>> rescue-namespace
 
     // ✅ guardar template
     $service->update($templateId, $template->structure);
