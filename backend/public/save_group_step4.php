@@ -179,21 +179,12 @@ $instanceStructure = [
 // ===============================
 // ✅ GUARDAR INSTANCE EN SESSION
 // ===============================
-<<<<<<< HEAD
-$addendaExtraNs = $template->structure['addenda_extra_ns'] ?? '';
-$template->structure = [
-    'structure' => $instanceStructure,
-    'addenda_xml_template' => $addendaXmlTemplate,
-    'addenda_extra_ns' => $addendaExtraNs
-];
-=======
 $template->structure['root']['instance'] = $instanceStructure;
 $template->structure['root']['addenda_xml_template'] = $addendaXmlTemplate;
 
 $service->update($templateId, $template->structure);
 
 $_SESSION['addenda_instance'] = $template->structure;
->>>>>>> rescue-namespace
 
 $_SESSION['addenda_instance'] = $template->structure;
 

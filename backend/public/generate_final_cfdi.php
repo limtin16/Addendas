@@ -24,9 +24,6 @@ $newAddendaXml = trim($_POST['addenda_xml']);
    2. Detectar namespace cfdi dinámicamente
    ======================================================= */
 
-<<<<<<< HEAD
-$cfdiNamespace = 'http://www.sat.gob.mx/cfd/4';
-=======
 if (!$originalCfdi || trim($originalCfdi) === '') {
     die('❌ El CFDI está vacío');
 }
@@ -37,7 +34,6 @@ if (!$originalCfdi || trim($originalCfdi) === '') {
 
 $doc = new DOMDocument();
 $doc->loadXML($originalCfdi);
->>>>>>> rescue-namespace
 
 $cfdiNamespace = $doc->lookupNamespaceURI('cfdi') ?: '';
 

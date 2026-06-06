@@ -13,11 +13,8 @@ $templateServicePath = $path . "backend/src/Services/TemplateService.php";
 $path.="backend/config.php";
 require_once $path;
 require_once $templateServicePath;
-<<<<<<< HEAD
-=======
 
 
->>>>>>> rescue-namespace
 require_once BACKEND_ROOT . '/src/Services/CFDIParserService.php';
 require_once BACKEND_ROOT . '/src/Services/CfdiValueResolver.php';
 require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
@@ -25,12 +22,8 @@ require_once BACKEND_ROOT . '/src/Services/AddendaXmlBuilder.php';
 use App\Services\CFDIParserService;
 use App\Services\CfdiValueResolver;
 use App\Services\TemplateService;
-<<<<<<< HEAD
-use App\Services\AddendaXmlBuilder;
-=======
 
 $service = new TemplateService();
->>>>>>> rescue-namespace
 
 ob_clean();
 header('Content-Type: text/plain');
@@ -51,20 +44,8 @@ if (
     exit;
 }
 
-<<<<<<< HEAD
-$input = json_decode(file_get_contents('php://input'), true);
-
-$templateId = $input['template_id'] ?? null;
-
-$service = new TemplateService();
-$template = $service->get($templateId); //el error esta aqui
-
-$templateXml = (new AddendaXmlBuilder())->build($template->structure);
-
-=======
 //$templateXml = $_SESSION['addenda_instance']['addenda_xml_template'];
 $templateXml = $template->structure['root']['addenda_xml_template'];
->>>>>>> rescue-namespace
 // ===============================
 // ✅ INPUT DEL FORM
 // ===============================
@@ -205,18 +186,6 @@ if ($mode !== 'xml') {
 // ✅ tomar namespace definido en el template (si existe)
 $templateNs = trim($templateNs);
 
-<<<<<<< HEAD
-// ✅ normalizar si no incluye xmlns
-if ($templateNs && !str_contains($templateNs, 'xmlns')) {
-    $templateNs = 'xmlns:' . ltrim($templateNs);
-}
-
-// ✅ construir apertura dinámicamente
-$addendaOpen = '<cfdi:Addenda';
-
-if ($templateNs !== '') {
-    $addendaOpen .= ' ' . $templateNs;
-=======
 // ✅ detectar prefijo del tag (cfdi:Addenda)
 $prefix = 'cfdi'; // fallback
 
@@ -240,17 +209,10 @@ $addendaOpen = '<' . ($prefix ? $prefix . ':' : '') . 'Addenda';
 
 if ($xmlnsAttr !== '') {
     $addendaOpen .= ' ' . $xmlnsAttr;
->>>>>>> rescue-namespace
 }
 
 $addendaOpen .= '>';
 
-<<<<<<< HEAD
-$wrapped =
-    $addendaOpen .
-    trim($output) .
-    '</cfdi:Addenda>';
-=======
 $output = trim($output);
 
 // ✅ detectar si ya es Addenda completa
@@ -269,7 +231,6 @@ $wrapped =
 
 echo $wrapped;
 exit;
->>>>>>> rescue-namespace
 
 echo $wrapped;
 exit;
