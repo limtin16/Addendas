@@ -9,7 +9,7 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
-$cfgPath = $path . "backend/src/storage/cfdi_generated/";
+$cfgPath = rtrim($path, '/\\') . '/backend/src/storage/cfdi_generated/';
 $dbPath = $path . "backend/db.php";
 require_once $dbPath;
 
