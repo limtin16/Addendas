@@ -28,7 +28,29 @@
                     ]
                 }
             ],
-            "addenda_extra_ns": "http:\/\/addendatest.com"
+            "addenda_extra_ns": "http:\/\/addendatest.com",
+            "instance": {
+                "type": "node",
+                "name": "Factura",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "NumeroDeFacturaDelProveedor"
+                    },
+                    {
+                        "type": "group",
+                        "name": "Conceptos",
+                        "item_name": "part",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "FechaDeFactura"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<THY:Factura xmlns:THY=\"http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd\" NumeroDeFacturaDelProveedor=\"\">\n  <THY:Conceptos>\n    <THY:part FechaDeFactura=\"\"\/>\n  <\/THY:Conceptos>\n<\/THY:Factura>"
         }
     },
     "createdAt": null
