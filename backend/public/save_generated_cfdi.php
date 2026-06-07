@@ -27,7 +27,7 @@ $filename = 'cfdi_' . time() . '.xml';
 
 // ✅ guardar archivo físico
 $path = dirname(__DIR__) . '../src/storage/cfdi_generated/' . $filename;
-echo $path;
+var_dump($path);
 exit;
 file_put_contents($path, $xml);
 
