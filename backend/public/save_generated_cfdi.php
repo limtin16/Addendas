@@ -34,7 +34,6 @@ if (!is_dir($cfgPath)) {
 }
 
 $result = file_put_contents($path, $xml);
-
 if ($result === false) {
     echo json_encode([
         'error' => 'No se pudo escribir archivo',
