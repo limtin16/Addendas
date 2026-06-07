@@ -45,6 +45,9 @@ if ($result === false) {
     exit;
 }
 
+var_dump($result);
+exit;
+
 // ✅ token (para recuperación futura)
 $token = bin2hex(random_bytes(8));
 
