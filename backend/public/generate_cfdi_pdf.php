@@ -8,8 +8,8 @@ for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
 $dbPath = $path . "backend/db.php";
-$alPath.="backend/config.php";
-$path.="backend/helper/dompdf/autoload.inc.php";
+$alPath = $path . "backend/helpers/dompdf/autoload.inc.php";
+$path= $path . "backend/config.php";
 
 require_once $path;
 require_once $dbPath;
