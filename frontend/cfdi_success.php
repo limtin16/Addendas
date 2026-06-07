@@ -114,6 +114,12 @@ if ($isLogged) {
 
             <br><br>
 
+            <a href="<?= BASE_URL ?>/backend.php?id=<?= $cfdi['id'] ?>" class="btn purple">
+                🧾 Descargar PDF
+            </a>
+
+            <br><br>
+
             <?php if ($isLogged): ?>
 
             <br><br>
