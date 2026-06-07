@@ -9,6 +9,7 @@ if ($count==0){
 for ($i=0; $i<$count; $i++){
 	$path.="../";
 }
+$cfgPath = $path . "backend/src/storage/cfdi_generated/";
 $dbPath = $path . "backend/db.php";
 require_once $dbPath;
 
@@ -26,7 +27,7 @@ if (!$xml) {
 $filename = 'cfdi_' . time() . '.xml';
 
 // ✅ guardar archivo físico
-$path = dirname(__DIR__) . '../src/storage/cfdi_generated/' . $filename;
+$path = $cfgPath . $filename;
 var_dump($path);
 exit;
 file_put_contents($path, $xml);
