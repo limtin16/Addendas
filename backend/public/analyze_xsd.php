@@ -25,58 +25,30 @@ use App\Services\XsdToArrayConverter;
 
 $service = new TemplateService();
 
-
-function normalizeTypes(&$node)
+function normalizeNodeTypes(&$node)
 {
     if (!is_array($node)) return;
 
-    // Si es campo y no tiene tipo → forzar string
-    if (($node['type'] ?? '') === 'field') {
+    // 🔥 CASO CRÍTICO: nodo sin hijos → convertir a field
+    if (
+        ($node['type'] ?? '') === 'node' &&
+        empty($node['children'])
+    ) {
+        $node['type'] = 'field';
+
+        // asegurar tipo
         if (empty($node['type_data'])) {
-            $node['type_data'] = 'string'; // ✅ DEFAULT
+            $node['type_data'] = 'string';
         }
     }
 
-    // Recorrer hijos
+    // recursivo
     if (!empty($node['children'])) {
         foreach ($node['children'] as &$child) {
-            normalizeTypes($child);
+            normalizeNodeTypes($child);
         }
     }
-    
 }
-/* =======================================================
-   1. VALIDAR XSD
-   ======================================================= */
-
-if (!isset($_FILES['xsd_file'])) {
-    die('❌ No se subió archivo XSD');
-}
-
-$xsd = file_get_contents($_FILES['xsd_file']['tmp_name']);
-
-if (!$xsd) {
-    die('❌ XSD vacío');
-}
-
-/* =======================================================
-   2. CONVERTIR XSD → STRUCTURE
-   ======================================================= */
-
-$converter = new XsdToArrayConverter();
-$structure = $converter->convert($xsd);
-normalizeTypes($structure);
-
-/* =======================================================
-   3. GENERAR XML TEMPLATE (BASE)
-   ======================================================= */
-
-$builder = new AddendaXmlBuilder();
-
-//esto puede que duplique la etiquta addenda
-$addendaXmlTemplate = $builder->build([
-    'children' => [$structure] // ✅ modo XSD
-]);
 
 /* =======================================================
    4. CONVERTIR A INSTANCE (FORM)
@@ -116,6 +88,39 @@ function convertNode($node)
 
     return null;
 }
+
+/* =======================================================
+   1. VALIDAR XSD
+   ======================================================= */
+
+if (!isset($_FILES['xsd_file'])) {
+    die('❌ No se subió archivo XSD');
+}
+
+$xsd = file_get_contents($_FILES['xsd_file']['tmp_name']);
+
+if (!$xsd) {
+    die('❌ XSD vacío');
+}
+
+/* =======================================================
+   2. CONVERTIR XSD → STRUCTURE
+   ======================================================= */
+
+$converter = new XsdToArrayConverter();
+$structure = $converter->convert($xsd);
+normalizeNodeTypes($structure);
+
+/* =======================================================
+   3. GENERAR XML TEMPLATE (BASE)
+   ======================================================= */
+
+$builder = new AddendaXmlBuilder();
+
+//esto puede que duplique la etiquta addenda
+$addendaXmlTemplate = $builder->build([
+    'children' => [$structure] // ✅ modo XSD
+]);
 
 /* =======================================================
    5. CREAR INSTANCE ROOT
