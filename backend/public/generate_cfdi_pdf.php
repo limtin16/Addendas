@@ -19,20 +19,12 @@ use Dompdf\Dompdf;
 
 $id = $_GET['id'] ?? null;
 
-if (!$id) {
-    die('ID requerido');
-}
-
 // ✅ obtener XML
 $stmt = $conn->prepare("SELECT xml FROM generated_cfdis WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_assoc();
-
-if (!$row) {
-    die("CFDI no encontrado");
-}
 
 $xml = $row['xml'];
 
@@ -129,6 +121,7 @@ $html .= '
 '.$qrUrl.'
 </div>';
 
+if (ob_get_length()) ob_end_clean();
 // ============================
 // ✅ CREAR PDF
 // ============================
@@ -138,6 +131,9 @@ $dompdf->loadHtml($html);
 $dompdf->setPaper('A4');
 $dompdf->render();
 
-// ✅ salida descarga
+// 🔥 LIMPIAR BUFFER ANTES DE SALIDA
+if (ob_get_length()) ob_end_clean();
+
+// ✅ descargar
 $dompdf->stream("cfdi.pdf", ["Attachment" => true]);
 exit;
