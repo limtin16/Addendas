@@ -9,7 +9,7 @@ for ($i=0; $i<$count; $i++){
 }
 $dbPath = $path . "backend/db.php";
 $alPath.="backend/config.php";
-$path.="backend/helper/dompdf/autoload.php";
+$path.="backend/helper/dompdf/autoload.inc.php";
 
 require_once $path;
 require_once $dbPath;
