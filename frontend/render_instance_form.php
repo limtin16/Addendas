@@ -422,7 +422,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
         alert("Error del servidor:\n" + text);
         return;
     }
-console.log(<?= BASE_URL ?>);
+
     if (!res.ok || !data.xml) {
         alert('Error generando CFDI');
         return;
