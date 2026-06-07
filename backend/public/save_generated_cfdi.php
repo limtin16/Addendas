@@ -28,7 +28,22 @@ $filename = 'cfdi_' . time() . '.xml';
 
 // ✅ guardar archivo físico
 $path = $cfgPath . $filename;
-file_put_contents($path, $xml);
+// ✅ asegurar existencia de carpeta
+if (!is_dir($cfgPath)) {
+    mkdir($cfgPath, 0775, true);
+}
+
+$result = file_put_contents($path, $xml);
+
+if ($result === false) {
+    echo json_encode([
+        'error' => 'No se pudo escribir archivo',
+        'path' => $path,
+        'is_writable' => is_writable($cfgPath),
+        'dir_exists' => is_dir($cfgPath)
+    ]);
+    exit;
+}
 
 // ✅ token (para recuperación futura)
 $token = bin2hex(random_bytes(8));
