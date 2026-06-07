@@ -73,8 +73,79 @@ if (!$xmlBase) {
 // ===============================
 // ✅ RESPUESTA FINAL
 // ===============================
+$xmlBase = trim($xmlBase);
+
+// ===============================
+// ✅ DETECTAR PREFIJO
+// ===============================
+$prefix = 'cfdi'; // default
+
+if (preg_match('/^<([a-zA-Z0-9_]+):Addenda/', $xmlBase, $m)) {
+    $prefix = $m[1];
+}
+
+// ===============================
+// ✅ OBTENER NAMESPACE
+// ===============================
+$templateNs = $template->structure['root']['addenda_extra_ns'] ?? '';
+$templateNs = trim($templateNs);
+
+$xmlnsAttr = '';
+
+if ($templateNs !== '') {
+    if ($prefix !== '') {
+        $xmlnsAttr = 'xmlns:' . $prefix . '="' . htmlspecialchars($templateNs) . '"';
+    } else {
+        $xmlnsAttr = 'xmlns="' . htmlspecialchars($templateNs) . '"';
+    }
+}
+
+// ===============================
+// ✅ ARMAR TAG DE APERTURA
+// ===============================
+$addendaOpen = '<' . ($prefix ? $prefix . ':' : '') . 'Addenda';
+
+if ($xmlnsAttr !== '') {
+    $addendaOpen .= ' ' . $xmlnsAttr;
+}
+
+$addendaOpen .= '>';
+
+// ===============================
+// ✅ VALIDAR SI YA VIENE ENVUELTO
+// ===============================
+if (preg_match('/^<([a-zA-Z0-9_]+:)?Addenda\b/i', $xmlBase)) {
+
+    $finalXml = $xmlBase;
+
+} else {
+
+    $closingTag = '</' . ($prefix ? $prefix . ':' : '') . 'Addenda>';
+
+    $finalXml = $addendaOpen . $xmlBase . $closingTag;
+}
+
+// ===============================
+// ✅ RESPUESTA FINAL
+// ===============================
+// ===============================
+// ✅ FORMATEAR XML
+// ===============================
+$doc = new DOMDocument('1.0', 'UTF-8');
+$doc->preserveWhiteSpace = false;
+$doc->formatOutput = true;
+
+if ($doc->loadXML($finalXml)) {
+    $prettyXml = $doc->saveXML($doc->documentElement);
+} else {
+    $prettyXml = $finalXml; // fallback
+}
+
+// ===============================
+// ✅ RESPUESTA FINAL
+// ===============================
 echo json_encode([
-    'structurePreview' => $xmlBase
+    'structurePreview' => $prettyXml
 ]);
 
 exit;
