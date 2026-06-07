@@ -404,7 +404,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
     formData.append("addenda_namespace", templateNamespace);
 
     // ✅ generar CFDI
-    const res = await fetch('/addendas/backend/public/generate_cfdi_raw.php', {
+    const res = await fetch('<?= BASE_URL ?>/backend/public/generate_cfdi_raw.php', {
         method: 'POST',
         body: formData
     });
@@ -432,7 +432,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
     const fdStore = new FormData();
     fdStore.append('xml', data.xml);
 
-    const storeRes = await fetch('/addendas/backend/public/save_generated_cfdi.php', {
+    const storeRes = await fetch('<?= BASE_URL ?>/backend/public/save_generated_cfdi.php', {
         method: 'POST',
         body: fdStore
     });
@@ -440,7 +440,7 @@ document.getElementById('generateBtn').addEventListener('click', async function 
     const saved = await storeRes.json();
 
     // ✅ redirect final
-    window.location.href = '/addendas/frontend/cfdi_success.php?id='
+    window.location.href = '<?= BASE_URL ?>/frontend/cfdi_success.php?id='
     + saved.id + '&template_id=<?= htmlspecialchars($templateId) ?>';
 });
 
@@ -479,7 +479,7 @@ targetCfdiInput.addEventListener('change', function () {
 const fd = new FormData();
 fd.append('target_cfdi', file);
 
-fetch('/addendas/backend/public/load_target_cfdi.php', {
+fetch('<?= BASE_URL ?>/backend/public/load_target_cfdi.php', {
     method: 'POST',
     body: fd
 })
@@ -565,7 +565,7 @@ function updatePreview() {
     payload.addenda_namespace = templateNamespace;
     payload.template_id = TEMPLATE_ID;
 
-    fetch('/addendas/backend/public/preview_addenda.php', {
+    fetch('<?= BASE_URL ?>/backend/public/preview_addenda.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -602,7 +602,7 @@ let cfdiSuggestions = [];
 
 function loadCfdiAutofillSuggestions() {
 
-    fetch('/addendas/backend/public/cfdi_autofill_suggestions.php')
+    fetch('<?= BASE_URL ?>/backend/public/cfdi_autofill_suggestions.php')
         .then(r => r.json())
         .then(data => {
 

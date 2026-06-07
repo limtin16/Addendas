@@ -44,7 +44,6 @@ if (
     exit;
 }
 
-//$templateXml = $_SESSION['addenda_instance']['addenda_xml_template'];
 $templateXml = $template->structure['root']['addenda_xml_template'];
 // ===============================
 // ✅ INPUT DEL FORM

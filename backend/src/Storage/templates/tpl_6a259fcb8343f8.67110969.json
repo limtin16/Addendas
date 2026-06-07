@@ -1,0 +1,21 @@
+{
+    "id": "tpl_6a259fcb8343f8.67110969",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "factura",
+            "prefix": "thy",
+            "namespace": "http:\/\/www.thyssenkrupp.com\/schema",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "NumeroDeFacturaDelProveedor",
+                    "representation": "attribute"
+                }
+            ],
+            "addenda_extra_ns": "http:\/\/addendatest.com"
+        }
+    },
+    "createdAt": null
+}

@@ -25,6 +25,26 @@ use App\Services\XsdToArrayConverter;
 
 $service = new TemplateService();
 
+
+function normalizeTypes(&$node)
+{
+    if (!is_array($node)) return;
+
+    // Si es campo y no tiene tipo → forzar string
+    if (($node['type'] ?? '') === 'field') {
+        if (empty($node['type_data'])) {
+            $node['type_data'] = 'string'; // ✅ DEFAULT
+        }
+    }
+
+    // Recorrer hijos
+    if (!empty($node['children'])) {
+        foreach ($node['children'] as &$child) {
+            normalizeTypes($child);
+        }
+    }
+    
+}
 /* =======================================================
    1. VALIDAR XSD
    ======================================================= */
@@ -45,6 +65,7 @@ if (!$xsd) {
 
 $converter = new XsdToArrayConverter();
 $structure = $converter->convert($xsd);
+normalizeTypes($structure);
 
 /* =======================================================
    3. GENERAR XML TEMPLATE (BASE)
@@ -68,12 +89,17 @@ function convertNode($node)
     $type = $node['type'] ?? '';
 
     if ($type === 'field') {
+
+        // ✅ AQUÍ está el fix real
+        $typeData = $node['type_data'] ?? '';
+        if (empty($typeData)) {
+            $typeData = 'string';
+        }
+
         return [
             'type' => 'field',
             'name' => $node['name'],
-
-            // ✅ conservar metadata si existe
-            'type_data' => $node['type_data'] ?? null,
+            'type_data' => $typeData,
             'options' => $node['options'] ?? []
         ];
     }

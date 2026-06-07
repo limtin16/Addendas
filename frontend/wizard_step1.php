@@ -46,14 +46,6 @@ if (
                 <label for="name">Nombre de la plantilla</label>
                 <input type="text" id="name" name="name" required>
                 <div class="hint">Ejemplo: Addenda Mycorp </div>
-
-                <label for="location">¿Dónde se usará esta información?</label>
-                <select id="location" name="location" required>
-                    <option value="">Selecciona una opción</option>
-                    <option hidden selected="selected" value="ADDENDA">Addenda (información adicional del cliente)</option>
-                    <option value="COMPLEMENTO">Complemento (información técnica especial)</option>
-                </select>
-
                 <button type="submit">Continuar al Paso 2</button>
             </form>
         </div>

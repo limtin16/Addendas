@@ -46,40 +46,15 @@ if (!$template) {
 // ===============================
 // ✅ ASEGURAR ROOT
 // ===============================
+//var_dump($template->structure);
 if (
     !isset($template->structure) ||
-    empty($template->structure['name'])
+    empty($template->structure['root']['name'])
 ) {
     echo json_encode([
         'structurePreview' => '❌ Root inválido'
     ]);
     exit;
-}
-
-// ===============================
-// ✅ INCLUIR GRUPO ACTUAL (preview)
-// ===============================
-if (
-    isset($_SESSION['current_group']) &&
-    is_array($_SESSION['current_group']) &&
-    !empty($_SESSION['current_group'])
-) {
-
-    $group = $_SESSION['current_group'];
-
-    if (!isset($group['type'])) {
-        $group['type'] = 'group';
-    }
-
-    if (!isset($group['children']) || !is_array($group['children'])) {
-        $group['children'] = [];
-    }
-
-    if (!isset($group['item_name'])) {
-        $group['item_name'] = 'Item';
-    }
-
-    $template->structure['children'][] = $group;
 }
 
 // ===============================

@@ -1,0 +1,27 @@
+{
+    "id": "tpl_6a259dce714e63.36870582",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "NumeroDeFacturaDelProveedor",
+                    "representation": "attribute"
+                }
+            ],
+            "addenda_extra_ns": "http:\/\/addendatest.com",
+            "instance": {
+                "type": "node",
+                "name": "Addenda",
+                "children": []
+            },
+            "addenda_xml_template": "<THY:Factura xmlns:THY=\"http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd\" NumeroDeFacturaDelProveedor=\"\"\/>"
+        }
+    },
+    "createdAt": null
+}

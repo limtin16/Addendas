@@ -59,20 +59,20 @@ $groups = $template->structure['root']['children'] ?? [];
                 <h2>Crear addenda – Paso 4</h2>
                 <p>Agrega grupos repetibles y sus campos.</p>
 
-                <?php $currentGroup = $_SESSION['current_group'] ?? null; ?>
-                <?php if ($currentGroup === null): ?>
+                <?php $currentGroupJson = $_GET['current_group'] ?? $_POST['current_group'] ?? null;
+                $currentGroup = $currentGroupJson
+                    ? json_decode($currentGroupJson, true)
+                    : null; 
+                    if ($currentGroup === null): ?>
 
                 <h3>Nuevo grupo</h3>
 
                 <form method="post" action="<?= BASE_URL ?>/backend/public/start_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
-
                     <label>Nombre del grupo</label>
                     <input type="text" name="group_name" required>
-
                     <label>Nombre de cada elemento</label>
                     <input type="text" name="item_name" required>
-
                     <button type="submit">Crear grupo</button>
                 </form>
 
@@ -93,7 +93,7 @@ $groups = $template->structure['root']['children'] ?? [];
 
                 <form method="post" action="<?= BASE_URL ?>/backend/public/add_field_to_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
-
+                    <input type="hidden" name="current_group" value='<?= htmlspecialchars(json_encode($currentGroup)) ?>'>
                     <label>Nombre del campo</label>
                     <input type="text" name="field_name" required>
 
@@ -110,6 +110,7 @@ $groups = $template->structure['root']['children'] ?? [];
 
                 <form method="post" action="<?= BASE_URL ?>/backend/public/save_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
+                    <input type="hidden" name="current_group" value='<?= htmlspecialchars(json_encode($currentGroup)) ?>'>
                     <button type="submit">Guardar grupo</button>
                 </form>
 
@@ -120,6 +121,7 @@ $groups = $template->structure['root']['children'] ?? [];
                 <form method="post" action="<?= BASE_URL ?>/backend/public/save_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
                     <input type="hidden" name="redirect_done" value="1">
+                    <input type="hidden" name="current_group" value='<?= htmlspecialchars(json_encode($currentGroup)) ?>'>
                     <button type="submit">Finalizar addenda ✅</button>
                 </form>
 

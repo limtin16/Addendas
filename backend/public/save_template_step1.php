@@ -19,9 +19,8 @@ use App\Services\TemplateService;
 
 // Validación básica
 $name = trim($_POST['name'] ?? '');
-$location = $_POST['location'] ?? '';
 
-if ($name === '' || !in_array($location, ['ADDENDA', 'COMPLEMENTO'])) {
+if ($name === '') {
     die('❌ Datos inválidos. Regresa e intenta de nuevo.');
 }
 
@@ -38,7 +37,7 @@ $structure = [
 ];
 
 // ✅ Crear template
-$template = $service->save($name, $location, $structure);
+$template = $service->save($name, 'ADDENDA', $structure);
 
 header("Location: " . BASE_URL . "/frontend/wizard_step2.php?template_id=" . urlencode($template->id));
 exit;

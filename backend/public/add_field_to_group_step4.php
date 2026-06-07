@@ -1,7 +1,5 @@
 <?php
-
 session_start();
-
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
@@ -27,14 +25,20 @@ if (!$templateId) {
 }
 
 // ===============================
-// VALIDAR grupo activo
+// ✅ RECIBIR current_group DESDE POST
 // ===============================
-if (!isset($_SESSION['current_group']) || $_SESSION['current_group'] === null) {
+$currentGroupJson = $_POST['current_group'] ?? '';
+
+$currentGroup = $currentGroupJson
+    ? json_decode($currentGroupJson, true)
+    : null;
+
+if (!$currentGroup) {
     die('No hay un grupo activo');
 }
 
 // ===============================
-// CREAR CAMPO (SOLO ESTRUCTURA)
+// ✅ CREAR CAMPO
 // ===============================
 $fieldName = trim($_POST['field_name'] ?? '');
 $representation = $_POST['representation'] ?? 'attribute';
@@ -43,28 +47,24 @@ if ($fieldName === '') {
     die('Nombre de campo requerido');
 }
 
-$field = [
-    'type' => 'field',
-    'name' => $fieldName,
-    'representation' => $representation
-];
-
-// ✅ IMPORTANTE: NO origin / NO value / NO calculation
-
 // ===============================
-// AGREGAR AL GRUPO EN SESSION
+// ✅ AGREGAR AL GRUPO
 // ===============================
-$_SESSION['current_group']['children'][] = [
+$currentGroup['children'][] = [
     'type' => 'field',
     'name' => $fieldName,
     'representation' => $representation
 ];
 
 // ===============================
-// REGRESAR A STEP 4
+// ✅ REDIRECT CON GRUPO SERIALIZADO
 // ===============================
+$encodedGroup = urlencode(json_encode($currentGroup));
+
 header(
-    "Location: " . BASE_URL . "/frontend/wizard_step4.php?template_id=" .
-    urlencode($templateId)
+    "Location: " .BASE_URL . "/frontend/wizard_step4.php?template_id=" .
+    urlencode($templateId) .
+    "&current_group=" . $encodedGroup
 );
+
 exit;
