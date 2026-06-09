@@ -1,0 +1,148 @@
+{
+    "id": "tpl_6a2759afe11188.38046700",
+    "name": "Addenda XSD",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "AddendaDCG",
+            "prefix": "",
+            "namespace": "http:\/\/www.dcg.com\/CFD\/Addenda\/Receptor",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "noPedido",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "moneda",
+                    "type_data": "enum",
+                    "options": [
+                        "MXP",
+                        "USD"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "name": "mailContactoDeloitte",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "oficina",
+                    "type_data": "enum",
+                    "options": [
+                        "CANC",
+                        "CHIH",
+                        "GDL",
+                        "LEON",
+                        "MEX",
+                        "MTY",
+                        "PUE",
+                        "QRO",
+                        "TIJ"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "name": "origenFactura",
+                    "type_data": "enum",
+                    "options": [
+                        "PEDIDO",
+                        "CONTRATO",
+                        "EGRESO"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "name": "numeroProveedor",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "mailProveedor",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "nombreContactoProveedor",
+                    "type_data": "string"
+                }
+            ],
+            "instance": {
+                "type": "node",
+                "name": "AddendaDCG",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "noPedido",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "moneda",
+                        "type_data": "enum",
+                        "options": [
+                            "MXP",
+                            "USD"
+                        ]
+                    },
+                    {
+                        "type": "field",
+                        "name": "mailContactoDeloitte",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "oficina",
+                        "type_data": "enum",
+                        "options": [
+                            "CANC",
+                            "CHIH",
+                            "GDL",
+                            "LEON",
+                            "MEX",
+                            "MTY",
+                            "PUE",
+                            "QRO",
+                            "TIJ"
+                        ]
+                    },
+                    {
+                        "type": "field",
+                        "name": "origenFactura",
+                        "type_data": "enum",
+                        "options": [
+                            "PEDIDO",
+                            "CONTRATO",
+                            "EGRESO"
+                        ]
+                    },
+                    {
+                        "type": "field",
+                        "name": "numeroProveedor",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "mailProveedor",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "nombreContactoProveedor",
+                        "type_data": "string",
+                        "options": []
+                    }
+                ]
+            },
+            "addenda_xml_template": "<AddendaDCG xmlns=\"http:\/\/www.dcg.com\/CFD\/Addenda\/Receptor\" noPedido=\"\" moneda=\"\" mailContactoDeloitte=\"\" oficina=\"\" origenFactura=\"\" numeroProveedor=\"\" mailProveedor=\"\" nombreContactoProveedor=\"\"\/>",
+            "addenda_extra_ns": ""
+        }
+    },
+    "createdAt": null
+}

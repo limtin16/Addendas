@@ -25,6 +25,64 @@ use App\Services\XsdToArrayConverter;
 
 $service = new TemplateService();
 
+function mapXsdType($type) {
+    $type = strtolower($type);
+
+    if (strpos($type, 'int') !== false ||
+        strpos($type, 'decimal') !== false ||
+        strpos($type, 'float') !== false ||
+        strpos($type, 'double') !== false) {
+        return 'number';
+    }
+
+    if (strpos($type, 'dateTime') !== false) {
+        return 'datetime';
+    }
+
+    if (strpos($type, 'date') !== false) {
+        return 'date';
+    }
+
+    if (strpos($type, 'boolean') !== false) {
+        return 'boolean';
+    }
+
+    return 'string';
+}
+
+function enrichTypesFromXsd(&$node)
+{
+    if (!is_array($node)) return;
+
+    // ✅ SOLO campos
+    if (($node['type'] ?? '') === 'field') {
+
+        // caso 1: viene type directo del converter
+        $xsdType = $node['xsd_type'] ?? null;
+
+        if ($xsdType) {
+            $node['type_data'] = mapXsdType($xsdType);
+        }
+
+        // ✅ ENUM DETECTADO (si el converter lo trae)
+        if (!empty($node['options'])) {
+            $node['type_data'] = 'enum';
+        }
+
+        // ✅ seguridad
+        if (empty($node['type_data'])) {
+            $node['type_data'] = 'string';
+        }
+    }
+
+    // recursivo
+    if (!empty($node['children'])) {
+        foreach ($node['children'] as &$child) {
+            enrichTypesFromXsd($child);
+        }
+    }
+}
+
 function normalizeNodeTypes(&$node)
 {
     if (!is_array($node)) return;
@@ -109,7 +167,11 @@ if (!$xsd) {
 
 $converter = new XsdToArrayConverter();
 $structure = $converter->convert($xsd);
+
 normalizeNodeTypes($structure);
+
+// 🔥 NUEVO
+enrichTypesFromXsd($structure);
 
 /* =======================================================
    3. GENERAR XML TEMPLATE (BASE)

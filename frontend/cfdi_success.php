@@ -114,9 +114,12 @@ if ($isLogged) {
 
             <br><br>
 
+            <!-- 
             <a href="<?= BASE_URL ?>/backend/public/generate_cfdi_pdf.php?id=<?= $cfdi['id'] ?>" class="btn purple">
                 🧾 Descargar PDF
             </a>
+            -->
+
 
             <br><br>
 

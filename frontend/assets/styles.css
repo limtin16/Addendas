@@ -1145,3 +1145,9 @@ html, body {
     font-size: 14px;
     border: 1px solid #fecaca;
 }
+
+.btn.purple {
+    background: #6c63ff;
+    color: #ffffff;
+    border: none;
+}
