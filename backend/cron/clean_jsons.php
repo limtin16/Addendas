@@ -1,4 +1,8 @@
 <?php
+if (!isset($_GET['key']) || $_GET['key'] !== 'mi_secret_key_123') {
+    http_response_code(403);
+    exit('No autorizado');
+}
 
 // ✅ Resolver rutas dinámicamente
 $path = "";

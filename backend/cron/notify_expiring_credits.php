@@ -3,8 +3,6 @@ if (!isset($_GET['key']) || $_GET['key'] !== 'mi_secret_key_123') {
     http_response_code(403);
     exit('No autorizado');
 }
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 
 // ✅ timezone
 date_default_timezone_set('America/Mexico_City');
