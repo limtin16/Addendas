@@ -15,6 +15,22 @@ $path.="backend/config.php";
 require_once $path;
 require_once $templateServicePath;
 require_once $dbPath;
+require_once BACKEND_ROOT . '/src/Services/CreditService.php';
+
+$creditService = new CreditService($conn);
+
+$hasCredits = true;
+
+if (isset($_SESSION['user_id'])) {
+    $credits = $creditService->getAvailableCredits($_SESSION['user_id']);
+    if ($credits <= 0) {
+        $hasCredits = false;
+    }
+} else {
+    $hasCredits = false;
+}
+    
+
 
 use App\Services\TemplateService;
 
@@ -335,6 +351,7 @@ function renderFields(array $nodes, string $prefix = ''): void
     </div>
 </div>
 <script>
+const hasCredits = <?= $hasCredits ? 'true' : 'false' ?>;
 const TEMPLATE_ID = "<?= htmlspecialchars($templateId) ?>";
 const templateNamespace = document.getElementById('addendaNamespace').value
 const form = document.getElementById('instanceForm');
@@ -383,6 +400,22 @@ form.addEventListener('input', updatePreview);
 updatePreview();
 
 document.getElementById('generateBtn').addEventListener('click', async function () {
+
+    
+// ✅ VALIDAR CRÉDITOS
+    if (!hasCredits) {
+        const msg = document.createElement("div");
+        msg.className = "login-error";
+        msg.innerText = "❌ No tienes créditos disponibles";
+
+        document.querySelector(".render-container").prepend(msg);
+
+        setTimeout(() => {
+            window.location.href = "<?= BASE_URL ?>/frontend/buy_credits.php";
+        }, 3000);
+
+        return; // 🔥 detener ejecución
+    }
 
     if (!targetCfdiLoaded) {
         alert('Debes subir primero la factura destino.');
