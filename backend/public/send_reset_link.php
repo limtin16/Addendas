@@ -57,6 +57,16 @@ if ($email) {
         ";
 
         $sent = sendEmail($email, "Recuperación de contraseña", $body);
+        // ✅ log de envío de correo recuperación
+        $status = $sent ? 'sent' : 'error';
+
+        $log = $conn->prepare("
+            INSERT INTO email_logs (user_id, email, template_code, status)
+            VALUES (?, ?, 'password_recovery', ?)
+        ");
+        $log->bind_param("iss", $userId, $email, $status);
+        $log->execute();
+        $log->close();
     } else {
         // ✅ seguridad: no revelar existencia
         $sent = true;

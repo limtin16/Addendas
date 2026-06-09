@@ -52,6 +52,19 @@ $sent = sendEmail(
     $email // ✅ reply-to
 );
 
+// ✅ log de envío de ticket soporte
+$userId = $_SESSION['user_id'] ?? null; // opcional (si hay sesión)
+
+$status = $sent ? 'sent' : 'error';
+
+$log = $conn->prepare("
+    INSERT INTO email_logs (user_id, email, template_code, status)
+    VALUES (?, ?, 'support_ticket', ?)
+");
+$log->bind_param("iss", $userId, $email, $status);
+$log->execute();
+$log->close();
+
 // ✅ respuesta
 if ($sent) {
     echo "<h3>✅ Tu mensaje fue enviado correctamente</h3>";

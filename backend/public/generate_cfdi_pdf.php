@@ -23,6 +23,9 @@ require_once $alPath;
 
 use Dompdf\Dompdf;
 
+function money($n) {
+    return number_format((float)$n, 2);
+}
 // ============================
 // ✅ GET ID
 // ============================
@@ -71,6 +74,37 @@ $nombreEmisor = (string)($emisorAttr['Nombre'] ?? '');
 $rfcReceptor = (string)($receptorAttr['Rfc'] ?? '');
 $nombreReceptor = (string)($receptorAttr['Nombre'] ?? '');
 $total = (string)($rootAttr['Total'] ?? '0');
+$serie = (string)($rootAttr['Serie'] ?? '');
+$folio = (string)($rootAttr['Folio'] ?? '');
+$fecha = (string)($rootAttr['Fecha'] ?? '');
+$metodoPago = (string)($rootAttr['MetodoPago'] ?? '');
+$formaPago = (string)($rootAttr['FormaPago'] ?? '');
+$moneda = (string)($rootAttr['Moneda'] ?? '');
+
+$regimenEmisor = (string)($emisorAttr['RegimenFiscal'] ?? '');
+$usoCfdi = (string)($receptorAttr['UsoCFDI'] ?? '');
+$cpReceptor = (string)($receptorAttr['DomicilioFiscalReceptor'] ?? '');
+
+$tfd = $xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]')[0] ?? null;
+
+$tfdAttr = $tfd ? $tfd->attributes() : [];
+
+$fechaTimbrado = (string)($tfdAttr['FechaTimbrado'] ?? '');
+$noCertSAT = (string)($tfdAttr['NoCertificadoSAT'] ?? '');
+$selloSAT = (string)($tfdAttr['SelloSAT'] ?? '');
+$selloCFD = (string)($tfdAttr['SelloCFD'] ?? '');
+$rfcProvCert = (string)($tfdAttr['RfcProvCertif'] ?? '');
+
+$impuestos = $cfdi->Impuestos ?? null;
+
+$taxNode = $xmlObj->xpath('//*[local-name()="Impuestos"]')[0] ?? null;
+
+$totalImpuestos = '0';
+
+if ($taxNode) {
+    $attr = $taxNode->attributes();
+    $totalImpuestos = (string)($attr['TotalImpuestosTrasladados'] ?? '0');
+}
 
 // ============================
 // ✅ UUID (TIMBRE)
@@ -99,6 +133,11 @@ $qrData = "?re=".$rfcEmisor."&rr=".$rfcReceptor."&tt=".$totalFormat."&id=".$uuid
 // ✅ QR (SIN ARCHIVO)
 // ============================
 
+/*
+// ============================
+// ✅ QR (DESACTIVADO TEMPORALMENTE)
+// ============================
+
 $qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrData);
 
 $ch = curl_init();
@@ -116,81 +155,119 @@ curl_close($ch);
 
 // ✅ convertir a base64 directamente
 $qrBase64 = base64_encode($qrImage);
+*/
+
+$qrBase64 = '';
 
 // ============================
 // ✅ HTML
 // ============================
 $html = '
 <style>
-body {
-    font-family: Arial;
-    font-size: 12px;
-    color: #000;
-}
-h2 { text-align: center; }
-.section { margin-bottom: 10px; }
-table { width: 100%; border-collapse: collapse; }
-th, td { border: 1px solid #ccc; padding: 5px; }
-th { background: #eee; }
+body { font-family: Arial; font-size: 11px; }
+.header { display:flex; justify-content:space-between; }
+.box { border:1px solid #000; padding:8px; margin-bottom:10px; }
+.small { font-size:9px; }
+table { width:100%; border-collapse: collapse; }
+th, td { border:1px solid #000; padding:4px; font-size:10px; }
+th { background:#eee; }
 </style>
 
-<h2>Factura Electrónica (CFDI)</h2>
+<h2 style="text-align:center;">Factura Electrónica (CFDI 4.0)</h2>
 
-<div class="section">
-<b>Emisor</b><br>
-RFC: '.$rfcEmisor.'<br>
-Nombre: '.$nombreEmisor.'
-</div>
+<table width="100%" border="1" cellpadding="4">
+<tr>
+    <td width="60%">
+        <b>'.$nombreEmisor.'</b><br>
+        RFC: '.$rfcEmisor.'
+    </td>
+    <td width="40%">
+        Serie: '.$serie.'<br>
+        Folio: '.$folio.'<br>
+        Fecha: '.$fecha.'
+    </td>
+</tr>
+</table>
 
-<div class="section">
-<b>Receptor</b><br>
-RFC: '.$rfcReceptor.'<br>
-Nombre: '.$nombreReceptor.'
-</div>
+<table width="100%" border="1" cellpadding="4">
+<tr>
+<td>
+Régimen fiscal: '.$regimenEmisor.'<br>
+Tipo comprobante: I<br>
+Exportación: 01
+</td>
+</tr>
+</table>
 
-<div class="section">
-<b>Conceptos</b>
-<table>
+<table width="100%" border="1" cellpadding="4">
+<tr>
+<td>
+RFC receptor: '.$rfcReceptor.'<br>
+Nombre receptor: '.$nombreReceptor.'<br>
+CP receptor: '.$cpReceptor.'<br>
+Uso CFDI: '.$usoCfdi.'
+</td>
+</tr>
+</table>
+
+<table width="100%" border="1" cellpadding="4">
 <tr>
 <th>Clave</th>
+<th>Cant</th>
+<th>Unidad</th>
 <th>Descripción</th>
-<th>Cantidad</th>
+<th>V.Unit</th>
 <th>Importe</th>
 </tr>
 ';
 
-// ✅ llenar tabla
 foreach ($conceptos as $c) {
+    $a = $c->attributes();
 
-    $attr = $c->attributes();
-
-    $html .= "<tr>
-        <td>".(string)$attr['ClaveProdServ']."</td>
-        <td>".(string)$attr['Descripcion']."</td>
-        <td>".(string)$attr['Cantidad']."</td>
-        <td>".(string)$attr['Importe']."</td>
-    </tr>";
+    $html .= '<tr>
+        <td>'.$a['ClaveProdServ'].'</td>
+        <td>'.$a['Cantidad'].'</td>
+        <td>'.$a['ClaveUnidad'].'</td>
+        <td>'.$a['Descripcion'].'</td>
+        <td>'.number_format((float)$a['ValorUnitario'], 2).'</td>
+        <td>'.number_format((float)$a['Importe'], 2).'</td>
+    </tr>';
 }
 
 $html .= '
-</table>
-</div>
+<tr>
+<td colspan="6">
+IVA 16%: '.$totalImpuestos.'
+</td>
+</tr>';
 
-<div class="section">
-<b>Total:</b> $'.$total.'
-</div>
-';
+$html .= '
+<table width="100%" border="1" class="small">
+<tr><td>UUID: '.$uuid.'</td></tr>
+<tr><td>Fecha timbrado: '.$fechaTimbrado.'</td></tr>
+<tr><td>RFC PAC: '.$rfcProvCert.'</td></tr>
+</table>';
+
+
+$html .= '
+<div class="small">
+<b>Sello CFDI:</b><br>'.$selloCFD.'<br><br>
+<b>Sello SAT:</b><br>'.$selloSAT.'
+</div>';
 
 // ============================
 // ✅ ADDENDA
 // ============================
-if (isset($xmlObj->Addenda)) {
+$addendaNodes = $xmlObj->xpath('//*[local-name()="Addenda"]');
+
+if (!empty($addendaNodes)) {
+
+    $addendaXml = $addendaNodes[0]->asXML();
+
     $html .= '
-    <div class="section">
-    <b>Addenda</b><br>
-    <pre style="background:#f5f5f5; padding:10px; font-size:10px;">'
-    . htmlspecialchars($xmlObj->Addenda->asXML()) .
-    '</pre>
+    <div class="box small">
+        <b>Addenda</b><br>
+        <pre>'.htmlspecialchars($addendaXml).'</pre>
     </div>';
 }
 
@@ -215,6 +292,12 @@ $dompdf->setPaper('A4');
 $dompdf->render();
 
 if (ob_get_length()) ob_end_clean();
+
+// ✅ quitar .xml si existe
+$filename = preg_replace('/\.xml$/i', '', $filename);
+
+// ✅ asegurar extensión pdf
+$filename .= '.pdf';
 
 $dompdf->stream($filename, ["Attachment" => true]);
 exit;

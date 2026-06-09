@@ -123,6 +123,15 @@ $stmt = $conn->prepare("
         $body
     );
 
+    // ✅ log de envío de correo
+    $log = $conn->prepare("
+        INSERT INTO email_logs (user_id, email, template_code, status)
+        VALUES (?, ?, 'purchase_confirmation', 'sent')
+    ");
+    $log->bind_param("is", $userId, $userEmail);
+    $log->execute();
+    $log->close();
+
     // ✅ revisar si auto factura está activada
         $stmt = $conn->prepare("
             SELECT auto_invoice, rfc, name, postal_code, regime, cfdi_use, email
@@ -163,7 +172,7 @@ $stmt = $conn->prepare("
                 'email' => $billingEmail
             ];
 
-            // ✅ render
+            // ✅ al tener facturacion automatica ocn API esto se elimina
             $invoiceBody = renderTemplate($invTemplate, $vars);
 
             // ✅ enviar correo a soporte
