@@ -30,8 +30,6 @@ if (isset($_SESSION['user_id'])) {
     $hasCredits = false;
 }
     
-
-
 use App\Services\TemplateService;
 
 $templateId = $_GET['template_id'] ?? null;
@@ -50,7 +48,28 @@ if (!$template) {
 $namespace = $template->structure['root']['addenda_extra_ns'] ?? '';
 $structure = $template->structure['root']['instance'] ?? null;
 
+$hasFields = hasRenderableFields($structure);
+
 $template = $service->get($templateId);
+
+function hasRenderableFields($node): bool
+{
+    if (!is_array($node)) return false;
+
+    $type = $node['type'] ?? '';
+
+    if ($type === 'field') {
+        return true;
+    }
+
+    foreach ($node['children'] ?? [] as $child) {
+        if (hasRenderableFields($child)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 function renderFields(array $nodes, string $prefix = ''): void
 {
@@ -317,12 +336,32 @@ function renderFields(array $nodes, string $prefix = ''): void
                 <div id="autofillWarning" class="autofill-warning" style="display:none;">
                     ⚠️ Para usar el autofill debes subir primero la factura destino.
                 </div>
-                <form id="instanceForm">
-                    <input type="hidden"
-                    id="addendaNamespace"
-                    value="<?= htmlspecialchars($namespace) ?>">
-                    <?php renderFields([$structure], ''); ?>
-                </form>
+                <?php if (!$hasFields): ?>
+
+                        <div style="
+                            padding:15px;
+                            border:1px solid #ffa500;
+                            background:#fff8e5;
+                            border-radius:6px;
+                            color:#b36b00;
+                            font-weight:600;
+                            margin-bottom:20px;
+                        ">
+                            ⚠️ Esta Addenda no tiene campos configurados.<br>
+                            Debes agregar campos o grupos en el template antes de poder generar el CFDI.
+                        </div>
+
+                    <?php else: ?>
+
+                        <form id="instanceForm">
+                            <input type="hidden"
+                            id="addendaNamespace"
+                            value="<?= htmlspecialchars($namespace) ?>">
+
+                            <?php renderFields([$structure], ''); ?>
+                        </form>
+
+                    <?php endif; ?>
             </div>
             <!-- PREVIEW + BOTÓN -->
         <div class="preview-column">

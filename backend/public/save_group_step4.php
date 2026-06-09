@@ -131,7 +131,6 @@ if (!$isFinalizing) {
 // ===============================
 
 $builder = new AddendaXmlBuilder();
-
 $root = $template->structure['root'] ?? [];
 
 if (empty($root['name'])) {
