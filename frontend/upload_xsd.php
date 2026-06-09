@@ -118,13 +118,42 @@ document.addEventListener('DOMContentLoaded', function () {
         fileInfo.textContent = '📄 ' + file.name;
     });
 
-    form.addEventListener('submit', function (e) {
-        if (!input.files || !input.files.length) {
-            errorBox.classList.add('visible');
-            e.preventDefault();
-            return;
-        }
-    });
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault(); // ✅ evita recarga
+            errorBox.classList.remove('visible');
+
+            if (!input.files || !input.files.length) {
+                errorBox.textContent = 'Debes seleccionar un archivo XSD válido.';
+                errorBox.classList.add('visible');
+                return;
+            }
+
+            const fd = new FormData(form);
+
+            try {
+                const res = await fetch(form.action, {
+                    method: 'POST',
+                    body: fd
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    // ✅ mostrar error del backend
+                    errorBox.textContent = data.error || 'Error procesando XSD';
+                    errorBox.classList.add('visible');
+                    return;
+                }
+
+                // ✅ éxito → redirigir
+                window.location.href = data.redirect;
+
+            } catch (err) {
+                console.error(err);
+                errorBox.textContent = 'Error de conexión con el servidor';
+                errorBox.classList.add('visible');
+            }
+        });
 });
 </script>
 

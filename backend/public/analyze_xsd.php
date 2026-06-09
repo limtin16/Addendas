@@ -1,5 +1,5 @@
 <?php
-
+header('Content-Type: application/json');
 session_start();
 
 $path="";
@@ -152,13 +152,56 @@ function convertNode($node)
    ======================================================= */
 
 if (!isset($_FILES['xsd_file'])) {
-    die('❌ No se subió archivo XSD');
+    http_response_code(400);
+    echo json_encode(['error' => 'No se subió archivo XSD']);
+    exit;
 }
 
 $xsd = file_get_contents($_FILES['xsd_file']['tmp_name']);
 
 if (!$xsd) {
-    die('❌ XSD vacío');
+    http_response_code(400);
+    echo json_encode(['error' => 'El XSD está vacío']);
+    exit;
+}
+
+libxml_use_internal_errors(true);
+
+$xml = simplexml_load_string($xsd);
+
+if (!$xml) {
+    http_response_code(400);
+    echo json_encode(['error' => 'El archivo no es un XML válido']);
+    exit;
+}
+
+$rootName = $xml->getName();
+
+if (stripos($rootName, 'schema') === false) {
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'El archivo no es un XSD válido (no contiene schema)'
+    ]);
+    exit;
+}
+
+$namespaces = $xml->getNamespaces(true);
+
+$validXsdNs = false;
+
+foreach ($namespaces as $ns) {
+    if (strpos($ns, 'XMLSchema') !== false) {
+        $validXsdNs = true;
+        break;
+    }
+}
+
+if (!$validXsdNs) {
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'El XSD no tiene namespace válido'
+    ]);
+    exit;
 }
 
 /* =======================================================
@@ -167,6 +210,14 @@ if (!$xsd) {
 
 $converter = new XsdToArrayConverter();
 $structure = $converter->convert($xsd);
+
+if (empty($structure) || empty($structure['children'])) {
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'El XSD no contiene estructura utilizable'
+    ]);
+    exit;
+}
 
 normalizeNodeTypes($structure);
 
@@ -240,5 +291,8 @@ $templateId = $template->id;
    8. REDIRIGIR
    ======================================================= */
 
-header("Location: " . BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId));
+echo json_encode([
+    'ok' => true,
+    'redirect' => BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId)
+]);
 exit;

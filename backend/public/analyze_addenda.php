@@ -57,7 +57,11 @@ $addendaNode = $xpath
     ->item(0);
 
 if (!$addendaNode) {
-    die('❌ No hay Addenda');
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'No hay Addenda'
+    ]);
+    exit;
 }
 
 /* =======================================================
@@ -176,5 +180,8 @@ $templateId = $template->id;
 /* =======================================================
    8. REDIRECT
    ======================================================= */
-header("Location: " . BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId));
+echo json_encode([
+    'ok' => true,
+    'redirect' => BASE_URL . "/frontend/render_instance_form.php?template_id=" . urlencode($templateId)
+]);
 exit;

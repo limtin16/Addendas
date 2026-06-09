@@ -119,14 +119,44 @@ document.addEventListener('DOMContentLoaded', function () {
         fileInfo.textContent = '📄 ' + file.name;
     });
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault(); // ✅ evitar recarga
+        errorBox.classList.remove('visible');
+
         if (!input.files || !input.files.length) {
+            errorBox.textContent = 'Debes seleccionar un archivo XML válido.';
             errorBox.classList.add('visible');
-            e.preventDefault();
             return;
+        }
+
+        const fd = new FormData(form);
+
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                body: fd
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                errorBox.textContent = data.error || 'Error procesando XML';
+                errorBox.classList.add('visible');
+                return;
+            }
+
+            // ✅ éxito → redirigir
+            window.location.href = data.redirect;
+
+        } catch (err) {
+            console.error(err);
+            errorBox.textContent = 'Error de conexión con el servidor';
+            errorBox.classList.add('visible');
         }
     });
 });
+
+
 </script>
 
 </body>
