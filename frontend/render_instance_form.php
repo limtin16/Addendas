@@ -483,15 +483,23 @@ fetch('<?= BASE_URL ?>/backend/public/load_target_cfdi.php', {
     method: 'POST',
     body: fd
 })
-.then(r => r.json())
-.then(res => {
+.then(async r => {
+    const res = await r.json();
 
-    if (!res.ok) {
-        alert('❌ No se pudo cargar la factura destino para autofill');
+    if (!r.ok) {
+        alert('❌ ' + (res.error || 'Error procesando CFDI'));
+
+        // ✅ IMPORTANTE: resetear estado
+        targetCfdiLoaded = false;
+        generateBtn.disabled = true;
+        targetCfdiInput.value = ''; // 🔥 limpia el archivo
+
+        statusBox.textContent = 'No se ha seleccionado ningún archivo.';
+
         return;
     }
 
-    // ✅ Ahora sí se puede usar autofill
+    // ✅ TODO BIEN
     loadCfdiAutofillSuggestions();
 });
 

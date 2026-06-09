@@ -28,7 +28,7 @@ use Dompdf\Dompdf;
 // ============================
 $id = $_GET['id'] ?? null;
 
-$stmt = $conn->prepare("SELECT xml FROM generated_cfdis WHERE id = ?");
+$stmt = $conn->prepare("SELECT xml, filename FROM generated_cfdis WHERE id = ?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -39,6 +39,7 @@ if (!$row) {
 }
 
 $xml = $row['xml'];
+$filename = $row['filename'];
 
 // ============================
 // ✅ PARSE XML
@@ -50,7 +51,6 @@ $namespaces = $xmlObj->getNamespaces(true);
 
 // ✅ detectar namespace CFDI
 $cfdiNs = $namespaces['cfdi'] ?? $namespaces[''] ?? null;
-
 $cfdi = $cfdiNs ? $xmlObj->children($cfdiNs) : $xmlObj;
 
 // ============================
@@ -68,10 +68,8 @@ $rootAttr = $xmlObj->attributes();
 // ✅ valores
 $rfcEmisor = (string)($emisorAttr['Rfc'] ?? '');
 $nombreEmisor = (string)($emisorAttr['Nombre'] ?? '');
-
 $rfcReceptor = (string)($receptorAttr['Rfc'] ?? '');
 $nombreReceptor = (string)($receptorAttr['Nombre'] ?? '');
-
 $total = (string)($rootAttr['Total'] ?? '0');
 
 // ============================
@@ -94,11 +92,8 @@ foreach ($xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]') as $tfdNode) 
 // ✅ QR
 // ============================
 $totalFormat = number_format((float)$total,6,'.','');
-
 $qrData = "?re=".$rfcEmisor."&rr=".$rfcReceptor."&tt=".$totalFormat."&id=".$uuid;
-
 $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrData);
-
 $qrData = "?re=".$rfcEmisor."&rr=".$rfcReceptor."&tt=".$totalFormat."&id=".$uuid;
 // ============================
 // ✅ QR (SIN ARCHIVO)
@@ -221,5 +216,5 @@ $dompdf->render();
 
 if (ob_get_length()) ob_end_clean();
 
-$dompdf->stream("cfdi.pdf", ["Attachment" => true]);
+$dompdf->stream($filename, ["Attachment" => true]);
 exit;
