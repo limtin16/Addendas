@@ -137,8 +137,6 @@ document.getElementById('btn-create').addEventListener('click', function(e) {
         setTimeout(() => {
             window.location.href = "<?= BASE_URL ?>/frontend/buy_credits.php";
         }, 3000);
-
-        window.location.href = "<?= BASE_URL ?>/frontend/buy_credits.php";
     }
 
 });

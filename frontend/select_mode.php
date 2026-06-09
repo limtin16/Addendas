@@ -29,7 +29,10 @@ $creditService = new CreditService($conn);
 $credits = $creditService->getAvailableCredits($userId);
 
 if ($credits <= 0) {
-    header("Location: " . BASE_URL . "/frontend/buy_credits.php?error=no_credits");
+    echo "<script>
+        alert('❌ No tienes créditos disponibles');
+        window.location.href = '" . BASE_URL . "/frontend/buy_credits.php';
+    </script>";
     exit;
 }
 unset($_SESSION['using_template']);
