@@ -11,6 +11,51 @@ for($i=0;$i<$count;$i++){ $path.="../"; }
 
 require_once $path."backend/config.php";
 require_once $path."backend/db.php";
+require_once $path."backend/helpers/dompdf/autoload.inc.php";
+$baseDir = realpath(__DIR__ . "/../../"); // ajusta niveles si es necesario
+$xsltPath = $baseDir . "/backend/xslt/cadenaoriginal_4_0.xslt";
+$generatePDF = TRUE; // ✅ TRUE = PDF | FALSE = HTML
+
+use Dompdf\Dompdf;
+
+function generarCadenaOriginal($xmlString) {
+
+    try {
+        libxml_use_internal_errors(true);
+        // ✅ cargar XML desde string (tu DB)
+        $xmlDoc = new DOMDocument();
+        $xmlDoc->loadXML($xmlString);
+
+        // ✅ cargar XSLT LOCAL (MUY IMPORTANTE)
+        $xslPath = __DIR__ . "/../xslt/cadenaoriginal_4_0.xslt";
+
+        if (!file_exists($xslPath)) {
+            return '❌ No se encontró XSLT';
+        }
+
+        $xslDoc = new DOMDocument();
+        $xslDoc->load($xslPath);
+
+        // ✅ procesador
+        $proc = new XSLTProcessor();
+
+        // importante para includes dentro del XSLT
+        if (method_exists($proc, 'setSecurityPrefs')) {
+            $proc->setSecurityPrefs(XSL_SECPREF_NONE);
+        }
+
+        $proc->importStylesheet($xslDoc);
+
+        // ✅ transformar
+        $cadena = $proc->transformToXML($xmlDoc);
+
+        return trim($cadena);
+        libxml_clear_errors();
+
+    } catch (Throwable $e) {
+        return '❌ Error: '.$e->getMessage();
+    }
+}
 
 function money($n){ return number_format((float)$n,2); }
 
@@ -38,8 +83,9 @@ $regimenEmisor=(string)$em['RegimenFiscal'];
 
 $rfcReceptor=(string)$re['Rfc'];
 $nombreReceptor=(string)$re['Nombre'];
-$usoCfdi=(string)$re['UsoCFDI'];
+$usoCfdiCode = trim((string)$re['UsoCFDI']);
 $cpReceptor=(string)$re['DomicilioFiscalReceptor'];
+$regimenReceptor=(string)$re['RegimenFiscalReceptor'];
 
 $serie=(string)$root['Serie'];
 $folio=(string)$root['Folio'];
@@ -60,25 +106,73 @@ $rfcProvCert=(string)$tfd['RfcProvCertif'];
 $noCertSAT=(string)$tfd['NoCertificadoSAT'];
 $selloSAT=(string)$tfd['SelloSAT'];
 $selloCFD=(string)$tfd['SelloCFD'];
-
-$cadena=$xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]')[0]->asXML();
+$cadenaOriginal = generarCadenaOriginal($row['xml']);
 
 // ✅ QR (DESACTIVADO)
 $qrBase64='';
 
 // ============================
-// ✅ HTML
+// ✅ CATÁLOGO RÉGIMEN DESDE BD
 // ============================
-// ============================
-// ✅ CATÁLOGO RÉGIMEN
-// ============================
-$regimenMap = [
-    '601'=>'General de Ley Personas Morales',
-    '626'=>'Régimen Simplificado de Confianza'
-];
 
-$regEmisorDesc = $regimenMap[$regimenEmisor] ?? $regimenEmisor;
-$regReceptorDesc = $regimenMap[$receptor['RegimenFiscal'] ?? ''] ?? '';
+$regimenMap = [];
+
+$res = $conn->query("SELECT code, description FROM sat_regimenes ORDER BY code ASC");
+
+if ($res && $res->num_rows > 0) {
+    while ($rowReg = $res->fetch_assoc()) {
+        $regimenMap[$rowReg['code']] = $rowReg['description'];
+    }
+}
+
+$regEmisorDesc = $regimenMap[trim($regimenEmisor)] ?? $regimenEmisor;
+$regReceptorDesc = $regimenMap[$regimenReceptor] ?? $regimenReceptor;
+
+// ============================
+// ✅ CATÁLOGO USO CFDI
+// ============================
+
+$usoCfdiMap = [];
+
+$resUso = $conn->query("SELECT code, description FROM sat_uso_cfdi");
+
+if ($resUso && $resUso->num_rows > 0) {
+    while ($rowUso = $resUso->fetch_assoc()) {
+        $usoCfdiMap[trim($rowUso['code'])] = trim($rowUso['description']);
+    }
+}
+
+$usoCfdi = $usoCfdiMap[$usoCfdiCode] ?? $usoCfdiCode;
+
+// ============================
+// ✅ QR
+// ============================
+$totalFormat = rtrim(rtrim(number_format($total, 6, '.', ''), '0'), '.');
+$fe = substr($selloCFD, -8);
+$qrData = "https://verificacfdi.facturaelectronica.sat.gob.mx/" .
+    "?id=".$uuid.
+    "&re=".$rfcEmisor.
+    "&rr=".$rfcReceptor.
+    "&tt=".$totalFormat.
+    "&fe=".$fe;
+
+$qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrData);
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $qrApi);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+$qrImage = curl_exec($ch);
+
+if ($qrImage === false) {
+    die('Error generando QR: ' . curl_error($ch));
+}
+
+curl_close($ch);
+
+// ✅ convertir a base64 directamente
+$qrBase64 = base64_encode($qrImage);
 
 // ============================
 // ✅ HTML FINAL
@@ -87,9 +181,36 @@ $html='
 <style>
 body{
     font-family:Arial;
-    font-size:10px;
+    font-size:12px;
     line-height:1.5;
     background:#e6e6e6;
+}
+
+table:not(.concept-table) td,
+table:not(.concept-table) th{
+    font-size:12px;
+}
+
+.concept-table th{
+    font-weight:bold;
+    font-size:9px !important;
+}
+
+.concept-table td{
+    font-size:9px !important;
+}
+
+.cfdi-string {
+    font-size:11px;               /* 🔥 controla tamaño */
+    line-height:1.2;
+    word-break:break-all;        /* 🔥 corta correctamente */
+    overflow-wrap:break-word;
+}
+
+.cfdi-title {
+    font-size:10px;        /* 🔥 controla tamaño del título */
+    font-weight:bold;
+    margin-bottom:2px;
 }
 
 .pdf-container{
@@ -114,7 +235,6 @@ td{
 .concept-table th,
 .concept-table td{
     border:1px solid #000;
-    padding:6px;
 }
 
 .concept-table th{
@@ -122,8 +242,9 @@ td{
 }
 
 .text-block{
-    text-align:justify;
     word-break:break-all;
+    text-align:justify;
+    line-height:1.4;
 }
 
 .small{ font-size:8px; }
@@ -134,34 +255,9 @@ td{
     vertical-align:middle;
 }
 
-.concept-table tr{
-    height:28px; /* control altura uniforme */
-}
-
-/* SOLO quitar bordes en filas específicas */
-.no-border td:nth-child(6),
-.no-border td:nth-child(7),
-.no-border td:nth-child(8),
-.no-border td:nth-child(9){
-    border:none;
-}
-.concept-table th:nth-child(5),
-.concept-table th:nth-child(6){
-    border:none;
-}
-    .concept-table tr{
-    height:28px;  /* controla altura uniforme */
-}
-
-.text-block{
-    text-align:justify;
-    word-break:break-all;
-    line-height:1.4;
-}
-    .concept-table th,
+.concept-table th,
 .concept-table td{
-    font-size:9px;
-    padding:5px;
+    font-size:9px !important;
 }
 
 .concept-table th:nth-child(1){ width:12%; }
@@ -198,6 +294,36 @@ td{
 }
 .section td:nth-child(3){
     width:200px;
+}
+
+.row-a td{
+    height:28px;
+}
+
+.row-b td{
+    height: 10px;
+    overflow:hidden;
+    font-size:8px;
+}
+
+.row-c td{
+    height:35px;
+}
+
+.section table td{
+    padding:4px;
+}
+
+.footer {
+    text-align:center;
+}
+
+.section td{
+    padding:3px 6px;
+}
+
+.section td b{
+    white-space:nowrap;
 }
 
 </style>
@@ -304,7 +430,7 @@ td{
 
 <!-- CONCEPTOS -->
 <table class="concept-table section">
-<tr>
+<tr class="row-a">
 <th>Clave del producto y/o servicio</th>
 <th>No. identificación</th>
 <th>Cantidad</th>
@@ -319,7 +445,7 @@ td{
 foreach($cfdi->Conceptos->Concepto as $c){
 $a = $c->attributes();
 $html .= '
-<tr>
+<tr class="row-b">
 <td>'.$a['ClaveProdServ'].'</td>
 <td>'.($a['NoIdentificacion'] ?? '').'</td>
 <td>'.$a['Cantidad'].'</td>
@@ -332,9 +458,11 @@ $html .= '
 </tr>
 
 <!-- FILA DESCRIPCIÓN + IMPUESTOS (MISMA FILA) -->
-<tr>
+<tr class = "row-c">
 <td style="background:#d9d9d9; white-space:nowrap;"><b>Descripción</b></td>
-<td colspan="4">'.$a['Descripcion'].'</td>
+<td colspan="4" style="text-align:left;">
+'.$a['Descripcion'].'
+</td>
 <td colspan="4" style="border:none; vertical-align:top;">
 
 <table style="width:100%; border:none; font-size:9px;">
@@ -368,13 +496,16 @@ $html .= '
 </tr>
 
 <!-- FILA PEDIMENTO / CUENTA -->
-<tr>
-<td style="background:#d9d9d9;"><b>Número de pedimento</b></td>
-<td></td>
-<td style="background:#d9d9d9;"><b>Número de cuenta predial</b></td>
-<td></td>
-<td style="border:none;" colspan="5"></td>
+<tr class = "row-b">
+<td colspan="2" style="background:#d9d9d9;"><b>Número de pedimento</b></td>
+<td colspan="2" style="background:#d9d9d9;"><b>Número Cuenta predial</b></td>
 </tr>
+
+<tr class="row-b">
+<td colspan="2"></td>
+<td colspan="2"></td>
+</tr>
+
 ';
 }
 
@@ -403,7 +534,7 @@ $ '.money($subtotal).'
 
 <!-- ✅ IMPUESTOS -->
 <td style="white-space:nowrap;">
-<b>Impuestos trasladados IVA 16%</b>
+<b>Impuestos trasladados </b> &nbsp;&nbsp;&nbsp IVA &nbsp;&nbsp 16%
 </td>
 <td style="border:none; text-align:right;">
 $ '.money($totalImpuestos).'
@@ -431,24 +562,93 @@ $ '.money($total).'
 
 </tr>
 </table>
+';
 
+// ============================
+// ✅ ADDENDA
+// ============================
+$addendaNodes = $xmlObj->xpath('//*[local-name()="Addenda"]');
+
+if (!empty($addendaNodes)) {
+
+    $addendaNode = $addendaNodes[0];
+    $inner = $addendaNode->children()[0]; // AddendaDCG
+
+    $addendaTable = '<table class="section small" style="width:100%; border:none; border-collapse:collapse;">';
+
+    $colCount = 0;
+    $addendaTable .= '<tr>';
+
+    foreach ($inner->attributes() as $key => $value) {
+
+        // cada campo ocupa 2 columnas (label + valor)
+        $addendaTable .= '
+        <td style="border:none;"><b>'.$key.':</b></td>
+        <td style="border:none;">'.$value.'</td>';
+
+        $colCount++;
+
+        // 3 campos por fila → 6 columnas
+        if ($colCount % 3 == 0) {
+            $addendaTable .= '</tr><tr>';
+        }
+    }
+
+    // cerrar fila si quedó incompleta
+    if ($colCount % 3 != 0) {
+        $addendaTable .= '</tr>';
+    }
+
+    $addendaTable .= '</table>';
+
+    $html .= '
+    <br>
+        <div class="section">
+        <div style="text-align:center; margin-bottom:10px; font-size14px;">
+            <b>Addenda</b>
+        </div>
+        <div style="margin:10px 0;">
+        '.$addendaTable.'
+        </div>
+
+        </div>
+        <br>';
+        
+}
+
+$html .= '
 <!-- SELLOS -->
-<div class="section small text-block">
-<b>Sello digital del CFDI:</b><br>
-'.$selloCFD.'<br><br>
+<div class="section small">
+<div class="cfdi-title">Sello digital del CFDI:</div>
+<div class="cfdi-string">'.$selloCFD.'</div><br>
 
-<b>Sello digital del SAT:</b><br>
-'.$selloSAT.'
-</div>
+<div class="cfdi-title">Sello digital del SAT:</div>
+<div class="cfdi-string">'.$selloSAT.'</div>
+';
 
-<!-- CADENA -->
-<div class="section small text-block">
-<b>Cadena original del complemento de certificación digital del SAT:</b><br>
-'.$cadena.'
-</div>
+// ============================
+// ✅ QR IMAGE
+// ============================
+$html .= '
+<table class="section small" style="width:100%;">
 
-<!-- SAT INFO -->
-<table class="section small">
+<tr>
+
+<!-- ✅ QR (IZQUIERDA) -->
+<td width="25%" style="vertical-align:top; text-align:center;">
+    '.(!empty($qrBase64)
+        ? '<img src="data:image/png;base64,'.$qrBase64.'" alt="QR">'
+        : ''
+    ).'
+</td>
+
+<!-- ✅ CADENA + DATOS SAT (DERECHA) -->
+<td width="75%" style="vertical-align:top;" class="text-block">
+
+<div class="cfdi-title">Cadena original del complemento de certificación digital del SAT:</div>
+<div class="cfdi-string">'.$cadenaOriginal.'</div>
+
+<table style="width:100%; border-collapse:collapse;">
 <tr>
 <td><b>RFC del proveedor de certificación:</b> '.$rfcProvCert.'</td>
 <td><b>Fecha certificación:</b> '.$fechaTimbrado.'</td>
@@ -458,9 +658,12 @@ $ '.money($total).'
 <td></td>
 </tr>
 </table>
+</td>
+</tr>
+</table>
 
 <!-- FOOTER -->
-<div class="section small">
+<div class="section small footer">
 Este documento es una representación impresa de un CFDI<br>
 El logotipo de esta factura es responsabilidad única y exclusiva de quien la emite, en consecuencia,<br>
 el SAT queda relevado de cualquier obligación que derive de ello.<br>
@@ -468,6 +671,27 @@ Página 1 de 1
 </div>
 ';
 
-// ✅ DEBUG HTML
-echo $html;
+
+// ============================
+// ✅ OUTPUT CONTROL
+// ============================
+
+if (!$generatePDF) {
+    echo $html;
+    exit;
+}
+
+// ✅ PDF
+if (ob_get_length()) ob_end_clean();
+
+$dompdf = new Dompdf();
+$dompdf->set_option('isRemoteEnabled', true);
+$dompdf->loadHtml($html);
+$dompdf->setPaper('A4');
+$dompdf->render();
+
+// ✅ nombre archivo
+$filename = preg_replace('/\.xml$/i', '', $row['filename']) . '.pdf';
+
+$dompdf->stream($filename, ["Attachment" => true]);
 exit;
