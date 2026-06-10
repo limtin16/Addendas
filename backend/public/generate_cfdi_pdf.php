@@ -1,303 +1,473 @@
 <?php
 ob_start();
 
-// ============================
 // ✅ PATHS
-// ============================
 $path="";
-$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
-if ($count==0){
-    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
+$count=(substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
+if($count==0){
+    $count=(substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
 }
-for ($i=0; $i<$count; $i++){
-    $path.="../";
-}
+for($i=0;$i<$count;$i++){ $path.="../"; }
 
-$dbPath = $path . "backend/db.php";
-$alPath = $path . "backend/helpers/dompdf/autoload.inc.php";
-$path= $path . "backend/config.php";
+require_once $path."backend/config.php";
+require_once $path."backend/db.php";
 
-require_once $path;
-require_once $dbPath;
-require_once $alPath;
+function money($n){ return number_format((float)$n,2); }
 
-use Dompdf\Dompdf;
-
-function money($n) {
-    return number_format((float)$n, 2);
-}
-// ============================
-// ✅ GET ID
-// ============================
-$id = $_GET['id'] ?? null;
-
-$stmt = $conn->prepare("SELECT xml, filename FROM generated_cfdis WHERE id = ?");
-$stmt->bind_param("i", $id);
+// ✅ DATA
+$id=$_GET['id'];
+$stmt=$conn->prepare("SELECT xml, filename FROM generated_cfdis WHERE id=?");
+$stmt->bind_param("i",$id);
 $stmt->execute();
-$result = $stmt->get_result();
-$row = $result->fetch_assoc();
+$row=$stmt->get_result()->fetch_assoc();
 
-if (!$row) {
-    die("CFDI no encontrado");
-}
+$xmlObj=simplexml_load_string($row['xml']);
+$ns=$xmlObj->getNamespaces(true);
+$cfdi=$ns['cfdi']?$xmlObj->children($ns['cfdi']):$xmlObj;
 
-$xml = $row['xml'];
-$filename = $row['filename'];
+$em=$cfdi->Emisor->attributes();
+$re=$cfdi->Receptor->attributes();
+$root=$xmlObj->attributes();
 
-// ============================
-// ✅ PARSE XML
-// ============================
-$xmlObj = simplexml_load_string($xml);
+$tfd=$xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]')[0]->attributes();
 
-// ✅ namespaces
-$namespaces = $xmlObj->getNamespaces(true);
+// ✅ VARIABLES
+$rfcEmisor=(string)$em['Rfc'];
+$nombreEmisor=(string)$em['Nombre'];
+$regimenEmisor=(string)$em['RegimenFiscal'];
 
-// ✅ detectar namespace CFDI
-$cfdiNs = $namespaces['cfdi'] ?? $namespaces[''] ?? null;
-$cfdi = $cfdiNs ? $xmlObj->children($cfdiNs) : $xmlObj;
+$rfcReceptor=(string)$re['Rfc'];
+$nombreReceptor=(string)$re['Nombre'];
+$usoCfdi=(string)$re['UsoCFDI'];
+$cpReceptor=(string)$re['DomicilioFiscalReceptor'];
 
-// ============================
-// ✅ NODOS
-// ============================
-$emisor = $cfdi->Emisor ?? null;
-$receptor = $cfdi->Receptor ?? null;
-$conceptos = $cfdi->Conceptos->Concepto ?? [];
+$serie=(string)$root['Serie'];
+$folio=(string)$root['Folio'];
+$fecha=(string)$root['Fecha'];
+$metodoPago=(string)$root['MetodoPago'];
+$formaPago=(string)$root['FormaPago'];
+$moneda=(string)$root['Moneda'];
 
-// ✅ atributos correctos
-$emisorAttr = $emisor ? $emisor->attributes() : null;
-$receptorAttr = $receptor ? $receptor->attributes() : null;
-$rootAttr = $xmlObj->attributes();
+$total=(float)$root['Total'];
+$subtotal=(float)$root['SubTotal'];
 
-// ✅ valores
-$rfcEmisor = (string)($emisorAttr['Rfc'] ?? '');
-$nombreEmisor = (string)($emisorAttr['Nombre'] ?? '');
-$rfcReceptor = (string)($receptorAttr['Rfc'] ?? '');
-$nombreReceptor = (string)($receptorAttr['Nombre'] ?? '');
-$total = (string)($rootAttr['Total'] ?? '0');
-$serie = (string)($rootAttr['Serie'] ?? '');
-$folio = (string)($rootAttr['Folio'] ?? '');
-$fecha = (string)($rootAttr['Fecha'] ?? '');
-$metodoPago = (string)($rootAttr['MetodoPago'] ?? '');
-$formaPago = (string)($rootAttr['FormaPago'] ?? '');
-$moneda = (string)($rootAttr['Moneda'] ?? '');
+$taxNode=$xmlObj->xpath('//*[local-name()="Impuestos"]')[0]??null;
+$totalImpuestos=$taxNode?(float)$taxNode->attributes()['TotalImpuestosTrasladados']:0;
 
-$regimenEmisor = (string)($emisorAttr['RegimenFiscal'] ?? '');
-$usoCfdi = (string)($receptorAttr['UsoCFDI'] ?? '');
-$cpReceptor = (string)($receptorAttr['DomicilioFiscalReceptor'] ?? '');
+$uuid=(string)$tfd['UUID'];
+$fechaTimbrado=(string)$tfd['FechaTimbrado'];
+$rfcProvCert=(string)$tfd['RfcProvCertif'];
+$noCertSAT=(string)$tfd['NoCertificadoSAT'];
+$selloSAT=(string)$tfd['SelloSAT'];
+$selloCFD=(string)$tfd['SelloCFD'];
 
-$tfd = $xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]')[0] ?? null;
+$cadena=$xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]')[0]->asXML();
 
-$tfdAttr = $tfd ? $tfd->attributes() : [];
-
-$fechaTimbrado = (string)($tfdAttr['FechaTimbrado'] ?? '');
-$noCertSAT = (string)($tfdAttr['NoCertificadoSAT'] ?? '');
-$selloSAT = (string)($tfdAttr['SelloSAT'] ?? '');
-$selloCFD = (string)($tfdAttr['SelloCFD'] ?? '');
-$rfcProvCert = (string)($tfdAttr['RfcProvCertif'] ?? '');
-
-$impuestos = $cfdi->Impuestos ?? null;
-
-$taxNode = $xmlObj->xpath('//*[local-name()="Impuestos"]')[0] ?? null;
-
-$totalImpuestos = '0';
-
-if ($taxNode) {
-    $attr = $taxNode->attributes();
-    $totalImpuestos = (string)($attr['TotalImpuestosTrasladados'] ?? '0');
-}
-
-// ============================
-// ✅ UUID (TIMBRE)
-// ============================
-$uuid = '';
-
-// ✅ acceder a Complemento sin namespace
-foreach ($xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]') as $tfdNode) {
-
-    $attr = $tfdNode->attributes();
-
-    if ($attr && isset($attr['UUID'])) {
-        $uuid = (string)$attr['UUID'];
-        break;
-    }
-}
-
-// ============================
-// ✅ QR
-// ============================
-$totalFormat = number_format((float)$total,6,'.','');
-$qrData = "?re=".$rfcEmisor."&rr=".$rfcReceptor."&tt=".$totalFormat."&id=".$uuid;
-$qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrData);
-$qrData = "?re=".$rfcEmisor."&rr=".$rfcReceptor."&tt=".$totalFormat."&id=".$uuid;
-// ============================
-// ✅ QR (SIN ARCHIVO)
-// ============================
-
-/*
-// ============================
-// ✅ QR (DESACTIVADO TEMPORALMENTE)
-// ============================
-
-$qrApi = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($qrData);
-
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $qrApi);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-
-$qrImage = curl_exec($ch);
-
-if ($qrImage === false) {
-    die('Error generando QR: ' . curl_error($ch));
-}
-
-curl_close($ch);
-
-// ✅ convertir a base64 directamente
-$qrBase64 = base64_encode($qrImage);
-*/
-
-$qrBase64 = '';
+// ✅ QR (DESACTIVADO)
+$qrBase64='';
 
 // ============================
 // ✅ HTML
 // ============================
-$html = '
+// ============================
+// ✅ CATÁLOGO RÉGIMEN
+// ============================
+$regimenMap = [
+    '601'=>'General de Ley Personas Morales',
+    '626'=>'Régimen Simplificado de Confianza'
+];
+
+$regEmisorDesc = $regimenMap[$regimenEmisor] ?? $regimenEmisor;
+$regReceptorDesc = $regimenMap[$receptor['RegimenFiscal'] ?? ''] ?? '';
+
+// ============================
+// ✅ HTML FINAL
+// ============================
+$html='
 <style>
-body { font-family: Arial; font-size: 11px; }
-.header { display:flex; justify-content:space-between; }
-.box { border:1px solid #000; padding:8px; margin-bottom:10px; }
-.small { font-size:9px; }
-table { width:100%; border-collapse: collapse; }
-th, td { border:1px solid #000; padding:4px; font-size:10px; }
-th { background:#eee; }
+body{
+    font-family:Arial;
+    font-size:10px;
+    line-height:1.5;
+    background:#e6e6e6;
+}
+
+.pdf-container{
+    width:850px;
+    margin:auto;
+    background:#fff;
+    padding:20px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+td{
+    padding:4px 6px;
+    vertical-align:top;
+}
+
+.section{ margin-top:15px; }
+
+.concept-table th,
+.concept-table td{
+    border:1px solid #000;
+    padding:6px;
+}
+
+.concept-table th{
+    background:#d9d9d9;
+}
+
+.text-block{
+    text-align:justify;
+    word-break:break-all;
+}
+
+.small{ font-size:8px; }
+
+.right{ text-align:right; }
+
+.concept-table td{
+    vertical-align:middle;
+}
+
+.concept-table tr{
+    height:28px; /* control altura uniforme */
+}
+
+/* SOLO quitar bordes en filas específicas */
+.no-border td:nth-child(6),
+.no-border td:nth-child(7),
+.no-border td:nth-child(8),
+.no-border td:nth-child(9){
+    border:none;
+}
+.concept-table th:nth-child(5),
+.concept-table th:nth-child(6){
+    border:none;
+}
+    .concept-table tr{
+    height:28px;  /* controla altura uniforme */
+}
+
+.text-block{
+    text-align:justify;
+    word-break:break-all;
+    line-height:1.4;
+}
+    .concept-table th,
+.concept-table td{
+    font-size:9px;
+    padding:5px;
+}
+
+.concept-table th:nth-child(1){ width:12%; }
+.concept-table th:nth-child(2){ width:10%; }
+.concept-table th:nth-child(3){ width:8%; }
+.concept-table th:nth-child(4){ width:10%; }
+.concept-table th:nth-child(5){ width:12%; }
+.concept-table th:nth-child(6){ width:12%; }
+.concept-table th:nth-child(7){ width:12%; }
+.concept-table th:nth-child(8){ width:10%; }
+.concept-table th:nth-child(9){ width:14%; }
+
+.right-block {
+    text-align:right;
+    white-space:nowrap;
+}
+
+.inline-block {
+    display:inline-block;
+}
+    .concept-table td{
+    vertical-align:middle;
+}
+    .concept-table td,
+.concept-table th{
+    text-align:center;
+}
+    .section td{
+    padding:4px 8px;
+}
+
+.section{
+    margin-top:12px;
+}
+.section td:nth-child(3){
+    width:200px;
+}
+
 </style>
 
-<h2 style="text-align:center;">Factura Electrónica (CFDI 4.0)</h2>
+<div class="pdf-container">
 
-<table width="100%" border="1" cellpadding="4">
+<!-- HEADER -->
+<table>
 <tr>
-    <td width="60%">
-        <b>'.$nombreEmisor.'</b><br>
-        RFC: '.$rfcEmisor.'
-    </td>
-    <td width="40%">
-        Serie: '.$serie.'<br>
-        Folio: '.$folio.'<br>
-        Fecha: '.$fecha.'
-    </td>
+
+<td width="50%">
+
+<table>
+
+<tr>
+<td><b>RFC emisor:</b></td>
+<td>'.$rfcEmisor.'</td>
 </tr>
+
+<tr>
+<td><b>Nombre emisor:</b></td>
+<td>'.$nombreEmisor.'</td>
+</tr>
+
+<tr>
+<td><b>Folio:</b></td>
+<td>'.$folio.'</td>
+</tr>
+
+<tr>
+<td><b>RFC receptor:</b></td>
+<td>'.$rfcReceptor.'</td>
+</tr>
+
+<tr>
+<td><b>Nombre receptor:</b></td>
+<td>'.$nombreReceptor.'</td>
+</tr>
+
+<tr>
+<td><b>Código postal del receptor:</b></td>
+<td>'.$cpReceptor.'</td>
+</tr>
+
+<tr>
+<td><b>Régimen fiscal receptor:</b></td>
+<td>'.$regReceptorDesc.'</td>
+</tr>
+
+<tr>
+<td><b>Uso CFDI:</b></td>
+<td>'.$usoCfdi.'</td>
+</tr>
+
 </table>
 
-<table width="100%" border="1" cellpadding="4">
-<tr>
-<td>
-Régimen fiscal: '.$regimenEmisor.'<br>
-Tipo comprobante: I<br>
-Exportación: 01
 </td>
+
+<td width="50%">
+
+<table>
+
+<tr>
+<td><b>Folio fiscal:</b></td>
+<td>'.$uuid.'</td>
 </tr>
+
+<tr>
+<td><b>No. de serie del CSD:</b></td>
+<td>'.$noCertSAT.'</td>
+</tr>
+
+<tr>
+<td><b>Serie:</b></td>
+<td>'.$serie.'</td>
+</tr>
+
+<tr>
+<td><b>Fecha de emisión:</b></td>
+<td>'.$fecha.'</td>
+</tr>
+
+<tr>
+<td><b>Efecto de comprobante:</b></td>
+<td>Ingreso</td>
+</tr>
+
+<tr>
+<td><b>Régimen fiscal:</b></td>
+<td>'.$regEmisorDesc.'</td>
+</tr>
+
+<tr>
+<td><b>Exportación:</b></td>
+<td>No aplica</td>
+</tr>
+
 </table>
 
-<table width="100%" border="1" cellpadding="4">
-<tr>
-<td>
-RFC receptor: '.$rfcReceptor.'<br>
-Nombre receptor: '.$nombreReceptor.'<br>
-CP receptor: '.$cpReceptor.'<br>
-Uso CFDI: '.$usoCfdi.'
 </td>
+
 </tr>
 </table>
 
-<table width="100%" border="1" cellpadding="4">
+<!-- CONCEPTOS -->
+<table class="concept-table section">
 <tr>
-<th>Clave</th>
-<th>Cant</th>
+<th>Clave del producto y/o servicio</th>
+<th>No. identificación</th>
+<th>Cantidad</th>
+<th>Clave de unidad</th>
 <th>Unidad</th>
-<th>Descripción</th>
-<th>V.Unit</th>
+<th>Valor unitario</th>
 <th>Importe</th>
-</tr>
-';
-
-foreach ($conceptos as $c) {
-    $a = $c->attributes();
-
-    $html .= '<tr>
-        <td>'.$a['ClaveProdServ'].'</td>
-        <td>'.$a['Cantidad'].'</td>
-        <td>'.$a['ClaveUnidad'].'</td>
-        <td>'.$a['Descripcion'].'</td>
-        <td>'.number_format((float)$a['ValorUnitario'], 2).'</td>
-        <td>'.number_format((float)$a['Importe'], 2).'</td>
-    </tr>';
-}
-
-$html .= '
-<tr>
-<td colspan="6">
-IVA 16%: '.$totalImpuestos.'
-</td>
+<th>Descuento</th>
+<th>Objeto impuesto</th>
 </tr>';
 
+foreach($cfdi->Conceptos->Concepto as $c){
+$a = $c->attributes();
 $html .= '
-<table width="100%" border="1" class="small">
-<tr><td>UUID: '.$uuid.'</td></tr>
-<tr><td>Fecha timbrado: '.$fechaTimbrado.'</td></tr>
-<tr><td>RFC PAC: '.$rfcProvCert.'</td></tr>
-</table>';
+<tr>
+<td>'.$a['ClaveProdServ'].'</td>
+<td>'.($a['NoIdentificacion'] ?? '').'</td>
+<td>'.$a['Cantidad'].'</td>
+<td>'.$a['ClaveUnidad'].'</td>
+<td>'.($a['Unidad'] ?? '').'</td>
+<td class="right">'.money($a['ValorUnitario']).'</td>
+<td class="right">'.money($a['Importe']).'</td>
+<td class="right">'.money($a['Descuento'] ?? 0).'</td>
+<td>Sí objeto de impuesto</td>
+</tr>
 
+<!-- FILA DESCRIPCIÓN + IMPUESTOS (MISMA FILA) -->
+<tr>
+<td style="background:#d9d9d9; white-space:nowrap;"><b>Descripción</b></td>
+<td colspan="4">'.$a['Descripcion'].'</td>
+<td colspan="4" style="border:none; vertical-align:top;">
 
-$html .= '
-<div class="small">
-<b>Sello CFDI:</b><br>'.$selloCFD.'<br><br>
-<b>Sello SAT:</b><br>'.$selloSAT.'
-</div>';
+<table style="width:100%; border:none; font-size:9px;">
+<tr>
 
-// ============================
-// ✅ ADDENDA
-// ============================
-$addendaNodes = $xmlObj->xpath('//*[local-name()="Addenda"]');
+<td style="border:none;" class="right">
+<b>Impuesto</b><br>IVA
+</td>
 
-if (!empty($addendaNodes)) {
+<td style="border:none;" class="right">
+<b>Tipo</b><br>Traslado
+</td>
 
-    $addendaXml = $addendaNodes[0]->asXML();
+<td style="border:none;" class="right">
+<b>Base</b><br>'.money($a['Importe']).'
+</td>
 
-    $html .= '
-    <div class="box small">
-        <b>Addenda</b><br>
-        <pre>'.htmlspecialchars($addendaXml).'</pre>
-    </div>';
+<td style="border:none;" class="right">
+<b>Tasa</b><br>16%
+</td>
+
+<td style="border:none;" class="right">
+<b>Importe</b><br>'.money($totalImpuestos).'
+</td>
+
+</tr>
+</table>
+
+</td>
+
+</tr>
+
+<!-- FILA PEDIMENTO / CUENTA -->
+<tr>
+<td style="background:#d9d9d9;"><b>Número de pedimento</b></td>
+<td></td>
+<td style="background:#d9d9d9;"><b>Número de cuenta predial</b></td>
+<td></td>
+<td style="border:none;" colspan="5"></td>
+</tr>
+';
 }
 
-// ============================
-// ✅ QR IMAGE
-// ============================
-$html .= '
-<div class="section">
-    <b>QR SAT</b><br>
-    <img src="data:image/png;base64,'.$qrBase64.'" />
-</div>';
+$html.='
+<table class="section" style="width:100%; margin-top:15px; border-collapse:collapse;">
 
-// ============================
-// ✅ PDF
-// ============================
-if (ob_get_length()) ob_end_clean();
+<tr>
 
-$dompdf = new Dompdf();
-$dompdf->set_option('isRemoteEnabled', true);
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4');
-$dompdf->render();
+<!-- ✅ MONEDA -->
+<td style="border:none; width:20%;"><b>Moneda:</b></td>
+<td style="border:none; width:30%;">Peso Mexicano</td>
 
-if (ob_get_length()) ob_end_clean();
+<!-- ✅ SUBTOTAL -->
+<td style="border:none; width:20%;"><b>Subtotal</b></td>
+<td style="border:none; width:30%; text-align:right;">
+$ '.money($subtotal).'
+</td>
 
-// ✅ quitar .xml si existe
-$filename = preg_replace('/\.xml$/i', '', $filename);
+</tr>
 
-// ✅ asegurar extensión pdf
-$filename .= '.pdf';
+<tr>
 
-$dompdf->stream($filename, ["Attachment" => true]);
+<!-- ✅ FORMA PAGO -->
+<td style="border:none;"><b>Forma de pago:</b></td>
+<td style="border:none;">'.$formaPago.'</td>
+
+<!-- ✅ IMPUESTOS -->
+<td style="white-space:nowrap;">
+<b>Impuestos trasladados IVA 16%</b>
+</td>
+<td style="border:none; text-align:right;">
+$ '.money($totalImpuestos).'
+</td>
+
+</tr>
+
+<tr>
+
+<!-- ✅ METODO PAGO -->
+<td style="border:none;"><b>Método de pago:</b></td>
+<td style="border:none;">'.$metodoPago.'</td>
+
+<!-- ✅ TOTAL -->
+<td style="border:none;"><b>Total</b></td>
+<td style="border:none; text-align:right; font-weight:bold;">
+$ '.money($total).'
+</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+</table>
+
+<!-- SELLOS -->
+<div class="section small text-block">
+<b>Sello digital del CFDI:</b><br>
+'.$selloCFD.'<br><br>
+
+<b>Sello digital del SAT:</b><br>
+'.$selloSAT.'
+</div>
+
+<!-- CADENA -->
+<div class="section small text-block">
+<b>Cadena original del complemento de certificación digital del SAT:</b><br>
+'.$cadena.'
+</div>
+
+<!-- SAT INFO -->
+<table class="section small">
+<tr>
+<td><b>RFC del proveedor de certificación:</b> '.$rfcProvCert.'</td>
+<td><b>Fecha certificación:</b> '.$fechaTimbrado.'</td>
+</tr>
+<tr>
+<td><b>No certificado SAT:</b> '.$noCertSAT.'</td>
+<td></td>
+</tr>
+</table>
+
+<!-- FOOTER -->
+<div class="section small">
+Este documento es una representación impresa de un CFDI<br>
+El logotipo de esta factura es responsabilidad única y exclusiva de quien la emite, en consecuencia,<br>
+el SAT queda relevado de cualquier obligación que derive de ello.<br>
+Página 1 de 1
+</div>
+';
+
+// ✅ DEBUG HTML
+echo $html;
 exit;
