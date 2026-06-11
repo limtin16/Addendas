@@ -11,12 +11,9 @@ for($i=0;$i<$count;$i++){ $path.="../"; }
 
 require_once $path."backend/config.php";
 require_once $path."backend/db.php";
-require_once $path."backend/helpers/dompdf/autoload.inc.php";
 $baseDir = realpath(__DIR__ . "/../../"); // ajusta niveles si es necesario
 $xsltPath = $baseDir . "/backend/xslt/cadenaoriginal_4_0.xslt";
-$generatePDF = TRUE; // ✅ TRUE = PDF | FALSE = HTML
-
-use Dompdf\Dompdf;
+$generatePDF = FALSE; // ✅ TRUE = PDF | FALSE = HTML
 
 function generarCadenaOriginal($xmlString) {
 
@@ -75,6 +72,10 @@ $re=$cfdi->Receptor->attributes();
 $root=$xmlObj->attributes();
 
 $tfd=$xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]')[0]->attributes();
+$test=$cfdi->Conceptos->Concepto->attributes();
+
+//print_r($test);
+//exit;
 
 // ✅ VARIABLES
 $rfcEmisor=(string)$em['Rfc'];
@@ -90,9 +91,13 @@ $regimenReceptor=(string)$re['RegimenFiscalReceptor'];
 $serie=(string)$root['Serie'];
 $folio=(string)$root['Folio'];
 $fecha=(string)$root['Fecha'];
+$moneda=(string)$root['Moneda'];
+//cambiar formato
+$tipoComprobante=(string)$root['TipoDeComprobante'];
+$Exportacion=(string)$root['Exportacion'];
 $metodoPago=(string)$root['MetodoPago'];
 $formaPago=(string)$root['FormaPago'];
-$moneda=(string)$root['Moneda'];
+
 
 $total=(float)$root['Total'];
 $subtotal=(float)$root['SubTotal'];
@@ -181,34 +186,35 @@ $html='
 <style>
 body{
     font-family:Arial;
-    font-size:12px;
+    font-size:14px;
     line-height:1.5;
-    background:#e6e6e6;
+    background:#fff;
 }
 
 table:not(.concept-table) td,
 table:not(.concept-table) th{
-    font-size:12px;
+    font-size:14px;
 }
 
 .concept-table th{
     font-weight:bold;
-    font-size:9px !important;
+    font-size:10px !important;
+    text-align:center;
 }
 
 .concept-table td{
-    font-size:9px !important;
+    font-size:10px !important;
 }
 
 .cfdi-string {
-    font-size:11px;               /* 🔥 controla tamaño */
+    font-size:13px;               /* 🔥 controla tamaño */
     line-height:1.2;
     word-break:break-all;        /* 🔥 corta correctamente */
     overflow-wrap:break-word;
 }
 
 .cfdi-title {
-    font-size:10px;        /* 🔥 controla tamaño del título */
+    font-size:12px;        /* 🔥 controla tamaño del título */
     font-weight:bold;
     margin-bottom:2px;
 }
@@ -218,6 +224,8 @@ table:not(.concept-table) th{
     margin:auto;
     background:#fff;
     padding:20px;
+    page-break-inside: avoid;
+    padding-bottom: 80px;
 }
 
 table{
@@ -247,17 +255,13 @@ td{
     line-height:1.4;
 }
 
-.small{ font-size:8px; }
+.small{ font-size:9px; }
 
 .right{ text-align:right; }
 
 .concept-table td{
     vertical-align:middle;
-}
-
-.concept-table th,
-.concept-table td{
-    font-size:9px !important;
+    text-align:center;
 }
 
 .concept-table th:nth-child(1){ width:12%; }
@@ -278,14 +282,7 @@ td{
 .inline-block {
     display:inline-block;
 }
-    .concept-table td{
-    vertical-align:middle;
-}
-    .concept-table td,
-.concept-table th{
-    text-align:center;
-}
-    .section td{
+.section td{
     padding:4px 8px;
 }
 
@@ -303,7 +300,7 @@ td{
 .row-b td{
     height: 10px;
     overflow:hidden;
-    font-size:8px;
+    font-size:9px;
 }
 
 .row-c td{
@@ -325,6 +322,42 @@ td{
 .section td b{
     white-space:nowrap;
 }
+tr {
+    page-break-inside: avoid;
+}
+
+.concept-table tr {
+    page-break-inside: avoid;
+}
+
+.row-b, .row-c {
+    page-break-inside: avoid;
+}
+
+td {
+    page-break-inside: avoid;
+}
+
+table {
+    page-break-inside: auto;
+}
+
+tr {
+    page-break-after: auto;
+    page-break-before: auto;
+}
+body {
+    overflow: visible !important;
+}
+.footer-fixed {
+    position: fixed;
+    bottom: 10mm;
+    left: 20px;
+    right: 20px;
+    font-size: 11px;
+    text-align: center;
+}
+
 
 </style>
 
@@ -408,7 +441,7 @@ td{
 
 <tr>
 <td><b>Efecto de comprobante:</b></td>
-<td>Ingreso</td>
+<td>'.$tipoComprobante.'</td>
 </tr>
 
 <tr>
@@ -418,7 +451,7 @@ td{
 
 <tr>
 <td><b>Exportación:</b></td>
-<td>No aplica</td>
+<td>'.$Exportacion.'</td>
 </tr>
 
 </table>
@@ -444,6 +477,7 @@ td{
 
 foreach($cfdi->Conceptos->Concepto as $c){
 $a = $c->attributes();
+$b = $c->Impuestos->Traslados->Traslado->attributes();
 $html .= '
 <tr class="row-b">
 <td>'.$a['ClaveProdServ'].'</td>
@@ -454,7 +488,7 @@ $html .= '
 <td class="right">'.money($a['ValorUnitario']).'</td>
 <td class="right">'.money($a['Importe']).'</td>
 <td class="right">'.money($a['Descuento'] ?? 0).'</td>
-<td>Sí objeto de impuesto</td>
+<td>'.($a['ObjetoImp'] ?? '').'</td>
 </tr>
 
 <!-- FILA DESCRIPCIÓN + IMPUESTOS (MISMA FILA) -->
@@ -469,19 +503,19 @@ $html .= '
 <tr>
 
 <td style="border:none;" class="right">
-<b>Impuesto</b><br>IVA
+<b>Impuesto</b><br>'.($b['Impuesto'] ?? '').' 
 </td>
 
 <td style="border:none;" class="right">
-<b>Tipo</b><br>Traslado
+<b>Tipo</b><br>'.($b['TipoFactor'] ?? '').'
 </td>
 
 <td style="border:none;" class="right">
-<b>Base</b><br>'.money($a['Importe']).'
+<b>Base</b><br>'.money($b['Importe']).'
 </td>
 
 <td style="border:none;" class="right">
-<b>Tasa</b><br>16%
+<b>Tasa</b><br>'.($b['TasaOCuota'] ?? '').'
 </td>
 
 <td style="border:none;" class="right">
@@ -663,14 +697,13 @@ $html .= '
 </table>
 
 <!-- FOOTER -->
-<div class="section small footer">
+<div class="footer-fixed">
 Este documento es una representación impresa de un CFDI<br>
 El logotipo de esta factura es responsabilidad única y exclusiva de quien la emite, en consecuencia,<br>
 el SAT queda relevado de cualquier obligación que derive de ello.<br>
 Página 1 de 1
 </div>
 ';
-
 
 // ============================
 // ✅ OUTPUT CONTROL
@@ -681,17 +714,81 @@ if (!$generatePDF) {
     exit;
 }
 
-// ✅ PDF
 if (ob_get_length()) ob_end_clean();
-
-$dompdf = new Dompdf();
-$dompdf->set_option('isRemoteEnabled', true);
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4');
-$dompdf->render();
 
 // ✅ nombre archivo
 $filename = preg_replace('/\.xml$/i', '', $row['filename']) . '.pdf';
 
-$dompdf->stream($filename, ["Attachment" => true]);
+// ============================
+// ✅ PDFShift
+// ============================
+
+// 🔴 API KEY
+$apiKey = 'sk_47b03f0031a2eaf48dbe6b9fe23ea39900b2384d';
+
+// ✅ iniciar CURL
+$ch = curl_init();
+
+curl_setopt_array($ch, [
+    CURLOPT_URL => "https://api.pdfshift.io/v3/convert/pdf",
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => json_encode([
+        "source" => '
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="UTF-8">
+        <style>
+        body { margin:0; }
+        </style>
+        </head>
+        <body>
+        '.$html.'
+        </body>
+        </html>
+        ',
+
+        // ✅ tamaño hoja
+        "format" => "A4",
+
+        // ✅ márgenes (formato correcto)
+        "margin" => [
+            "top" => "10mm",
+            "bottom" => "10mm",
+            "left" => "10mm",
+            "right" => "10mm"
+        ],
+
+        // ✅ opciones válidas
+        "use_print" => false
+    ]),
+    CURLOPT_HTTPHEADER => [
+        "Content-Type: application/json",
+        "X-API-Key: " . $apiKey
+    ],
+]);
+
+$pdf = curl_exec($ch);
+
+// ✅ error CURL
+if ($pdf === false) {
+    die('Error PDFShift: ' . curl_error($ch));
+}
+
+// ✅ status HTTP
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+if ($httpCode != 200) {
+    die("Error PDFShift (HTTP $httpCode): " . $pdf);
+}
+
+// ============================
+// ✅ OUTPUT PDF
+// ============================
+
+header('Content-Type: application/pdf');
+header('Content-Disposition: attachment; filename="'.$filename.'"');
+echo $pdf;
 exit;
