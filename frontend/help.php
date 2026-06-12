@@ -172,6 +172,110 @@ code {
     </div>
 </div>
 
+<div class="accordion">
+    <div class="accordion-header">
+        🧾 Crear factura y agregar Addenda (flujo completo)
+        <span>+</span>
+    </div>
+    <div class="accordion-body">
+        <p>
+        Para generar una addenda primero necesitas una factura electrónica (CFDI). Aquí te explicamos todo el proceso completo paso a paso.
+        </p>
+        <hr>
+        <h4>✅ 1. Generar tu factura (CFDI)</h4>
+        <p>Puedes generarla de dos formas:</p>
+        <h5>🔹 Opción A: Usar tu sistema de facturación (PAC)</h5>
+        <ul>
+        <li>Genera tu factura normalmente en tu sistema</li>
+        <li>Descarga el archivo <b>XML</b></li>
+        </ul>
+        <div class="help-box">
+            ✅ Recomendado si ya tienes un sistema de facturación
+        </div>
+        ---
+        <h5>🔹 Opción B: Usar el portal gratuito del SAT</h5>
+        <p>
+        Puedes generar una factura directamente en el SAT usando su herramienta oficial:
+        </p>
+        <a href="https://www.google.com/goto?url=CAESmgEB7keqTWvfdzLTthkGMnHnrr0OAKG4izdr26_RwHtDDUqw9wXbwCZiGpPby9myRF58iS1GEVWJGmz46rvyAahL_8NKm8EoKEJA030YnZg4gmF-xxY7jdVdWtO_V133NNoCILJrmHV5lYJsTtj0iS4IcscyAJl7d-gSFm3upajUoYYZMStdbuXNUHuyIInAjfM0wAIos3pr_eko" target="_blank" class="btn blue small">
+            📘 Ver manual oficial del SAT
+        </a>
+        <div class="help-box">
+            💡 Solo necesitas generar una factura simple con al menos un concepto.
+        </div>
+        ---
+        <h4>📥 2. Descargar el archivo XML</h4>
+        <p>
+        Una vez generada la factura:
+        </p>
+        <ul>
+        <li>Descarga el archivo <b>XML</b> (es el más importante)</li>
+        <li>Guárdalo en tu equipo</li>
+        </ul>
+        <div class="help-box">
+            ⚠️ Este archivo es el que usarás en AddendaFacil
+        </div>
+        ---
+        <h4>⚙️ 3. Ir a AddendaFacil</h4>
+        <p>
+        Regresa a la plataforma y selecciona:
+        </p>
+        <ul>
+        <li>Crear Addenda</li>
+        <li>Elige el modo que necesitas (Manual, XML o XSD)</li>
+        </ul>
+        ---
+        <h4>📤 4. Subir tu CFDI</h4>
+        <p>
+        Sube el archivo XML que descargaste del SAT o tu sistema de facturación.
+        </p>
+        <div class="help-box">
+            💡 El sistema puede leer automáticamente datos del CFDI para llenar campos.
+        </div>
+        ---
+        <h4>🧩 5. Generar la Addenda</h4>
+        <p>
+        Dependiendo del modo seleccionado:
+        </p>
+        <ul>
+        <li>Modo manual: defines la estructura paso a paso</li>
+        <li>Modo XML: replicas una addenda existente</li>
+        <li>Modo XSD: generas estructura desde archivo técnico</li>
+        </ul>
+        <p>
+        Después, el sistema insertará la addenda dentro del CFDI.
+        </p>
+        ---
+        <h4>📥 6. Descargar el CFDI final</h4>
+        <p>
+        Obtendrás un archivo XML con la addenda incluida.
+        </p>
+        <div class="help-box">
+            ✅ Este es el archivo final que debes enviar a tu cliente <br>
+            ✅ Generalmente los sistemas de recepcion de facturas (EJ. COFIDI, Portal Pegaso etc) tienen un checkbox para agregar addenda, en este caso no debes marcarlo ya que tu factura ya la contiene
+        </div>
+        ---
+        <h4>⚠️ Consideraciones importantes</h4>
+        <div class="help-box">
+            ❗ El SAT no agrega addendas automáticamente
+        </div>
+        <div class="help-box">
+            ❗ Las addendas son requeridas por clientes específicos
+        </div>
+        <div class="help-box">
+            ❗ El CFDI debe estar previamente generado antes de usar esta plataforma
+        </div>
+        ---
+        <h4>✅ Resumen rápido</h4>
+        <div class="help-box">
+            1. Genera tu factura (SAT o PAC)  
+            <br>2. Descarga el XML  
+            <br>3. Súbelo en AddendaFacil  
+            <br>4. Genera la addenda  
+            <br>5. Descarga el CFDI final listo
+        </div>
+    </div>
+</div>
 
 <div class="accordion">
     <div class="accordion-header">
@@ -477,27 +581,28 @@ Los créditos pueden tardar unos segundos en reflejarse.
 <script>
 
 function showTab(tabId) {
-
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
     document.getElementById(tabId).classList.add('active');
-
     event.target.classList.add('active');
 }
 
 document.querySelectorAll('.accordion-header').forEach(header => {
-
     header.addEventListener('click', () => {
-
+        const accordion = header.parentElement;
+        const icon = header.querySelector('span');
+        const isActive = accordion.classList.contains('active');
+        // Cerrar todos y resetear iconos
         document.querySelectorAll('.accordion').forEach(acc => {
             acc.classList.remove('active');
+            acc.querySelector('.accordion-header span').textContent = '+';
         });
-
-        header.parentElement.classList.add('active');
-
+        // Si estaba cerrado → abrirlo
+        if (!isActive) {
+            accordion.classList.add('active');
+            icon.textContent = '−';
+        }
     });
-
 });
 
 </script>
