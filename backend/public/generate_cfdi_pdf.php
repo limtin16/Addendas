@@ -13,7 +13,7 @@ require_once $path."backend/config.php";
 require_once $path."backend/db.php";
 $baseDir = realpath(__DIR__ . "/../../"); // ajusta niveles si es necesario
 $xsltPath = $baseDir . "/backend/xslt/cadenaoriginal_4_0.xslt";
-$generatePDF = FALSE; // ✅ TRUE = PDF | FALSE = HTML
+$generatePDF = TRUE; // ✅ TRUE = PDF | FALSE = HTML
 
 function generarCadenaOriginal($xmlString) {
 
@@ -72,10 +72,7 @@ $re=$cfdi->Receptor->attributes();
 $root=$xmlObj->attributes();
 
 $tfd=$xmlObj->xpath('//*[local-name()="TimbreFiscalDigital"]')[0]->attributes();
-$test=$cfdi->Conceptos->Concepto->attributes();
-
-//print_r($test);
-//exit;
+$Impuestos=$cfdi->Impuestos->Traslados->Traslado->attributes();
 
 // ✅ VARIABLES
 $rfcEmisor=(string)$em['Rfc'];
@@ -101,9 +98,6 @@ $formaPago=(string)$root['FormaPago'];
 
 $total=(float)$root['Total'];
 $subtotal=(float)$root['SubTotal'];
-
-$taxNode=$xmlObj->xpath('//*[local-name()="Impuestos"]')[0]??null;
-$totalImpuestos=$taxNode?(float)$taxNode->attributes()['TotalImpuestosTrasladados']:0;
 
 $uuid=(string)$tfd['UUID'];
 $fechaTimbrado=(string)$tfd['FechaTimbrado'];
@@ -148,6 +142,70 @@ if ($resUso && $resUso->num_rows > 0) {
 }
 
 $usoCfdi = $usoCfdiMap[$usoCfdiCode] ?? $usoCfdiCode;
+
+$monedaMap = [];
+$resMoneda = $conn->query("SELECT clave, descripcion FROM c_moneda_sat");
+
+if ($resMoneda && $resMoneda->num_rows > 0) {
+    while ($rowM = $resMoneda->fetch_assoc()) {
+        $monedaMap[$rowM['clave']] = $rowM['descripcion'];
+    }
+}
+
+$monedaDesc = $monedaMap[$moneda] ?? $moneda;
+
+$metodoPagoMap = [];
+$resMP = $conn->query("SELECT clave, descripcion FROM c_metodo_pago_sat");
+
+if ($resMP && $resMP->num_rows > 0) {
+    while ($rowMP = $resMP->fetch_assoc()) {
+        $metodoPagoMap[$rowMP['clave']] = $rowMP['descripcion'];
+    }
+}
+
+$formaPagoMap = [];
+$resFP = $conn->query("SELECT clave, descripcion FROM c_forma_pago_sat");
+
+if ($resFP && $resFP->num_rows > 0) {
+    while ($rowFP = $resFP->fetch_assoc()) {
+        $formaPagoMap[$rowFP['clave']] = $rowFP['descripcion'];
+    }
+}
+
+$formaPagoDesc = $formaPagoMap[$formaPago] ?? $formaPago;
+
+$metodoPagoDesc = $metodoPagoMap[$metodoPago] ?? $metodoPago;
+
+$tipoComprobanteMap = [];
+$resTC = $conn->query("SELECT clave, descripcion FROM c_tipo_comprobante_sat");
+
+if ($resTC && $resTC->num_rows > 0) {
+    while ($rowTC = $resTC->fetch_assoc()) {
+        $tipoComprobanteMap[$rowTC['clave']] = $rowTC['descripcion'];
+    }
+}
+
+$tipoComprobanteDesc = $tipoComprobanteMap[$tipoComprobante] ?? $tipoComprobante;
+
+$exportacionMap = [];
+$resExp = $conn->query("SELECT clave, descripcion FROM c_exportacion_sat");
+
+if ($resExp && $resExp->num_rows > 0) {
+    while ($rowExp = $resExp->fetch_assoc()) {
+        $exportacionMap[$rowExp['clave']] = $rowExp['descripcion'];
+    }
+}
+
+$exportacionDesc = $exportacionMap[$Exportacion] ?? $Exportacion;
+
+$impuestoMap = [];
+$resImp = $conn->query("SELECT clave_impuesto, descripcion FROM catalogo_impuestos_sat");
+
+if ($resImp && $resImp->num_rows > 0) {
+    while ($rowImp = $resImp->fetch_assoc()) {
+        $impuestoMap[$rowImp['clave_impuesto']] = $rowImp['descripcion'];
+    }
+}
 
 // ============================
 // ✅ QR
@@ -358,7 +416,10 @@ body {
     text-align: center;
 }
 
-
+.totales td,
+.totales th {
+    font-size:12px !important;
+}
 </style>
 
 <div class="pdf-container">
@@ -441,7 +502,7 @@ body {
 
 <tr>
 <td><b>Efecto de comprobante:</b></td>
-<td>'.$tipoComprobante.'</td>
+<td>'.$tipoComprobanteDesc.'</td>
 </tr>
 
 <tr>
@@ -451,7 +512,7 @@ body {
 
 <tr>
 <td><b>Exportación:</b></td>
-<td>'.$Exportacion.'</td>
+<td>'.$exportacionDesc.'</td>
 </tr>
 
 </table>
@@ -478,6 +539,8 @@ body {
 foreach($cfdi->Conceptos->Concepto as $c){
 $a = $c->attributes();
 $b = $c->Impuestos->Traslados->Traslado->attributes();
+$g = isset($c->CuentaPredial) ? $c->CuentaPredial->attributes() : null;
+$h = isset($c->InformacionAduanera) ? $c->InformacionAduanera->attributes() : null;
 $html .= '
 <tr class="row-b">
 <td>'.$a['ClaveProdServ'].'</td>
@@ -503,7 +566,7 @@ $html .= '
 <tr>
 
 <td style="border:none;" class="right">
-<b>Impuesto</b><br>'.($b['Impuesto'] ?? '').' 
+<b>Impuesto</b><br>'.($impuestoMap[(string)($b['Impuesto'] ?? '')] ?? ($b['Impuesto'] ?? '')).' 
 </td>
 
 <td style="border:none;" class="right">
@@ -515,11 +578,13 @@ $html .= '
 </td>
 
 <td style="border:none;" class="right">
-<b>Tasa</b><br>'.($b['TasaOCuota'] ?? '').'
+<b>Tasa</b><br>'.(isset($b['TasaOCuota'])
+    ? number_format((float)$b['TasaOCuota'] * 100, 2).'%' 
+    : '').'
 </td>
 
 <td style="border:none;" class="right">
-<b>Importe</b><br>'.money($totalImpuestos).'
+<b>Importe</b><br>'.money($Impuestos['Importe']).'
 </td>
 
 </tr>
@@ -536,21 +601,19 @@ $html .= '
 </tr>
 
 <tr class="row-b">
-<td colspan="2"></td>
-<td colspan="2"></td>
+<td colspan="2">'.($g['Numero'] ?? '').'</td>
+<td colspan="2">'.($h['NumeroPedimento'] ?? '').'</td>
 </tr>
 
 ';
 }
 
 $html.='
-<table class="section" style="width:100%; margin-top:15px; border-collapse:collapse;">
-
+<table class="section totales" style="width:100%; margin-top:15px; border-collapse:collapse;">
 <tr>
-
 <!-- ✅ MONEDA -->
 <td style="border:none; width:20%;"><b>Moneda:</b></td>
-<td style="border:none; width:30%;">Peso Mexicano</td>
+<td style="border:none; width:30%;">'.$monedaDesc.'</td>
 
 <!-- ✅ SUBTOTAL -->
 <td style="border:none; width:20%;"><b>Subtotal</b></td>
@@ -564,14 +627,16 @@ $ '.money($subtotal).'
 
 <!-- ✅ FORMA PAGO -->
 <td style="border:none;"><b>Forma de pago:</b></td>
-<td style="border:none;">'.$formaPago.'</td>
+<td style="border:none;">'.$formaPagoDesc.'</td>
 
 <!-- ✅ IMPUESTOS -->
 <td style="white-space:nowrap;">
-<b>Impuestos trasladados </b> &nbsp;&nbsp;&nbsp IVA &nbsp;&nbsp 16%
+<b>Impuestos trasladados </b> &nbsp;&nbsp;&nbsp '.($impuestoMap[(string)$Impuestos['Impuesto']] ?? $Impuestos['Impuesto']).' &nbsp;&nbsp '.(isset($Impuestos['TasaOCuota'])
+    ? number_format((float)$Impuestos['TasaOCuota'] * 100, 2).'%' 
+    : '').'
 </td>
 <td style="border:none; text-align:right;">
-$ '.money($totalImpuestos).'
+$ '.money($Impuestos['Importe']).'
 </td>
 
 </tr>
@@ -580,7 +645,7 @@ $ '.money($totalImpuestos).'
 
 <!-- ✅ METODO PAGO -->
 <td style="border:none;"><b>Método de pago:</b></td>
-<td style="border:none;">'.$metodoPago.'</td>
+<td style="border:none;">'.$metodoPagoDesc.'</td>
 
 <!-- ✅ TOTAL -->
 <td style="border:none;"><b>Total</b></td>
@@ -590,11 +655,6 @@ $ '.money($total).'
 
 </tr>
 
-</table>
-
-</td>
-
-</tr>
 </table>
 ';
 

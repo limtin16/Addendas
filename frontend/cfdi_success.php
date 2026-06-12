@@ -113,12 +113,10 @@ if ($isLogged) {
             </a>
 
             <br><br>
-
-            <!--
-            <a href="<?= BASE_URL ?>/backend/public/generate_cfdi_pdf.php?id=<?= $cfdi['id'] ?>" class="btn purple">
-                🧾 Descargar PDF
-            </a>
-            -->
+                <a href="<?= BASE_URL ?>/backend/public/generate_cfdi_pdf.php?id=<?= $cfdi['id'] ?>" class="btn purple"
+                onclick="return confirmPDF();">
+                    🧾 Descargar PDF
+                </a>
             <br><br>
 
             <?php if ($isLogged): ?>
@@ -180,7 +178,17 @@ function confirmGuardarTemplate() {
     );
 }
 
-
+function confirmPDF() {
+    return confirm(
+        "⚠️ IMPORTANTE\n\n" +
+        "El archivo PDF es únicamente una representación impresa del CFDI.\n\n" +
+        "• NO tiene validez fiscal oficial.\n" +
+        "• El documento válido es el XML.\n\n" +
+        "El PDF puede presentar diferencias visuales dependiendo del tipo de comprobante,\n" +
+        "lo cual NO afecta la validez ni integridad del CFDI.\n\n" +
+        "¿Deseas continuar con la descarga?"
+    );
+}
 </script>
 <?php unset($_SESSION['using_template']); ?>
 </body>
