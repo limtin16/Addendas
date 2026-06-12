@@ -1,0 +1,21 @@
+{
+    "id": "tpl_6a2c4779a9b8c3.14781170",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "test1",
+                    "representation": "attribute"
+                }
+            ],
+            "addenda_extra_ns": "http:\/\/addendatest.com"
+        }
+    },
+    "createdAt": null
+}

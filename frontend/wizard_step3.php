@@ -36,21 +36,19 @@ if (!$templateId) {
         <div class="card">
 
             <h2>Crear addenda – Paso 3</h2>
-            <p>Agrega campos simples a la addenda.</p>
+            <p>Agrega campos simples a la addenda como atributo en la seccion principal.</p>
 
             <!-- FORM STEP 3 -->
             <form method="post" action="<?= BASE_URL ?>/backend/public/save_template_step3.php">
                 <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
-
-                <label>Nombre del campo</label>
+                <label>
+                    Nombre del campo
+                    <span class="tooltip" data-tooltip="Es el nombre del dato que aparecerá en la addenda. Debe coincidir con lo que el cliente espera (por ejemplo: Fecha, Total, NúmeroDeOrden).">
+                        ℹ️
+                    </span>
+                </label>
                 <input type="text" name="field_name" placeholder="Ej. Folio" required>
-
-                <label>Representación</label>
-                <select name="representation" required>
-                    <option selected="selected" value="attribute">Como atributo</option>
-                    <option value="node">Como nodo</option>
-                </select>
-
+                <input type="hidden" name="representation" value="attribute">
                 <button type="submit">Agregar campo</button>
             </form>
 

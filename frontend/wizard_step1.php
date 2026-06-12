@@ -37,13 +37,17 @@ if (
 <div class="main">
     <div class="container">
 
-        <div class="card">
+        <div class="card tooltip-safe">
             <h2>Crear plantilla – Paso 1</h2>
             <p>Define la información básica de la plantilla.</p>
 
             <form method="POST" action="<?= BASE_URL ?>/backend/public/save_template_step1.php">
-                
-                <label for="name">Nombre de la plantilla</label>
+                <label for="name">
+                    Nombre de la plantilla
+                    <span class="tooltip" data-tooltip="Asigna un nombre para identificacion, no affecta la addenda en si">
+                        ℹ️
+                    </span>
+                </label>
                 <input type="text" id="name" name="name" required>
                 <div class="hint">Ejemplo: Addenda Mycorp </div>
                 <button type="submit">Continuar al Paso 2</button>

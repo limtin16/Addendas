@@ -69,9 +69,19 @@ $groups = $template->structure['root']['children'] ?? [];
 
                 <form method="post" action="<?= BASE_URL ?>/backend/public/start_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
-                    <label>Nombre del grupo</label>
+                    <label>
+                        Nombre del grupo
+                        <span class="tooltip" data-tooltip="Es el nombre del grupo donde se organizan varios elementos similares, como una lista de conceptos o productos. Se ve como una etiqueta en forma de nodo debajo de la seccion principal">
+                            ℹ️
+                        </span>
+                    </label>
                     <input type="text" name="group_name" required>
-                    <label>Nombre de cada elemento</label>
+                    <label>
+                        Nombre de cada elemento
+                        <span class="tooltip" data-tooltip="Es el nombre que tendrá cada elemento dentro del grupo. Por ejemplo, si el grupo es Conceptos, cada elemento puede llamarse part o item.">
+                            ℹ️
+                        </span>
+                    </label>
                     <input type="text" name="item_name" required>
                     <button type="submit">Crear grupo</button>
                 </form>
@@ -94,15 +104,14 @@ $groups = $template->structure['root']['children'] ?? [];
                 <form method="post" action="<?= BASE_URL ?>/backend/public/add_field_to_group_step4.php">
                     <input type="hidden" name="template_id" value="<?= htmlspecialchars($templateId) ?>">
                     <input type="hidden" name="current_group" value='<?= htmlspecialchars(json_encode($currentGroup)) ?>'>
-                    <label>Nombre del campo</label>
+                    <label>
+                        Nombre del campo
+                        <span class="tooltip" data-tooltip="Es el nombre del dato que tendrá cada elemento del grupo (por ejemplo: precio, cantidad o descripción dentro de cada producto o concepto). Son datos que tu cliente requiere">
+                            ℹ️
+                        </span>
+                    </label>
                     <input type="text" name="field_name" required>
-
-                    <label>Representación</label>
-                    <select name="representation" required>
-                        <option value="attribute">Como atributo</option>
-                        <option value="node">Como nodo</option>
-                    </select>
-
+                    <input type="hidden" name="representation" value="attribute">
                     <button type="submit">Agregar campo</button>
                 </form>
 

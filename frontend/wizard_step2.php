@@ -31,8 +31,12 @@ require_once $path;
             <form method="post" action="<?= BASE_URL ?>/backend/public/save_template_step2.php">
                 <!-- Id de la plantilla creada en el paso 1 -->
                 <input type="hidden" name="template_id" value="<?php echo $_GET['template_id'] ?? ''; ?>">
-
-                <label for="root">Nombre de la sección principal</label>
+                <label for="root">
+                    Nombre de la sección principal
+                    <span class="tooltip" data-tooltip="Es el nombre del bloque principal de información que el cliente espera recibir dentro del documento.">
+                        ℹ️
+                    </span>
+                </label>
                 <input type="text" id="root_name" name="root_name" required placeholder="Ej: Factura, AddendaDCM, Invoice">
                     <div class="hint">
                         <small>
@@ -40,8 +44,12 @@ require_once $path;
                         </small>
                     </div>
                 <br>
-
-                <label for="prefix">Prefijo del formato (opcional)</label>
+                <label for="prefix">
+                    Prefijo del formato (opcional)
+                    <span class="tooltip" data-tooltip="Es un identificador corto que se agrega al inicio de los nombres (por ejemplo: THY:Factura). Solo es necesario si el cliente lo solicita.">
+                        ℹ️
+                    </span>
+                </label>
                 <input type="text" id="prefix" name="prefix" placeholder="Ej: THY, mabee">
                     <div class="hint">
                         <small>   
@@ -49,7 +57,12 @@ require_once $path;
                         </small>
                     </div>
                 <br>
-                <label for="namespace">Namespace del formato</label>
+                <label for="namespace">
+                    Namespace del formato
+                    <span class="tooltip" data-tooltip="Es un identificador único del formato de la addenda (una dirección tipo web). Solo se usa si el cliente te lo proporciona.">
+                        ℹ️
+                    </span>
+                </label>
                 <input
                     type="text"
                     id="namespace"
@@ -63,7 +76,12 @@ require_once $path;
                     </small>
                 </div>
                 <br>
-                <label>Namespace para etiqueta Addenda (opcional)</label>
+                <label>
+                    Namespace para etiqueta Addenda (opcional)
+                    <span class="tooltip" data-tooltip="Es el identificador que usa el CFDI para la sección de Addenda (por ejemplo: http://www.sat.gob.mx/cfd/3). En la mayoría de los casos no es neceario especificarlo.">
+                        ℹ️
+                    </span>
+                </label>
                 <input 
                     type="text" 
                     name="addenda_extra_ns" 
