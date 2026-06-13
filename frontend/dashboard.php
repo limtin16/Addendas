@@ -185,7 +185,6 @@ document.getElementById('btn-create').addEventListener('click', function(e) {
             window.location.href = "<?= BASE_URL ?>/frontend/buy_credits.php";
         }, 3000);
     }
-
 });
 const msg = document.getElementById("paid-msg");
 if (msg) {
