@@ -187,9 +187,7 @@ document.getElementById('btn-create').addEventListener('click', function(e) {
     }
 
 });
-
 const msg = document.getElementById("paid-msg");
-
 if (msg) {
     setTimeout(() => {
         window.location.reload();
