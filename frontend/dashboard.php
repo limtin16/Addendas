@@ -39,58 +39,31 @@ $credits = $creditService->getAvailableCredits($userId);
 </head>
 <div id="predefined-warning" class="modal" style="display:none;">
 
-    <div class="modal-content modern-modal">
+    <div class="modal-content">
 
-        <!-- HEADER -->
-        <div class="modal-header">
-            <div class="modal-icon">⚠️</div>
-            <div>
-                <h3>Uso de Addendas predefinidas</h3>
-                <p class="modal-subtitle">Revisión recomendada antes de continuar</p>
-            </div>
+        <h3>⚠️ Aviso importante</h3>
+        <p>
+        Las addendas predefinidas son ejemplos generales y pueden no coincidir exactamente con los requisitos de tu cliente.
+        </p>
+        <p>
+        No existe una relación directa entre esta plataforma y las empresas emisoras, por lo que las estructuras pueden variar o estar desactualizadas.
+        </p>
+        <div class="help-box">
+        💡 Se recomienda validar con tu cliente o utilizar opciones más precisas como:
+        <ul>
+            <li>Subir un XML con addenda existente</li>
+            <li>Subir un archivo XSD oficial</li>
+        </ul>
         </div>
-
-        <!-- CONTENIDO -->
-        <div class="modal-body">
-
-            <p>
-                Las addendas predefinidas son plantillas generales y pueden no coincidir exactamente con los requisitos de tu cliente.
-            </p>
-
-            <p class="muted">
-                Estas estructuras pueden variar dependiendo de la empresa, región o incluso del departamento interno.
-            </p>
-
-            <div class="modal-warning">
-                ⚠️ No existe una relación directa entre esta plataforma y las empresas emisoras.
-            </div>
-
-            <div class="modal-section">
-                <strong>Recomendado:</strong>
-                <ul>
-                    <li>Validar la estructura con tu cliente</li>
-                    <li>Usar un XML proporcionado</li>
-                    <li>Usar un archivo XSD oficial</li>
-                </ul>
-            </div>
-
-            <!-- LOGOS (puedes cambiar rutas) -->
-            <div class="modal-logos">
-                 BASE_URL ?>/frontend/assets/logos/walmart.png" alt="Walmart">
-                <?= BASE_URL ?>/frontend/assets/logos/liverpool.png
-                <?= BASE_URL ?>/frontend/assets/logos/chedraui.png
-            </div>
-
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:15px;">
+            <button class="btn gray" onclick="closeModal()">
+                Cancelar
+            </button>
+            <button class="btn purple" onclick="goToPredefined()">
+                Continuar
+            </button>
         </div>
-
-        <!-- FOOTER -->
-        <div class="modal-footer">
-            <button class="btn gray" onclick="closeModal()">Cancelar</button>
-            <button class="btn purple" onclick="goToPredefined()">Continuar</button>
-        </div>
-
     </div>
-
 </div>
 <body>
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
