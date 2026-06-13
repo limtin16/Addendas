@@ -6,6 +6,7 @@ body {
     font-family: 'Segoe UI', Arial;
     background: #f4f6f9;
     display: flex;
+    margin-bottom: 80px;
 }
 
 /* INPUTS Y FORMULARIOS */
@@ -994,11 +995,6 @@ select.form-input:disabled {
 .privacy-footer label {
     font-size: 14px;
     max-width: 70%;
-}
-
-/* ✅ ajustar contenido para no quedar tapado */
-body {
-    margin-bottom: 80px;
 }
 
 /* ✅ layout base */
