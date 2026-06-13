@@ -1,0 +1,100 @@
+{
+    "id": "tpl_6a2c5c6220c860.06208700",
+    "name": "Addenda Upload",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "POC",
+            "namespace": "http:\/\/www.porconfirmar.com\/POC",
+            "instance": {
+                "type": "node",
+                "name": "Factura",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "TipoCFDI"
+                    },
+                    {
+                        "type": "field",
+                        "name": "Version"
+                    },
+                    {
+                        "type": "field",
+                        "name": "CContable"
+                    },
+                    {
+                        "type": "field",
+                        "name": "CCostos"
+                    },
+                    {
+                        "type": "field",
+                        "name": "Moneda"
+                    },
+                    {
+                        "type": "field",
+                        "name": "MetodoC"
+                    },
+                    {
+                        "type": "field",
+                        "name": "FormaC"
+                    },
+                    {
+                        "type": "node",
+                        "name": "Proveedor",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "RazonSocial"
+                            },
+                            {
+                                "type": "field",
+                                "name": "RFC"
+                            },
+                            {
+                                "type": "field",
+                                "name": "IDProveedor"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "OrdenCompra",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "OCompra"
+                            },
+                            {
+                                "type": "field",
+                                "name": "SolicitudOC"
+                            },
+                            {
+                                "type": "field",
+                                "name": "Descripcion"
+                            },
+                            {
+                                "type": "node",
+                                "name": "OCDTL",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "PosicionOC"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "ImporteP"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<POC:Factura xmlns:POC=\"http:\/\/www.porconfirmar.com\/POC\" TipoCFDI=\"I\" Version=\"1.0\" CContable=\"6402010104\" CCostos=\"99575\" Moneda=\"MXN\" MetodoC=\"PPD\" FormaC=\"99\"><POC:Proveedor RazonSocial=\"DESENTIS CONSULTING\" RFC=\"DCO220330FIA\" IDProveedor=\"1000002769\"\/><POC:OrdenCompra OCompra=\"7600014471\" SolicitudOC=\"Recursos Humanos\" Descripcion=\"Reclutamiento de personal IT\"><POC:OCDTL PosicionOC=\"10 \" ImporteP=\"117000.00\"\/><\/POC:OrdenCompra><\/POC:Factura>",
+            "addenda_extra_ns": "",
+            "children": []
+        }
+    },
+    "createdAt": null
+}

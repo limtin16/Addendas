@@ -1,0 +1,431 @@
+{
+    "id": "tpl_6a2c56991c6b84.86083846",
+    "name": "Addenda XSD",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Addenda_Pemex",
+            "prefix": "",
+            "namespace": "http:\/\/pemex.com\/facturaelectronica\/addenda\/v2",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "CONTRATO",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "O_SURTIMIENTO",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "N_ESTIMACION",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "P_ESTIMACION",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "N_ACREEDOR",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "C_GESTOR",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "FINIQUITO",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "POSICIONAP",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "AUTORIZA",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "ENTRADA",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "EJERCICIO",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "CEJECUTOR",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "RECEPSAP",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "NREMISION",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "PLAZO",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "RFCPROVEEDOR",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "REMESA",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "VUREGION",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "FICHAE",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "FICHAF",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "MONEDA",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "FONDO",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "POSICIONF",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "CLAVE_TRANSP",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "A_RELACION",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "ID_ANALITICO",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "TIPO_PRODUCTO",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "CEDULA",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "CONTRATO_SIIC",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "OCOMERCIAL",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "SERVICIOG",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "SERVICIOA",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "CORREOPMI",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "ANALITICO",
+                    "children": [],
+                    "type_data": "string"
+                }
+            ],
+            "instance": {
+                "type": "node",
+                "name": "Addenda_Pemex",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "CONTRATO",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "O_SURTIMIENTO",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "N_ESTIMACION",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "P_ESTIMACION",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "N_ACREEDOR",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "C_GESTOR",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "FINIQUITO",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "POSICIONAP",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "AUTORIZA",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "ENTRADA",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "EJERCICIO",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "CEJECUTOR",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "RECEPSAP",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "NREMISION",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "PLAZO",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "RFCPROVEEDOR",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "REMESA",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "VUREGION",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "FICHAE",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "FICHAF",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "MONEDA",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "FONDO",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "POSICIONF",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "CLAVE_TRANSP",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "A_RELACION",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "ID_ANALITICO",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "TIPO_PRODUCTO",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "CEDULA",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "CONTRATO_SIIC",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "OCOMERCIAL",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "SERVICIOG",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "SERVICIOA",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "CORREOPMI",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "ANALITICO",
+                        "type_data": "string",
+                        "options": []
+                    }
+                ]
+            },
+            "addenda_xml_template": "<Addenda_Pemex xmlns=\"http:\/\/pemex.com\/facturaelectronica\/addenda\/v2\" CONTRATO=\"\" O_SURTIMIENTO=\"\" N_ESTIMACION=\"\" P_ESTIMACION=\"\" N_ACREEDOR=\"\" C_GESTOR=\"\" FINIQUITO=\"\" POSICIONAP=\"\" AUTORIZA=\"\" ENTRADA=\"\" EJERCICIO=\"\" CEJECUTOR=\"\" RECEPSAP=\"\" NREMISION=\"\" PLAZO=\"\" RFCPROVEEDOR=\"\" REMESA=\"\" VUREGION=\"\" FICHAE=\"\" FICHAF=\"\" MONEDA=\"\" FONDO=\"\" POSICIONF=\"\" CLAVE_TRANSP=\"\" A_RELACION=\"\" ID_ANALITICO=\"\" TIPO_PRODUCTO=\"\" CEDULA=\"\" CONTRATO_SIIC=\"\" OCOMERCIAL=\"\" SERVICIOG=\"\" SERVICIOA=\"\" CORREOPMI=\"\" ANALITICO=\"\"\/>",
+            "addenda_extra_ns": ""
+        }
+    },
+    "createdAt": null
+}

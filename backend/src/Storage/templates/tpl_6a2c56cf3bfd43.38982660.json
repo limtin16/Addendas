@@ -1,0 +1,204 @@
+{
+    "id": "tpl_6a2c56cf3bfd43.38982660",
+    "name": "Addenda Upload",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "NotaCreditoInterfactura",
+            "prefix": "if",
+            "namespace": "https:\/\/www.interfactura.com\/Schemas\/Documentos",
+            "instance": {
+                "type": "node",
+                "name": "NotaCreditoInterfactura",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "TipoDocumento"
+                    },
+                    {
+                        "type": "node",
+                        "name": "Emisor",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "RI"
+                            },
+                            {
+                                "type": "field",
+                                "name": "NumProveedor"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Receptor",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "RI"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Encabezado",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "Total"
+                            },
+                            {
+                                "type": "field",
+                                "name": "SubTotal"
+                            },
+                            {
+                                "type": "field",
+                                "name": "Serie"
+                            },
+                            {
+                                "type": "field",
+                                "name": "NumSucursal"
+                            },
+                            {
+                                "type": "field",
+                                "name": "NumProveedor"
+                            },
+                            {
+                                "type": "field",
+                                "name": "MunicipioSucursalCliente"
+                            },
+                            {
+                                "type": "field",
+                                "name": "Moneda"
+                            },
+                            {
+                                "type": "field",
+                                "name": "Iva"
+                            },
+                            {
+                                "type": "field",
+                                "name": "IVAPCT"
+                            },
+                            {
+                                "type": "field",
+                                "name": "FolioAvisoPrefactura"
+                            },
+                            {
+                                "type": "field",
+                                "name": "Folio"
+                            },
+                            {
+                                "type": "field",
+                                "name": "FechaPago"
+                            },
+                            {
+                                "type": "field",
+                                "name": "DomicilioSucursalCliente"
+                            },
+                            {
+                                "type": "field",
+                                "name": "DepartamentoCliente"
+                            },
+                            {
+                                "type": "field",
+                                "name": "CondicionPago"
+                            },
+                            {
+                                "type": "field",
+                                "name": "ColoniaSucursalCliente"
+                            },
+                            {
+                                "type": "field",
+                                "name": "CPSucursalCliente"
+                            },
+                            {
+                                "type": "field",
+                                "name": "FolioAvisoPago"
+                            },
+                            {
+                                "type": "field",
+                                "name": "Fecha"
+                            },
+                            {
+                                "type": "node",
+                                "name": "INILISTAPROD",
+                                "children": [
+                                    {
+                                        "type": "node",
+                                        "name": "Cuerpo",
+                                        "children": [
+                                            {
+                                                "type": "field",
+                                                "name": "Cantidad"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "Codigo"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "Concepto"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "CUnitarioLista"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "EAN13"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "FactorEmpaque"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "PUnitario"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "SubTotal"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "U_x0020_de_x0020_M"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "Renglon"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "CUnitarioUdeM"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "Iva"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "Importe"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "IVAPCT"
+                                            },
+                                            {
+                                                "type": "field",
+                                                "name": "CantidadUdeM"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<if:NotaCreditoInterfactura xmlns:if=\"https:\/\/www.interfactura.com\/Schemas\/Documentos\" TipoDocumento=\"Nota de Credito\">\n\t<if:Emisor RI=\"Escribir_RI_Proveedor\" NumProveedor=\"Escribir_Numero_Proveedor\"\/>\n\t<if:Receptor RI=\"Escribir_RI_Cliente\"\/>\n\t<if:Encabezado Total=\"[IMPORTE]\" SubTotal=\"[SUBTOTAL]\" Serie=\"[PARNONUMERICA]\" NumSucursal=\"[CAMPOLIBRE1CONSIG]\" NumProveedor=\"Escribir_Numero_Proveedor\" MunicipioSucursalCliente=\"[CONSIGNARPOBLA]\" Moneda=\"MXN\" Iva=\"[MONTOIMPUESTO4]\" IVAPCT=\"[PORCENIMPUESTO4]\" FolioAvisoPrefactura=\"[NORECEP]\" Folio=\"[PARTENUMERICA]\" FechaPago=\"[FECHAVENCIMIENTO(yyyy-mm-dd)]\" DomicilioSucursalCliente=\"[CONSIGNARCALLE] [CONSIGNARNUMINT] [CONSIGNARNUMEXT] [CONSIGNARCOLONIA] [CONSIGNARPOBLA]\" DepartamentoCliente=\"[ENVIARAREFERENCIA]\" CondicionPago=\"[DIASCREDITO] DIAS\" ColoniaSucursalCliente=\"[CONSIGNARCOLONIA]\" CPSucursalCliente=\"[CONSIGNARCODIGO]\" FolioAvisoPago=\"[NUMEROGUIA]\" Fecha=\"[FECHADOCTO(yyyy-mm-dd)]T[HORADOCTO(HH:MM:SS)]\">   \n\t<INILISTAPROD>\n\t<if:Cuerpo Cantidad=\"[CANTIDAD]\" Codigo=\"[CLIEALTERNA]\" Concepto=\"[PRODDESCRIP]\" CUnitarioLista=\"[PRODPRECIO]\" EAN13=\"[PRODALTERNA]\" FactorEmpaque=\"[NUMEMPAQUESPROD]\" PUnitario=\"[PRODPRECIO]\" SubTotal=\"[PRODSUBTOTAL]\" U_x0020_de_x0020_M=\"[PRODUNIVENTA]\" Renglon=\"[NUMPARTIDA]\" CUnitarioUdeM=\"[PRODPRECIO]\" Iva=\"[PRODMONTOIMP4]\" Importe=\"[PRODIMPORTE]\" IVAPCT=\"[PRODMONTOIMP4]\" CantidadUdeM=\"[PRODUNIVENTA]\"\/>\n\t<\/INILISTAPROD>\n\t<\/if:Encabezado>\n<\/if:NotaCreditoInterfactura>",
+            "addenda_extra_ns": "",
+            "children": []
+        }
+    },
+    "createdAt": null
+}

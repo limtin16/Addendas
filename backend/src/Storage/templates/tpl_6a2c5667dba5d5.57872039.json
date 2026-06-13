@@ -1,0 +1,358 @@
+{
+    "id": "tpl_6a2c5667dba5d5.57872039",
+    "name": "Addenda XSD",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Addenda",
+            "prefix": "",
+            "namespace": "https:\/\/certificacion.amda.mx\/addenda\/3.0",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "versionAddenda",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "monedaCodigoISO",
+                    "type_data": "enum",
+                    "options": [
+                        "MXN",
+                        "XEU",
+                        "USD"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "name": "vinUnidad",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "Color",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "esSemiNuevo",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "kilometraje",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "fechaRecepcion",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "esNuevoIntercambio",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "fechaEntrega",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "noRepuve",
+                    "type_data": "string"
+                },
+                {
+                    "type": "field",
+                    "name": "versionVehiculo",
+                    "type_data": "string"
+                },
+                {
+                    "type": "node",
+                    "name": "Propietario",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "rfc",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "personaMoral",
+                            "type_data": "enum",
+                            "options": [
+                                "Y",
+                                "N"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "name": "nombreORazonSocial",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "apellidoPaterno",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "apellidoMaterno",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "fechaNacimiento",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "telefono",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "email",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "sexo",
+                            "type_data": "enum",
+                            "options": [
+                                "M",
+                                "F"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Domicilio",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "calle",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "colonia",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "cp",
+                            "type_data": "string"
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "FoliosAmda",
+                    "children": [
+                        {
+                            "type": "node",
+                            "name": "Folio",
+                            "children": [
+                                {
+                                    "type": "field",
+                                    "name": "numero",
+                                    "type_data": "string"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "instance": {
+                "type": "node",
+                "name": "Addenda",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "versionAddenda",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "monedaCodigoISO",
+                        "type_data": "enum",
+                        "options": [
+                            "MXN",
+                            "XEU",
+                            "USD"
+                        ]
+                    },
+                    {
+                        "type": "field",
+                        "name": "vinUnidad",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "Color",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "esSemiNuevo",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "kilometraje",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "fechaRecepcion",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "esNuevoIntercambio",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "fechaEntrega",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "noRepuve",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "field",
+                        "name": "versionVehiculo",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "node",
+                        "name": "Propietario",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "rfc",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "personaMoral",
+                                "type_data": "enum",
+                                "options": [
+                                    "Y",
+                                    "N"
+                                ]
+                            },
+                            {
+                                "type": "field",
+                                "name": "nombreORazonSocial",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "apellidoPaterno",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "apellidoMaterno",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "fechaNacimiento",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "telefono",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "email",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "sexo",
+                                "type_data": "enum",
+                                "options": [
+                                    "M",
+                                    "F"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Domicilio",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "calle",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "colonia",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "cp",
+                                "type_data": "string",
+                                "options": []
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "FoliosAmda",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "Folio",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "numero",
+                                        "type_data": "string",
+                                        "options": []
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<Addenda xmlns=\"https:\/\/certificacion.amda.mx\/addenda\/3.0\" versionAddenda=\"\" monedaCodigoISO=\"\" vinUnidad=\"\" Color=\"\" esSemiNuevo=\"\" kilometraje=\"\" fechaRecepcion=\"\" esNuevoIntercambio=\"\" fechaEntrega=\"\" noRepuve=\"\" versionVehiculo=\"\">\n  <Propietario rfc=\"\" personaMoral=\"\" nombreORazonSocial=\"\" apellidoPaterno=\"\" apellidoMaterno=\"\" fechaNacimiento=\"\" telefono=\"\" email=\"\" sexo=\"\"\/>\n  <Domicilio calle=\"\" colonia=\"\" cp=\"\"\/>\n  <FoliosAmda>\n    <Folio numero=\"\"\/>\n  <\/FoliosAmda>\n<\/Addenda>",
+            "addenda_extra_ns": ""
+        }
+    },
+    "createdAt": null
+}

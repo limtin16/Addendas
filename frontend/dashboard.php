@@ -37,7 +37,61 @@ $credits = $creditService->getAvailableCredits($userId);
     <title>Dashboard</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
+<div id="predefined-warning" class="modal" style="display:none;">
 
+    <div class="modal-content modern-modal">
+
+        <!-- HEADER -->
+        <div class="modal-header">
+            <div class="modal-icon">⚠️</div>
+            <div>
+                <h3>Uso de Addendas predefinidas</h3>
+                <p class="modal-subtitle">Revisión recomendada antes de continuar</p>
+            </div>
+        </div>
+
+        <!-- CONTENIDO -->
+        <div class="modal-body">
+
+            <p>
+                Las addendas predefinidas son plantillas generales y pueden no coincidir exactamente con los requisitos de tu cliente.
+            </p>
+
+            <p class="muted">
+                Estas estructuras pueden variar dependiendo de la empresa, región o incluso del departamento interno.
+            </p>
+
+            <div class="modal-warning">
+                ⚠️ No existe una relación directa entre esta plataforma y las empresas emisoras.
+            </div>
+
+            <div class="modal-section">
+                <strong>Recomendado:</strong>
+                <ul>
+                    <li>Validar la estructura con tu cliente</li>
+                    <li>Usar un XML proporcionado</li>
+                    <li>Usar un archivo XSD oficial</li>
+                </ul>
+            </div>
+
+            <!-- LOGOS (puedes cambiar rutas) -->
+            <div class="modal-logos">
+                 BASE_URL ?>/frontend/assets/logos/walmart.png" alt="Walmart">
+                <?= BASE_URL ?>/frontend/assets/logos/liverpool.png
+                <?= BASE_URL ?>/frontend/assets/logos/chedraui.png
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer">
+            <button class="btn gray" onclick="closeModal()">Cancelar</button>
+            <button class="btn purple" onclick="goToPredefined()">Continuar</button>
+        </div>
+
+    </div>
+
+</div>
 <body>
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
 <div class="main">
@@ -73,7 +127,6 @@ $credits = $creditService->getAvailableCredits($userId);
         </div>
 
         <div class="cards">
-
             <div class="card">
                 <h3>🆕 Crear Addenda</h3>
                 <p>Genera una nueva addenda desde cero</p>
@@ -81,7 +134,6 @@ $credits = $creditService->getAvailableCredits($userId);
                     Crear
                 </a>
             </div>
-
             <div class="card">
                 <h3>📁 Mis Templates</h3>
                 <p>Reutiliza templates guardados</p>
@@ -89,7 +141,6 @@ $credits = $creditService->getAvailableCredits($userId);
                     Ver templates
                 </a>
             </div>
-
             <div class="card">
                 <h3>📑 CFDIs generados</h3>
                 <p>Consulta y descarga CFDIs generados</p>
@@ -97,15 +148,38 @@ $credits = $creditService->getAvailableCredits($userId);
                     Ver historial
                 </a>
             </div>
-
+            <div class="card">
+                <h3>📦 Addendas predefinidas</h3>
+                <p>Usa plantillas ya configuradas para comenzar rápidamente</p>
+                <!--<a href="<?= BASE_URL ?>/frontend/predefined_addendas.php" class="btn gray"> -->
+                <a href="#" class="btn gray" id="btn-predefined">
+                    Ver opciones
+                </a>
+            </div>
         </div>
 
     </div>
 
 </div>
 <script>
-    const params = new URLSearchParams(window.location.search);
 
+    const predefinedBtn = document.getElementById('btn-predefined');
+    const modal = document.getElementById('predefined-warning');
+
+    predefinedBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        modal.style.display = 'flex';
+    });
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    function goToPredefined() {
+        window.location.href = "<?= BASE_URL ?>/frontend/predefined_addendas.php";
+    }
+
+    const params = new URLSearchParams(window.location.search);
     if (params.get("paid") === "1") {
 
         if (!sessionStorage.getItem("reload_paid")) {

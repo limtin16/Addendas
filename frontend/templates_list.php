@@ -72,9 +72,7 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
                 </a>
 
                 <form method="POST" action="<?= BASE_URL ?>/backend/public/delete_template.php">
-
                     <input type="hidden" name="id" value="<?= $tpl['id'] ?>">
-
                     <button class="btn delete">Eliminar</button>
                 </form>
 
