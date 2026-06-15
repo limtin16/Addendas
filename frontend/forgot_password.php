@@ -17,43 +17,42 @@ require_once $path;
     <meta charset="UTF-8">
     <title>Recuperar contraseña</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+    <style>
+body {
+    display: block !important;
+}
+
+.simple-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+</style>
 </head>
-
 <body>
-
 <div class="simple-page">
-
     <div class="simple-box">
-
         <!-- 🔙 botón regresar -->
         <a href="<?= BASE_URL ?>/frontend/login.php" class="back-link">
             ← Volver al login
         </a>
-
         <h2>🔐 Recuperar contraseña</h2>
-
         <p class="description">
             Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
         </p>
-
         <form action="<?= BASE_URL ?>/backend/public/send_reset_link.php" method="POST">
-
             <input 
                 type="email" 
                 name="email" 
                 placeholder="Tu correo electrónico" 
                 required
             >
-
             <button type="submit" class="btn blue full">
                 Enviar enlace
             </button>
-
         </form>
-
     </div>
-
 </div>
-
 </body>
 </html>
