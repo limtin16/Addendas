@@ -5,7 +5,7 @@ if ($count==0){
     $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
 }
 for ($i=0; $i<$count; $i++){
-	$path.="../";
+    $path.="../";
 }
 $path.="backend/config.php";
 require_once $path;
@@ -17,17 +17,27 @@ $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 
 if (!$email || !$password) {
-    die("Faltan datos");
+    header("Location: " . BASE_URL . "/frontend/register.php?error=missing");
+    exit;
 }
 
 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-$stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-$stmt->bind_param("ss", $email, $hashedPassword);
+try {
+    $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
+    $stmt->bind_param("ss", $email, $hashedPassword);
+    $stmt->execute();
 
-if ($stmt->execute()) {
-    header("Location: " . BASE_URL . "/frontend/login.php");
+    header("Location: " . BASE_URL . "/frontend/login.php?success=1");
     exit;
-} else {
-    echo "Error: email ya existe";
+
+} catch (mysqli_sql_exception $e) {
+
+    // Código 1062 = duplicado
+    if ($e->getCode() == 1062) {
+        header("Location: " . BASE_URL . "/frontend/register.php?error=duplicate");
+    } else {
+        header("Location: " . BASE_URL . "/frontend/register.php?error=general");
+    }
+    exit;
 }

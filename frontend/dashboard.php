@@ -38,7 +38,6 @@ $credits = $creditService->getAvailableCredits($userId);
     <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 </head>
 <div id="predefined-warning" class="modal" style="display:none;">
-
     <div class="modal-content">
 
         <h3>⚠️ Aviso importante</h3>

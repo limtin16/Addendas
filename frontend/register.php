@@ -75,12 +75,31 @@ require_once $path;
         .links a:hover {
             text-decoration: underline;
         }
+
+        .alert {
+            background: #f8d7da;
+            color: #842029;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body>
 
 <div class="card">
+
+    <?php if (isset($_GET['error'])): ?>
+        <div class="alert">
+            <?php
+            if ($_GET['error'] == 'duplicate') echo "⚠️ Este correo ya está registrado";
+            elseif ($_GET['error'] == 'missing') echo "⚠️ Completa todos los campos";
+            else echo "❌ Ocurrió un error";
+            ?>
+        </div>
+    <?php endif; ?>
 
     <h2>Crear cuenta</h2>
 
@@ -95,6 +114,20 @@ require_once $path;
     </div>
 
 </div>
+<?php if (isset($_GET['error'])): ?>
+<script>
+setTimeout(() => {
+    const alertBox = document.querySelector('.alert');
+    if (alertBox) {
+        alertBox.style.opacity = '0';
+        alertBox.style.transition = '0.5s';
+    }
+}, 2500);
 
+setTimeout(() => {
+    window.location.href = "<?= BASE_URL ?>/frontend/register.php";
+}, 3000);
+</script>
+<?php endif; ?>
 </body>
 </html>
