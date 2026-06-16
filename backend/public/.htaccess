@@ -1,5 +1,4 @@
-# Solo permitir requests vía AJAX (opcional)
 RewriteEngine On
 
-RewriteCond %{HTTP_REFERER} !^https://addendafacil.com [NC]
-RewriteRule .* - [F]
+# ✅ bloquear solo cosas sensibles (opcional)
+RewriteRule ^(src|config|db\.php) - [F,L]
