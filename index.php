@@ -7,6 +7,22 @@ require_once __DIR__ . '/backend/config.php';
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Genera addendas CFDI 4.0 en minutos. Sube XML, XSD o crea addendas desde cero de forma automática con AddendaFácil.">
+<meta name="keywords" content="addenda CFDI, generar addenda, CFDI XML addenda, cómo hacer addenda, herramienta addenda">
+<meta property="og:title" content="AddendaFácil - Genera addendas CFDI fácilmente">
+<meta property="og:description" content="Crea addendas CFDI 4.0 automáticamente desde XML o XSD">
+<meta property="og:type" content="website">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "AddendaFácil",
+  "applicationCategory": "BusinessApplication",
+  "description": "Plataforma para generar addendas CFDI desde XML, XSD o plantillas predefinidas",
+  "operatingSystem": "Web",
+  "url": "https://tusitio.com"
+}
+</script>
 <title>AddendaFácil</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -150,6 +166,53 @@ body {
     transform: translateY(-5px);
 }
 
+.seo-section {
+    max-width: 800px;
+    margin: 60px auto;
+    background: rgba(255,255,255,0.8);
+    padding: 30px;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.seo-section h2 {
+    margin-bottom: 15px;
+}
+
+.seo-section h3 {
+    margin-top: 20px;
+}
+
+.seo-wrapper {
+    max-width: 800px;
+    margin: 40px auto;
+    text-align: center;
+}
+
+.seo-toggle {
+    background: #f1f5f9;
+    border: 1px solid #e5e7eb;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.seo-toggle:hover {
+    background: #e2e8f0;
+}
+
+.seo-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+.seo-content.open {
+    max-height: 2000px;
+    margin-top: 20px;
+}
 </style>
 </head>
 
@@ -203,15 +266,73 @@ body {
             <div>✅ Validado</div>
             <div>🔁 Reutilizable</div>
         </div>
-
+        <div>
+            <p><br>
+                AddendaFácil es una herramienta para generar addendas CFDI automáticamente sin necesidad de editar XML manualmente.
+            </p>
+        </div>
     </div>
 
+</div>
+<div class="seo-wrapper">
+    <button class="seo-toggle" onclick="toggleSEO()">
+        📘 ¿Qué es una addenda y cómo funciona?
+    </button>
+    <div id="seo-content" class="seo-content">
+    <h2>¿Cómo generar una addenda en CFDI?</h2>
+    <p>
+        Una addenda es información adicional que algunas empresas requieren en una factura electrónica (CFDI).
+        Generalmente se agrega dentro del XML y puede incluir datos como órdenes de compra, códigos internos o condiciones comerciales.
+    </p>
+    <p>
+        Tradicionalmente, crear una addenda requiere editar manualmente el XML o conocer estructuras técnicas.
+        Sin embargo, herramientas como <strong>AddendaFácil</strong> permiten generarlas automáticamente sin conocimientos técnicos.
+    </p>
+    <h3>Opciones para crear una addenda</h3>
+    <ul>
+        <li>Editar manualmente el XML del CFDI</li>
+        <li>Usar un archivo XSD proporcionado por el cliente</li>
+        <li>Subir un XML con addenda existente</li>
+        <li>Utilizar una plataforma automática como AddendaFácil</li>
+    </ul>
+    </div>
+</div>
+<div class="seo-wrapper">
+    <button class="seo-toggle" onclick="toggleSEO1()">
+        📘 ¿Preguntas Frecuentes sobre addendas?
+    </button>
+    <div id="seo-content1" class="seo-content">
+    <h2>Preguntas frecuentes sobre addendas CFDI</h2>
+    <h3>¿Cómo agregar una addenda a una factura?</h3>
+    <p>
+        Puedes hacerlo editando el XML manualmente o usando herramientas como AddendaFácil que automatizan el proceso.
+    </p>
+    <h3>¿Qué es una addenda en CFDI?</h3>
+    <p>
+        Es una sección opcional dentro del XML que contiene información adicional requerida por el receptor.
+    </p>
+    <h3>¿Dónde puedo generar addendas fácilmente?</h3>
+    <p>
+        Existen plataformas como AddendaFácil que permiten generar, validar y descargar CFDIs con addenda en minutos.
+    </p>
+    </div>
 </div>
 
 <!-- ✅ FOOTER -->
 <div class="footer">
     © <?= date('Y') ?> AddendaFácil
 </div>
+<script>
+function toggleSEO() {
+    const content = document.getElementById('seo-content');
 
+    content.classList.toggle('open');
+}
+function toggleSEO1() {
+    const content = document.getElementById('seo-content1');
+
+    content.classList.toggle('open');
+}
+</script>
 </body>
 </html>
