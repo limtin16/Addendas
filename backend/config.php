@@ -1,11 +1,19 @@
 <?php
 
+// ✅ CONFIG SESIÓN (ANTES de headers)
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1);
+ini_set('session.use_strict_mode', 1);
+
 // ✅ HEADERS DE SEGURIDAD
 header("X-Frame-Options: SAMEORIGIN");
 header("X-Content-Type-Options: nosniff");
 header("X-XSS-Protection: 1; mode=block");
 header("Referrer-Policy: strict-origin-when-cross-origin");
 header("X-Powered-By: none");
+
+// 🔥 CSP
+header("Content-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'");
 
 // ✅ rutas internas (como ya lo tienes)
 if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {

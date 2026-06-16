@@ -532,9 +532,28 @@ targetCfdiInput.addEventListener('change', function () {
     }
 
     const file = this.files[0];
+    const name = file.name.toLowerCase();
 
-    if (!file.name.toLowerCase().endsWith('.xml')) {
+    // ✅ validar extensión
+    if (!name.endsWith('.xml')) {
         statusBox.textContent = 'El archivo debe ser XML (.xml)';
+        this.value = '';
+        generateBtn.disabled = true;
+        targetCfdiLoaded = false;
+        return;
+    }
+
+    // ✅ validar tamaño (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        statusBox.textContent = 'El archivo es demasiado grande';
+        this.value = '';
+        generateBtn.disabled = true;
+        targetCfdiLoaded = false;
+        return;
+    }
+
+    if (!file.type.includes('xml') && file.type !== '') {
+        statusBox.textContent = 'Tipo de archivo inválido';
         this.value = '';
         generateBtn.disabled = true;
         targetCfdiLoaded = false;

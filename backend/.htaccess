@@ -1,0 +1,10 @@
+# bloquear acceso directo a backend interno
+RewriteEngine On
+
+# permitir solo public
+RewriteRule ^(src|config|db\.php) - [F,L]
+
+# ❌ bloquear indexación de backend
+<IfModule mod_headers.c>
+    Header set X-Robots-Tag "noindex, nofollow, noarchive"
+</IfModule>

@@ -5,14 +5,47 @@ session_start();
    Validar archivo
    ======================================================= */
 
-if (
-    !isset($_FILES['target_cfdi']) ||
-    $_FILES['target_cfdi']['error'] !== UPLOAD_ERR_OK
-) {
+if (!isset($_FILES['target_cfdi'])) {
     http_response_code(400);
-    echo json_encode([
-        'error' => 'No se recibió el CFDI destino'
-    ]);
+    echo json_encode(['error' => 'No se recibió archivo']);
+    exit;
+}
+
+$file = $_FILES['target_cfdi'];
+
+/* ===============================
+   ✅ VALIDACIONES DE SEGURIDAD
+================================ */
+
+// ✅ error upload
+if ($file['error'] !== UPLOAD_ERR_OK) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Error al subir archivo']);
+    exit;
+}
+
+// ✅ tamaño (2MB)
+if ($file['size'] > 2 * 1024 * 1024) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Archivo demasiado grande']);
+    exit;
+}
+
+// ✅ extensión
+$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+if ($extension !== 'xml') {
+    http_response_code(400);
+    echo json_encode(['error' => 'Solo se permiten archivos XML']);
+    exit;
+}
+
+// ✅ MIME (CRÍTICO)
+$mime = mime_content_type($file['tmp_name']);
+$allowedMime = ['text/xml', 'application/xml', 'application/x-xml'];
+
+if (!in_array($mime, $allowedMime)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Tipo de archivo inválido']);
     exit;
 }
 
@@ -32,7 +65,27 @@ if (!$xmlContent || trim($xmlContent) === '') {
 
 libxml_use_internal_errors(true);
 
-$xml = simplexml_load_string($xmlContent);
+libxml_use_internal_errors(true);
+
+if (strpos($xmlContent, '<!ENTITY') !== false) {
+    http_response_code(400);
+    echo json_encode(['error' => 'XML contiene entidades no permitidas']);
+    exit;
+}
+
+$xml = simplexml_load_string(
+    $xmlContent,
+    "SimpleXMLElement",
+    LIBXML_NONET
+);
+
+if (!$xml) {
+    http_response_code(400);
+    echo json_encode([
+        'error' => 'XML inválido, el XML debe ser tipo Ingreso o Egreso'
+    ]);
+    exit;
+}
 
 if (!$xml) {
     http_response_code(400);
@@ -46,6 +99,9 @@ if (!$xml) {
  * Manejo de namespaces (muy importante en CFDI)
  */
 $namespaces = $xml->getNamespaces(true);
+if (!is_array($namespaces)) {
+    $namespaces = [];
+}
 
 if (isset($namespaces['cfdi'])) {
     $xml->registerXPathNamespace('cfdi', $namespaces['cfdi']);

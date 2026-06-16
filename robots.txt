@@ -10,3 +10,6 @@ Disallow: /frontend/templates_list.php
 
 # ✅ sitemap
 Sitemap: https://addendafacil.com/sitemap.xml
+
+Disallow: /backend/
+Disallow: /backend/public/

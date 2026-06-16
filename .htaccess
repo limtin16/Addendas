@@ -1,0 +1,10 @@
+RewriteEngine On
+
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+Options -Indexes
+
+<LimitExcept GET POST>
+    Require all denied
+</LimitExcept>

@@ -17,7 +17,8 @@ $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 
 if (!$email || !$password) {
-    die("Faltan datos");
+    header("Location: " . BASE_URL . "/frontend/login.php?error=1");
+    exit;
 }
 
 $stmt = $conn->prepare("SELECT id, email, password FROM users WHERE email = ?");
@@ -29,10 +30,12 @@ $user = $result->fetch_assoc();
 
 if ($user && password_verify($password, $user['password'])) {
 
+    // ✅ CRÍTICO: regenerar sesión
+    session_regenerate_id(true);
+
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_email'] = $user['email'];
 
-    // ✅ redirige al sistema
     header("Location: " . BASE_URL . "/frontend/dashboard.php");
     exit;
 

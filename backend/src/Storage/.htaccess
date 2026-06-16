@@ -1,0 +1,13 @@
+# ❌ NO ejecutar PHP
+php_flag engine off
+
+# ❌ NO CGI
+Options -ExecCGI
+
+# ❌ forzar texto plano
+AddType text/plain .php .xml .xsd .html .js
+
+# ❌ bloquear acceso directo (opcional fuerte)
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7)$">
+    Deny from all
+</FilesMatch>

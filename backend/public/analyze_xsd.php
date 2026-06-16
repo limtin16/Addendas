@@ -157,7 +157,60 @@ if (!isset($_FILES['xsd_file'])) {
     exit;
 }
 
-$xsd = file_get_contents($_FILES['xsd_file']['tmp_name']);
+$file = $_FILES['xsd_file'];
+
+/* ===============================
+   ✅ VALIDACIONES DE SEGURIDAD
+================================ */
+
+// ✅ evitar errores upload
+if ($file['error'] !== UPLOAD_ERR_OK) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Error al subir archivo']);
+    exit;
+}
+
+// ✅ límite tamaño (2MB)
+if ($file['size'] > 2 * 1024 * 1024) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Archivo demasiado grande']);
+    exit;
+}
+
+// ✅ validar extensión
+$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+if ($extension !== 'xsd') {
+    http_response_code(400);
+    echo json_encode(['error' => 'Solo se permiten archivos .xsd']);
+    exit;
+}
+
+// ✅ validar MIME (CRÍTICO)
+$mime = mime_content_type($file['tmp_name']);
+$allowedMime = ['text/xml', 'application/xml', 'application/x-xml'];
+
+if (!in_array($mime, $allowedMime)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Tipo de archivo inválido']);
+    exit;
+}
+
+libxml_use_internal_errors(true);
+
+// ✅ bloquear entidades externas (XXE)
+$xml = simplexml_load_file(
+    $file['tmp_name'],
+    "SimpleXMLElement",
+    LIBXML_NONET
+);
+
+if (!$xml) {
+    http_response_code(400);
+    echo json_encode(['error' => 'El archivo no es XML válido']);
+    exit;
+}
+
+$xsd = file_get_contents($file['tmp_name']);
 
 if (!$xsd) {
     http_response_code(400);

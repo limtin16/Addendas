@@ -118,6 +118,9 @@ session_start();
         <p style="text-align:center; font-size:12px; color:#6b7280;">
             Sitio oficial de AddendaFácil
         </p>
+        <p style="text-align:center; font-size:11px; color:#999; margin-top:20px;">
+            © <?= date('Y') ?> AddendaFácil · addendafacil.com
+        </p>
     </div>
     <h2>Iniciar sesión</h2>
 

@@ -217,17 +217,66 @@ header('Content-Type: application/json');
 // ===============================
 // ✅ VALIDAR CFDI
 // ===============================
-if (
-    !isset($_FILES['cfdi']) ||
-    $_FILES['cfdi']['error'] !== UPLOAD_ERR_OK
-) {
-    echo json_encode([
-        'error' => 'CFDI no proporcionado'
-    ]);
+if (!isset($_FILES['cfdi'])) {
+    echo json_encode(['error' => 'CFDI no proporcionado']);
     exit;
 }
 
-$originalCfdi = file_get_contents($_FILES['cfdi']['tmp_name']);
+$file = $_FILES['cfdi'];
+
+/* ===============================
+   ✅ VALIDACIONES DE SEGURIDAD
+================================ */
+
+if ($file['error'] !== UPLOAD_ERR_OK) {
+    echo json_encode(['error' => 'Error al subir CFDI']);
+    exit;
+}
+
+// ✅ tamaño
+if ($file['size'] > 3 * 1024 * 1024) {
+    echo json_encode(['error' => 'CFDI demasiado grande']);
+    exit;
+}
+
+// ✅ extensión
+$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+if ($extension !== 'xml') {
+    echo json_encode(['error' => 'Solo se permiten archivos XML']);
+    exit;
+}
+
+// ✅ MIME
+$mime = mime_content_type($file['tmp_name']);
+$allowedMime = ['text/xml', 'application/xml', 'application/x-xml'];
+
+if (!in_array($mime, $allowedMime)) {
+    echo json_encode(['error' => 'Tipo de archivo inválido']);
+    exit;
+}
+
+$originalCfdi = file_get_contents($file['tmp_name']);
+
+if (!$originalCfdi || trim($originalCfdi) === '') {
+    echo json_encode(['error' => 'CFDI vacío']);
+    exit;
+}
+
+// ✅ bloquear entidades peligrosas
+if (strpos($originalCfdi, '<!ENTITY') !== false) {
+    echo json_encode(['error' => 'XML contiene entidades no permitidas']);
+    exit;
+}
+
+// ✅ validar XML seguro
+libxml_use_internal_errors(true);
+
+$domTest = new DOMDocument();
+
+if (!$domTest->loadXML($originalCfdi, LIBXML_NONET)) {
+    echo json_encode(['error' => 'XML inválido']);
+    exit;
+}
 
 if (!$originalCfdi || trim($originalCfdi) === '') {
     echo json_encode([
@@ -249,8 +298,25 @@ if (
     exit;
 }
 
+if (strlen($xmlInput) > 2 * 1024 * 1024) {
+    echo json_encode(['error' => 'Addenda demasiado grande']);
+    exit;
+}
+
+if (strpos($xmlInput, '<!ENTITY') !== false) {
+    echo json_encode(['error' => 'Addenda contiene entidades no permitidas']);
+    exit;
+}
+
 $xmlInput = trim($_POST['addenda_xml']);
 
+$domAddenda = new DOMDocument();
+
+if (!$domAddenda->loadXML($xmlInput, LIBXML_NONET)) {
+    echo json_encode(['error' => 'Addenda XML inválida']);
+    exit;
+}
+$templateNs = htmlspecialchars(trim($templateNs));
 // ✅ tomar namespace del template
 $templateNs = $_POST['addenda_namespace'] ?? '';
 $templateNs = trim($templateNs);

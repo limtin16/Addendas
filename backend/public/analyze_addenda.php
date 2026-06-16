@@ -22,28 +22,89 @@ $service = new TemplateService();
    1. VALIDAR
    ======================================================= */
 
-if (
-    !isset($_FILES['addenda_xml']) ||
-    $_FILES['addenda_xml']['error'] !== UPLOAD_ERR_OK
-) {
-    die('❌ Error al subir XML');
+if (!isset($_FILES['addenda_xml'])) {
+    http_response_code(400);
+    echo json_encode(['error' => 'No se recibió archivo']);
+    exit;
 }
 
-$xmlContent = file_get_contents($_FILES['addenda_xml']['tmp_name']);
+$file = $_FILES['addenda_xml'];
+
+/* ===============================
+   ✅ VALIDACIONES DE SEGURIDAD
+================================ */
+
+// ✅ error upload
+if ($file['error'] !== UPLOAD_ERR_OK) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Error al subir archivo']);
+    exit;
+}
+
+// ✅ límite tamaño (2MB)
+if ($file['size'] > 2 * 1024 * 1024) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Archivo demasiado grande']);
+    exit;
+}
+
+// ✅ validar extensión
+$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+if ($extension !== 'xml') {
+    http_response_code(400);
+    echo json_encode(['error' => 'Solo se permiten archivos .xml']);
+    exit;
+}
+
+// ✅ validar MIME (CRÍTICO)
+$mime = mime_content_type($file['tmp_name']);
+
+$allowedMime = [
+    'text/xml',
+    'application/xml',
+    'application/x-xml',
+    'text/plain',              // ✅ agregado
+    'application/octet-stream' // ✅ agregado
+];
+
+// ✅ validar MIME flexible
+if (!in_array($mime, $allowedMime)) {
+
+    // ✅ fallback: validar contenido XML real
+    $contentSample = file_get_contents($file['tmp_name'], false, null, 0, 200);
+
+    if (
+        strpos($contentSample, '<') === false ||
+        strpos($contentSample, '>') === false
+    ) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Tipo de archivo inválido']);
+        exit;
+    }
+}
+
+$xmlContent = file_get_contents($file['tmp_name']);
 
 if (!$xmlContent || trim($xmlContent) === '') {
-    die('❌ XML vacío');
+    http_response_code(400);
+    echo json_encode(['error' => 'XML vacío']);
+    exit;
 }
 
 /* =======================================================
    2. LOAD XML
    ======================================================= */
 
-$dom = new DOMDocument('1.0', 'UTF-8');
 libxml_use_internal_errors(true);
 
-if (!$dom->loadXML($xmlContent)) {
-    die('❌ XML inválido');
+$dom = new DOMDocument('1.0', 'UTF-8');
+
+// ✅ bloquear conexiones externas
+if (!$dom->loadXML($xmlContent, LIBXML_NONET)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'XML inválido']);
+    exit;
 }
 
 /* =======================================================
@@ -77,7 +138,9 @@ foreach ($addendaNode->childNodes as $child) {
 $innerXml = trim($innerXml);
 
 if ($innerXml === '') {
-    die('❌ Addenda vacía');
+    http_response_code(400);
+    echo json_encode(['error' => 'Addenda vacía']);
+    exit;
 }
 
 /* =======================================================
@@ -138,7 +201,9 @@ foreach ($addendaNode->childNodes as $child) {
 }
 
 if (!$first) {
-    die('❌ Addenda inválida');
+    http_response_code(400);
+    echo json_encode(['error' => 'Addenda inválida']);
+    exit;
 }
 
 /* =======================================================
