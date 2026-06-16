@@ -12,6 +12,7 @@ require_once __DIR__ . '/backend/config.php';
 <meta property="og:title" content="AddendaFácil - Genera addendas CFDI fácilmente">
 <meta property="og:description" content="Crea addendas CFDI 4.0 automáticamente desde XML o XSD">
 <meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="<?= BASE_URL ?>/frontend/assets/logo_addendafacil.png">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -20,7 +21,7 @@ require_once __DIR__ . '/backend/config.php';
   "applicationCategory": "BusinessApplication",
   "description": "Plataforma para generar addendas CFDI desde XML, XSD o plantillas predefinidas",
   "operatingSystem": "Web",
-  "url": "https://tusitio.com"
+  "url": "https://www.addendafacil.com"
 }
 </script>
 <title>AddendaFácil</title>
@@ -220,7 +221,10 @@ body {
 
 <!-- ✅ NAV -->
 <div class="nav">
-    <h1>🚀 AddendaFácil</h1>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <img src="<?= BASE_URL ?>/frontend/assets/logo_addendafacil.png" alt="AddendaFácil logo" height="35">
+        <span style="font-weight:600;">AddendaFácil</span>
+    </div>
     <a href="<?= BASE_URL ?>/frontend/login.php">Iniciar sesión</a>
 </div>
 

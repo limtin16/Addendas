@@ -16,8 +16,9 @@ session_start();
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Login - Addendas</title>
-
+    <title>Iniciar sesión - AddendaFácil</title>
+    <meta name="description" content="Accede a tu cuenta de AddendaFácil para generar addendas CFDI de forma automática.">
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/frontend/assets/logo_addendafacil.png">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -87,6 +88,20 @@ session_start();
         .guest a {
             color: #555;
         }
+        .login-info {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #555;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .logo img {
+            width: 90px;
+            height: auto;
+        }
     </style>
 </head>
 
@@ -98,8 +113,22 @@ session_start();
         ❌ Credenciales incorrectas
     </div>
 <?php endif; ?>
+    <div class="logo">
+        <img src="<?= BASE_URL ?>/frontend/assets/logo_addendafacil.png" alt="AddendaFácil logo">
+        <p style="text-align:center; font-size:12px; color:#6b7280;">
+            Sitio oficial de AddendaFácil
+        </p>
+    </div>
     <h2>Iniciar sesión</h2>
 
+    <div class="login-info">
+        <p>
+            AddendaFácil es una plataforma para generar addendas CFDI de forma automática.
+        </p>
+        <p>
+            Inicia sesión para continuar.
+        </p>
+    </div>
     <form method="POST" action="<?= BASE_URL ?>/backend/public/login.php">
         <input type="email" name="email" placeholder="Correo" required>
         <input type="password" name="password" placeholder="Contraseña" required>
@@ -119,6 +148,12 @@ session_start();
         <!--
         <a href="<?= BASE_URL ?>/frontend/select_mode.php">Entrar como visitante</a>
         -->
+    </div>
+    <div>
+        <p style="text-align:center; font-size:13px; margin-top:15px;">
+        <a href="<?= BASE_URL ?>/index.php"> Inicio</a> 
+        <a href="<?= BASE_URL ?>/frontend/blog/como-crear-addenda-cfdi.php">¿Qué es una addenda?</a>
+</p>
     </div>
 </div>
 <script>

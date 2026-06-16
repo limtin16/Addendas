@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# ✅ evita indexar cosas innecesarias
+Disallow: /backend/
+Disallow: /frontend/login.php
+Disallow: /frontend/register.php
+Disallow: /frontend/dashboard.php
+Disallow: /frontend/templates_list.php
+
+# ✅ sitemap
+Sitemap: https://addendafacil.com/sitemap.xml

@@ -1,5 +1,12 @@
 <?php
 
+// ✅ HEADERS DE SEGURIDAD
+header("X-Frame-Options: SAMEORIGIN");
+header("X-Content-Type-Options: nosniff");
+header("X-XSS-Protection: 1; mode=block");
+header("Referrer-Policy: strict-origin-when-cross-origin");
+header("X-Powered-By: none");
+
 // ✅ rutas internas (como ya lo tienes)
 if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
     define('BASE_URL', '/addendas');
