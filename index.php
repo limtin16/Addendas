@@ -325,6 +325,10 @@ body {
 <!-- ✅ FOOTER -->
 <div class="footer">
     © <?= date('Y') ?> AddendaFácil
+<footer>
+<a href="<?= BASE_URL ?>/frontend/privacy.php"> Privacidad</a>
+<a href="<?= BASE_URL ?>/frontend/help.php">Ayuda</a>
+</footer>
 </div>
 <script>
 function toggleSEO() {

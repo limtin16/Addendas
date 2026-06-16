@@ -18,6 +18,7 @@ session_start();
 <head>
     <title>Iniciar sesión - AddendaFácil</title>
     <meta name="description" content="Accede a tu cuenta de AddendaFácil para generar addendas CFDI de forma automática.">
+    <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/png" href="<?= BASE_URL ?>/frontend/assets/logo_addendafacil.png">
     <style>
         body {
