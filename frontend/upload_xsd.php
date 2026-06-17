@@ -1,17 +1,18 @@
 <?php
+session_start(); // ✅ FIX: antes de config
+
 $path="";
 $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
 if ($count==0){
     $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
 }
 for ($i=0; $i<$count; $i++){
-	$path.="../";
+    $path.="../";
 }
 $path.="backend/config.php";
 require_once $path;
 
 // upload_xsd.php
-session_start();
 
 $_SESSION['addenda_mode'] = 'xsd';
 
@@ -136,7 +137,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: fd
                 });
 
-                const data = await res.json();
+                const text = await res.text();
+                console.log("SERVER RESPONSE:", text);
+
+                let data;
+
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    errorBox.textContent = 'Error del servidor (respuesta inválida)';
+                    errorBox.classList.add('visible');
+                    return;
+                }
 
                 if (!res.ok) {
                     // ✅ mostrar error del backend

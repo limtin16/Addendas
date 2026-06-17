@@ -187,7 +187,13 @@ if ($extension !== 'xsd') {
 
 // ✅ validar MIME (CRÍTICO)
 $mime = mime_content_type($file['tmp_name']);
-$allowedMime = ['text/xml', 'application/xml', 'application/x-xml'];
+$allowedMime = [
+    'text/xml',
+    'application/xml',
+    'application/x-xml',
+    'text/plain',              // ✅ AGREGAR
+    'application/octet-stream' // ✅ AGREGAR
+];
 
 if (!in_array($mime, $allowedMime)) {
     http_response_code(400);
