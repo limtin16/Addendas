@@ -316,6 +316,21 @@ function renderFields(array $nodes, string $prefix = ''): void
             flex: 1;
             max-height: none;
         }
+
+        .loader {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #ccc;
+            border-top: 2px solid #0067c0;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -375,6 +390,11 @@ function renderFields(array $nodes, string $prefix = ''): void
                         id="targetCfdi"
                         accept=".xml">
                     <div class="file-status" id="targetCfdiStatus">No se ha seleccionado ningún archivo.</div>
+                    <div id="satStatus" style="
+                        margin-top:8px;
+                        font-size:13px;
+                        color:#666;
+                    "></div>
                 </div>
                 <!-- PREVIEW -->
                 <div class="preview-wrapper" id="previewWrapper">
@@ -522,7 +542,56 @@ const statusBox = document.getElementById('targetCfdiStatus');
 
 let targetCfdiLoaded = false;
 
-targetCfdiInput.addEventListener('change', function () {
+async function validateSat(file) {
+
+    const satBox = document.getElementById('satStatus');
+
+    satBox.innerHTML = '<span class="loader"></span> Validando CFDI en SAT...';
+    satBox.style.color = '#666';
+
+    const fd = new FormData();
+    fd.append('cfdi', file);
+
+    try {
+
+        const r = await fetch('<?= BASE_URL ?>/backend/public/validate_cfdi_sat.php', {
+            method: 'POST',
+            body: fd
+        });
+
+        const res = await r.json();
+
+        if (res.warning) {
+
+            satBox.textContent = '⚠️ No se pudo validar en SAT';
+            satBox.style.color = 'orange';
+
+            return { status: 'unknown' };
+        }
+
+        if (res.estado !== 'Vigente') {
+
+            satBox.textContent = '❌ CFDI no vigente (' + res.estado + ')';
+            satBox.style.color = 'red';
+
+            return { status: 'invalid' };
+        }
+
+        satBox.textContent = '✅ CFDI válido (Vigente)';
+        satBox.style.color = 'green';
+
+        return { status: 'valid' };
+
+    } catch (e) {
+
+        satBox.textContent = '⚠️ Error validando CFDI';
+        satBox.style.color = 'orange';
+
+        return { status: 'unknown' };
+    }
+}
+
+targetCfdiInput.addEventListener('change', async function () {
 
     if (!this.files || !this.files.length) {
         targetCfdiLoaded = false;
@@ -562,6 +631,24 @@ targetCfdiInput.addEventListener('change', function () {
 
     statusBox.textContent = 'Factura cargada: ' + file.name;
     targetCfdiLoaded = true;
+    generateBtn.disabled = true;
+    const satResult = await validateSat(file);
+
+    // ✅ controlar flujo según resultado
+    if (satResult.status === 'invalid') {
+
+        generateBtn.disabled = true;
+        targetCfdiLoaded = false;
+
+        return; // bloquea flow
+    }
+
+    // ✅ permitir continuar (vigente o unknown)
+    targetCfdiLoaded = true;
+
+    if (previewBox.textContent.startsWith('<')) {
+        generateBtn.disabled = false;
+    }
     if (targetCfdiLoaded && previewBox.textContent.startsWith('<')) {
         generateBtn.disabled = false;
     }
