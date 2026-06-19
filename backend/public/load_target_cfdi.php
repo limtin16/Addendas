@@ -1,77 +1,70 @@
 <?php
+ob_start();
+ini_set('display_errors', 0);
+error_reporting(0);
+
+header('Content-Type: application/json');
+
+function respond($arr, $code = 200) {
+    http_response_code($code);
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    echo json_encode($arr);
+    exit;
+}
+
 session_start();
 
 /* =======================================================
-   Validar archivo
-   ======================================================= */
+   ✅ VALIDAR ARCHIVO
+======================================================= */
 
 if (!isset($_FILES['target_cfdi'])) {
-    http_response_code(400);
-    echo json_encode(['error' => 'No se recibió archivo']);
-    exit;
+    respond(['error' => 'No se recibió archivo'], 400);
 }
 
 $file = $_FILES['target_cfdi'];
 
-/* ===============================
+/* =======================================================
    ✅ VALIDACIONES DE SEGURIDAD
-================================ */
+======================================================= */
 
-// ✅ error upload
 if ($file['error'] !== UPLOAD_ERR_OK) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Error al subir archivo']);
-    exit;
+    respond(['error' => 'Error al subir archivo'], 400);
 }
 
-// ✅ tamaño (2MB)
 if ($file['size'] > 2 * 1024 * 1024) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Archivo demasiado grande']);
-    exit;
+    respond(['error' => 'Archivo demasiado grande'], 400);
 }
 
-// ✅ extensión
 $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 if ($extension !== 'xml') {
-    http_response_code(400);
-    echo json_encode(['error' => 'Solo se permiten archivos XML']);
-    exit;
+    respond(['error' => 'Solo se permiten archivos XML'], 400);
 }
 
-// ✅ MIME (CRÍTICO)
 $mime = mime_content_type($file['tmp_name']);
 $allowedMime = ['text/xml', 'application/xml', 'application/x-xml'];
 
 if (!in_array($mime, $allowedMime)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Tipo de archivo inválido']);
-    exit;
+    respond(['error' => 'Tipo de archivo inválido'], 400);
 }
 
-$xmlContent = file_get_contents($_FILES['target_cfdi']['tmp_name']);
+$xmlContent = file_get_contents($file['tmp_name']);
 
 if (!$xmlContent || trim($xmlContent) === '') {
-    http_response_code(400);
-    echo json_encode([
-        'error' => 'El CFDI destino está vacío'
-    ]);
-    exit;
+    respond(['error' => 'El CFDI destino está vacío'], 400);
 }
 
 /* =======================================================
-   ✅ VALIDAR TIPO CFDI
-   ======================================================= */
-
-libxml_use_internal_errors(true);
-
-libxml_use_internal_errors(true);
+   ✅ VALIDAR XML
+======================================================= */
 
 if (strpos($xmlContent, '<!ENTITY') !== false) {
-    http_response_code(400);
-    echo json_encode(['error' => 'XML contiene entidades no permitidas']);
-    exit;
+    respond(['error' => 'XML contiene entidades no permitidas'], 400);
 }
+
+libxml_use_internal_errors(true);
 
 $xml = simplexml_load_string(
     $xmlContent,
@@ -80,24 +73,15 @@ $xml = simplexml_load_string(
 );
 
 if (!$xml) {
-    http_response_code(400);
-    echo json_encode([
+    respond([
         'error' => 'XML inválido, el XML debe ser tipo Ingreso o Egreso'
-    ]);
-    exit;
+    ], 400);
 }
 
-if (!$xml) {
-    http_response_code(400);
-    echo json_encode([
-        'error' => 'XML inválido, el XML debe ser tipo Ingreso o Egreso'
-    ]);
-    exit;
-}
+/* =======================================================
+   ✅ NAMESPACE
+======================================================= */
 
-/**
- * Manejo de namespaces (muy importante en CFDI)
- */
 $namespaces = $xml->getNamespaces(true);
 if (!is_array($namespaces)) {
     $namespaces = [];
@@ -111,30 +95,13 @@ if (isset($namespaces['cfdi'])) {
 }
 
 if (!$nodes || !isset($nodes[0])) {
-    http_response_code(400);
-    echo json_encode([
-        'error' => 'No se encontró el nodo Comprobante'
-    ]);
-    exit;
+    respond(['error' => 'No se encontró el nodo Comprobante'], 400);
 }
 
 /* =======================================================
-   ⚠️ VALIDAR CANCELACIÓN (requiere SAT)
-   ======================================================= */
+   ✅ VALIDAR TIMBRE (UUID)
+======================================================= */
 
-// Aquí deberías llamar al servicio del SAT
-// Por ahora no se valida realmente
-
-// Ejemplo futuro:
-// if ($estatus === 'Cancelado') { ... }
-
-/* =======================================================
-   ✅ VALIDAR QUE ESTÉ TIMBRADO (UUID)
-   ======================================================= */
-
-$uuid = null;
-
-// Registrar namespace tfd si existe
 if (isset($namespaces['tfd'])) {
     $xml->registerXPathNamespace('tfd', $namespaces['tfd']);
     $timbre = $xml->xpath('//tfd:TimbreFiscalDigital');
@@ -143,28 +110,19 @@ if (isset($namespaces['tfd'])) {
 }
 
 if (!$timbre || !isset($timbre[0])) {
-    http_response_code(400);
-    echo json_encode([
-        'error' => 'El CFDI no está timbrado (no tiene UUID)'
-    ]);
-    exit;
+    respond(['error' => 'El CFDI no está timbrado (no tiene UUID)'], 400);
 }
 
 $uuid = (string)$timbre[0]['UUID'];
 
 if (!$uuid) {
-    http_response_code(400);
-    echo json_encode([
-        'error' => 'El CFDI no contiene UUID válido'
-    ]);
-    exit;
+    respond(['error' => 'El CFDI no contiene UUID válido'], 400);
 }
 
 /* =======================================================
-   ✅ VALIDAR QUE NO TENGA ADDENDA
-   ======================================================= */
+   ✅ VALIDAR ADDENDA
+======================================================= */
 
-// Buscar nodo Addenda (con o sin namespace)
 if (isset($namespaces['cfdi'])) {
     $xml->registerXPathNamespace('cfdi', $namespaces['cfdi']);
     $addendaNodes = $xml->xpath('//cfdi:Addenda');
@@ -172,12 +130,50 @@ if (isset($namespaces['cfdi'])) {
     $addendaNodes = $xml->xpath('//Addenda');
 }
 
-// Si ya tiene addenda → bloquear
 if (!empty($addendaNodes)) {
-    http_response_code(400);
-    echo json_encode([
-        'error' => 'El CFDI cargado ya contiene una addenda'
-    ]);
-    exit;
+    respond(['error' => 'El CFDI cargado ya contiene una addenda'], 400);
 }
 
+$dom = new DOMDocument();
+$dom->loadXML($xmlContent);
+
+$fields = [];
+
+function walkNode(DOMElement $el, string $path, array &$out)
+{
+    foreach ($el->attributes as $attr) {
+        if ($attr->prefix === 'xmlns') continue;
+
+        $out[] = [
+            'path'  => $path . '.@' . $attr->name,
+            'label' => $path . ' → @' . $attr->name,
+            'value' => $attr->value
+        ];
+    }
+
+    foreach ($el->childNodes as $child) {
+        if ($child instanceof DOMElement) {
+            walkNode(
+                $child,
+                $path . '.' . $child->nodeName,
+                $out
+            );
+        }
+    }
+}
+
+walkNode(
+    $dom->documentElement,
+    $dom->documentElement->nodeName,
+    $fields
+);
+
+/* =======================================================
+   ✅ TODO OK
+======================================================= */
+
+respond([
+    'success' => true,
+    'uuid' => $uuid,
+    'fields' => $fields
+]);

@@ -297,6 +297,7 @@ if (
     ]);
     exit;
 }
+$xmlInput = trim($_POST['addenda_xml']);
 
 if (strlen($xmlInput) > 2 * 1024 * 1024) {
     echo json_encode(['error' => 'Addenda demasiado grande']);
@@ -308,18 +309,17 @@ if (strpos($xmlInput, '<!ENTITY') !== false) {
     exit;
 }
 
-$xmlInput = trim($_POST['addenda_xml']);
-
 $domAddenda = new DOMDocument();
 
 if (!$domAddenda->loadXML($xmlInput, LIBXML_NONET)) {
     echo json_encode(['error' => 'Addenda XML inválida']);
     exit;
 }
-$templateNs = htmlspecialchars(trim($templateNs));
-// ✅ tomar namespace del template
-$templateNs = $_POST['addenda_namespace'] ?? '';
-$templateNs = trim($templateNs);
+$templateNs = isset($_POST['addenda_namespace'])
+    ? trim($_POST['addenda_namespace'])
+    : '';
+
+$templateNs = htmlspecialchars($templateNs);
 
 
 // ✅ normalizar si no tiene xmlns

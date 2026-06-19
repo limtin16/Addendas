@@ -1,0 +1,80 @@
+{
+    "id": "tpl_6a3481e2c12e75.11101719",
+    "name": "Addenda XSD",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "ElementosAmazon",
+            "prefix": "",
+            "namespace": "http:\/\/www.amazon.com.mx\/AmazonAddenda",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "TextoLibre",
+                    "children": [],
+                    "type_data": "string"
+                },
+                {
+                    "type": "node",
+                    "name": "LosAtributos",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "identificacionUnica",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "nombreDelAtributo",
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "valorDelAtributo",
+                            "type_data": "string"
+                        }
+                    ]
+                }
+            ],
+            "instance": {
+                "type": "node",
+                "name": "ElementosAmazon",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "TextoLibre",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "node",
+                        "name": "LosAtributos",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "identificacionUnica",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "nombreDelAtributo",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "valorDelAtributo",
+                                "type_data": "string",
+                                "options": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<ElementosAmazon xmlns=\"http:\/\/www.amazon.com.mx\/AmazonAddenda\" TextoLibre=\"\">\n  <LosAtributos identificacionUnica=\"\" nombreDelAtributo=\"\" valorDelAtributo=\"\"\/>\n<\/ElementosAmazon>",
+            "addenda_extra_ns": ""
+        }
+    },
+    "createdAt": null
+}

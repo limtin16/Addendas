@@ -575,23 +575,32 @@ fetch('<?= BASE_URL ?>/backend/public/load_target_cfdi.php', {
     body: fd
 })
 .then(async r => {
-    const res = await r.json();
 
-    if (!r.ok) {
-        alert('❌ ' + (res.error || 'Error procesando CFDI'));
+    if (!r) return;
 
-        // ✅ IMPORTANTE: resetear estado
+    let res;
+
+    try {
+        res = await r.json();
+    } catch (e) {
+
+        console.warn("load_target_cfdi NO devolvió JSON");
+
         targetCfdiLoaded = false;
         generateBtn.disabled = true;
-        targetCfdiInput.value = ''; // 🔥 limpia el archivo
 
-        statusBox.textContent = 'No se ha seleccionado ningún archivo.';
+        statusBox.textContent = 'Error procesando CFDI';
 
         return;
     }
 
     // ✅ TODO BIEN
-    loadCfdiAutofillSuggestions();
+    if (res.fields) {
+        cfdiSuggestions = res.fields;
+        populateAutofillSelectors();
+        enableAutofill();
+        hideAutofillWarning();
+    }
 });
 
 });
@@ -706,10 +715,8 @@ function loadCfdiAutofillSuggestions() {
         .then(data => {
 
             if (data.error) {
-                alert(
-                    '⚠️ Para usar autofill debes subir primero la factura destino.'
-                );
-                disableAutofill();
+                console.warn('Autofill no disponible:', data.error);
+                return;
                 return;
             }
 
