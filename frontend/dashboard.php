@@ -128,6 +128,13 @@ $credits = $creditService->getAvailableCredits($userId);
                     Ver opciones
                 </a>
             </div>
+            <div class="card">
+                <h3>🔍 Validar XML y Addenda</h3>
+                <p>Valida estructura de XML y addendas contra XSD</p>
+                <a href="<?= BASE_URL ?>/frontend/validate_xsd.php" class="btn gray">
+                    Validar archivos
+                </a>
+            </div>
         </div>
 
     </div>

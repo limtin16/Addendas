@@ -127,18 +127,21 @@ form {
 ========================= */
 .cards {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     gap: 25px;
-    flex-wrap: wrap;
+    max-width: 950px;
+    margin: 0 auto;
 }
 
 .card {
+    width: 300px;
+    box-sizing: border-box;
+
     background: white;
     padding: 30px 25px;
     border-radius: 12px;
-    width: 300px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    transition: all 0.25s ease;
     text-align: center;
 }
 
@@ -1351,3 +1354,28 @@ html, body {
 .btn.full {
     width: 100%;
 }
+
+/* =========================
+   AISLAMIENTO SOLO VALIDADOR XSD
+========================= */
+
+.xsd-validator-page {
+    display: block !important;
+}
+
+.xsd-validator-page .main {
+    display: block;
+}
+
+/* evita que flex global rompa layout */
+.xsd-validator-page body {
+    display: block;
+}
+
+/* asegura visibilidad */
+.xsd-validator-page .simple-box {
+    margin-top: 40px;
+    display: block;
+}
+
+
