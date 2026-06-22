@@ -138,7 +138,6 @@ if (!$stmt->execute()) {
     exit;
 }
 
-
 // ✅ EMAIL DE CONFIRMACIÓN
 $stmt = $conn->prepare("
     SELECT subject, body 

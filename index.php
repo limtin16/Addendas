@@ -249,11 +249,9 @@ body {
 
         <div class="secondary">
             <div style="margin-bottom:8px;">
-                <!--
                 <a href="<?= BASE_URL ?>/frontend/select_mode.php">
                     Probar sin cuenta →
                 </a>
-                -->
             </div>
 
             <div style="font-size:13px; color:#6b7280;">

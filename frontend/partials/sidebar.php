@@ -45,6 +45,7 @@ define('BASE_URL_sb', $base);
         <div class="menu-top">
             <a href="<?= BASE_URL_sb ?>/frontend/register.php">📝 Registrarse</a>
             <a href="<?= BASE_URL_sb ?>/frontend/login.php">🔐 Login</a>
+            <a href="<?= BASE_URL_sb ?>/frontend/recover_cfdi.php">📥 Recuperar CFDI</a>
             <a href="<?= BASE_URL_sb ?>/frontend/privacy.php">📝 Política de privacidad</a>
             <a href="<?= BASE_URL_sb ?>/frontend/cancellation_policy.php">📝 Política de cancelación</a>
         </div>

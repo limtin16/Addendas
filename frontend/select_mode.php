@@ -18,9 +18,8 @@ session_start();
 
 // ✅ validar sesión
 if (!isset($_SESSION['user_id'])) {
-    header("Location: " . BASE_URL . "/frontend/login.php");
-    exit;
-}
+    //si necesito setear algo en caso de ser guest
+}else{
 
 $userId = $_SESSION['user_id'];
 
@@ -36,6 +35,7 @@ if ($credits <= 0) {
     exit;
 }
 unset($_SESSION['using_template']);
+}
 ?>
 
 <!DOCTYPE html>

@@ -32,61 +32,43 @@ if (
 </head>
 
 <body>
-
 <?php include __DIR__ . '/partials/sidebar.php'; ?>
-
 <div class="main">
-
     <div class="container form-centered">
-
         <div class="card upload-card">
-
             <h2>📄 Subir Addenda o CFDI</h2>
-
             <p class="description">
                 Sube un CFDI que contenga una Addenda o un archivo XML independiente.<br>
                 El sistema analizará la estructura para recrear la plantilla automáticamente.
             </p>
-
             <form method="post"
                 action="<?= BASE_URL ?>/backend/public/analyze_addenda.php"
                 enctype="multipart/form-data"
                 id="uploadForm">
-
                 <!-- ✅ FILE INPUT BONITO -->
                 <div class="upload-area">
-
                     <input type="file"
                         name="addenda_xml"
                         id="addendaXml"
                         accept=".xml"
                         required>
-
                     <label for="addendaXml" class="upload-button">
                         📂 Seleccionar archivo XML
                     </label>
-
                     <div class="file-info" id="fileInfo"></div>
-
                     <div class="error" id="fileError">
                         Debes seleccionar un archivo XML válido.
                     </div>
-
                 </div>
-
                 <!-- ✅ BOTÓN -->
                 <button type="submit" class="btn blue full">
                     🔍 Analizar archivo
                 </button>
-
                 <div class="note">
                     * Archivos soportados: CFDI con Addenda o Addenda XML aislada.
                 </div>
-
             </form>
-
         </div>
-
     </div>
 </div>
 
