@@ -34,7 +34,7 @@ if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
 define('SYSTEM_USER_ID', 4);
 define('BACKEND_ROOT', __DIR__);
 define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/src/Storage/templates');
-define('PAYPAL_ENV', 'live'); // 'sandbox' o 'live'
+define('PAYPAL_ENV', 'sandbox'); // 'sandbox' o 'live'
 //sandbox credentials
 define('PAYPAL_CLIENT_ID', 'AQB9ODdqdnBmZv3Zzqm10B1wRUqxJFmpmIBKP_aSYZHc14hjtH2h6ioOn252TWX5nwtbp8ZXhUzD1pTH');
 define('PAYPAL_SECRET', 'EGdUoQ1h9yzdf8lnwvRCgrg-Zv9uZar7z9Lq2oH_jX6fyl-9kJHJbavKTSgOFRKu3a4pcXY3yjV4lxsT');
