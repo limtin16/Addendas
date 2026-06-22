@@ -36,8 +36,8 @@ define('BACKEND_ROOT', __DIR__);
 define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/src/Storage/templates');
 define('PAYPAL_ENV', 'live'); // 'sandbox' o 'live'
 //sandbox credentials
-define('PAYPAL_CLIENT_ID', 'AVuWRRuwCRhBVVWf7rvlv64erEU5-QxolBokEGVheOK88MwuENfaqGNVW16qEUCuybpb9Cc3IXoakZCn');
-define('PAYPAL_SECRET', 'ECSIr-XrOxwzE7Mt2vPFawHNIokUEYMD9QW43S8IOYI10AUerZvi7NKKfej7MSDnLjiH-AgiyJESyoiY');
+define('PAYPAL_CLIENT_ID', 'AQB9ODdqdnBmZv3Zzqm10B1wRUqxJFmpmIBKP_aSYZHc14hjtH2h6ioOn252TWX5nwtbp8ZXhUzD1pTH');
+define('PAYPAL_SECRET', 'EGdUoQ1h9yzdf8lnwvRCgrg-Zv9uZar7z9Lq2oH_jX6fyl-9kJHJbavKTSgOFRKu3a4pcXY3yjV4lxsT');
 //live credentials
 //define('PAYPAL_CLIENT_ID', 'Acr83GJ-rP4viuOFLb5FWzOQW7wHINpbF1nk1Z2LTe2CS93s6Kiqoi6CBxCjW4SY7cPBliyqkY_Y4x9Q');
 //define('PAYPAL_SECRET', 'EFKk58p-Hd7UrNbd1UykCs_rQKL3WtfSn5RlukQey3eVQ2rbbQ7jGhIoIJJUQt_j70CRA0R7Io1QYElF');
