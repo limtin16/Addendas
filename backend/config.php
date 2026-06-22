@@ -14,8 +14,14 @@ header("X-XSS-Protection: 1; mode=block");
 header("Referrer-Policy: strict-origin-when-cross-origin");
 header("X-Powered-By: none");
 // 🔥 CSP
-header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https://www.paypal.com https://www.paypalobjects.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://www.paypal.com https://www.paypalobjects.com; frame-src https://www.paypal.com; connect-src 'self' https://www.paypal.com;");
-
+header("Content-Security-Policy:
+default-src 'self'; 
+img-src 'self' data: https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://www.sandbox.paypalobjects.com; 
+style-src 'self' 'unsafe-inline'; 
+script-src 'self' 'unsafe-inline' https://www.paypal.com https://www.paypalobjects.com https://www.sandbox.paypal.com https://www.sandbox.paypalobjects.com; 
+frame-src https://www.paypal.com https://www.sandbox.paypal.com; 
+connect-src 'self' https://www.paypal.com https://www.sandbox.paypal.com;
+");
 
 // ✅ rutas internas (como ya lo tienes)
 if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
