@@ -11,7 +11,13 @@ $path.="backend/config.php";
 require_once $path;
 
 session_start();
+
 $redirect = $_GET['redirect'] ?? BASE_URL . "/frontend/select_mode.php";
+
+// ✅ AGREGAR ESTO
+$price = 115;
+$iva = $price * 0.16;
+$total = round($price + $iva, 2);
 ?>
 
 <!DOCTYPE html>
