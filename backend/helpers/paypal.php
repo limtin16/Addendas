@@ -102,6 +102,69 @@ function verifyPayPalOrder($orderId) {
     return $data;
 }
 
+// ✅ CREAR ORDEN (ESTO ES LO QUE TE FALTA)
+function createPayPalOrder($data) {
+
+    $token   = getPayPalAccessToken();
+    $baseUrl = getPayPalApiBaseUrl();
+
+    if (!$token) {
+        return null;
+    }
+
+    $amount   = $data['amount'] ?? 0;
+    $currency = $data['currency'] ?? 'MXN';
+    $customId = $data['custom_id'] ?? '';
+
+    $payload = [
+        "intent" => "CAPTURE",
+        "purchase_units" => [[
+            "amount" => [
+                "currency_code" => $currency,
+                "value" => number_format($amount, 2, '.', '')
+            ],
+            "custom_id" => $customId
+        ]]
+    ];
+
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, $baseUrl . "/v2/checkout/orders");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Content-Type: application/json",
+        "Authorization: Bearer " . $token
+    ]);
+
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+
+    $response = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        file_put_contents(__DIR__ . '/paypal_error.log',
+            "CREATE ORDER ERROR: " . curl_error($ch) . "\n",
+            FILE_APPEND
+        );
+        curl_close($ch);
+        return null;
+    }
+
+    curl_close($ch);
+
+    $data = json_decode($response);
+
+    if (!isset($data->id)) {
+        file_put_contents(__DIR__ . '/paypal_error.log',
+            "CREATE ORDER INVALID: " . $response . "\n",
+            FILE_APPEND
+        );
+        return null;
+    }
+
+    return $data;
+}
 
 // ✅ VALIDAR CAPTURA (opcional pero pro)
 function verifyPayPalCapture($captureId) {

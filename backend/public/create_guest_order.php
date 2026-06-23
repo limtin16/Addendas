@@ -5,8 +5,18 @@ header('Content-Type: application/json');
 // ✅ evita basura antes del JSON
 ob_clean();
 
-require_once __DIR__ . '/../backend/config.php';
-require_once __DIR__ . '/../backend/helpers/paypal.php';
+$path="";
+$count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addenda'),100),'\\'));
+if ($count==0){
+    $count= (substr_count(substr(getcwd(),strrpos(getcwd(),'addendafacil.com'),100),'/'));
+}
+for ($i=0; $i<$count; $i++){
+	$path.="../";
+}
+$paypalHelperPath = $path . "backend/helpers/paypal.php";
+$path.="backend/config.php";
+require_once $path;
+require_once $paypalHelperPath;
 
 session_start();
 

@@ -70,17 +70,29 @@ document.addEventListener("DOMContentLoaded", function () {
     paypal.Buttons({
 
         createOrder: function(data, actions) {
-            return fetch('<?= BASE_URL ?>/backend/public/create_guest_order.php?redirect=<?= urlencode($redirect) ?>')
-                .then(res => res.json())
-                .then(data => data.id);
+
+            const total = <?= $total ?>;
+
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: total
+                    },
+                    custom_id: JSON.stringify({
+                        type: "guest_addenda",
+                        redirect: "<?= $redirect ?>"
+                    })
+                }]
+            });
         },
 
         onApprove: function(data, actions) {
             return actions.order.capture().then(function(details) {
 
-                alert("✅ Pago exitoso");
-
-                window.location.href = "<?= BASE_URL ?>/backend/public/check_guest_access.php?redirect=<?= urlencode($redirect) ?>";
+                window.location.href =
+                    "<?= BASE_URL ?>/backend/public/check_guest_access.php"
+                    + "?orderID=" + data.orderID
+                    + "&redirect=<?= urlencode($redirect) ?>";
             });
         },
 
