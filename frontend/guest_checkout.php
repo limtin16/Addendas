@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return actions.order.capture().then(function(details) {
 
                 window.location.href =
-                    "<?= BASE_URL ?>/backend/public/check_guest_access.php"
+                    "<?= BASE_URL ?>/frontend/check_guest_access.php"
                     + "?orderID=" + data.orderID
                     + "&redirect=<?= urlencode($redirect) ?>";
             });
