@@ -15,6 +15,8 @@ for ($i=0; $i<$count; $i++){
 require_once $path . "backend/config.php";
 require_once $path . "backend/helpers/paypal.php";
 require_once $path . "backend/db.php";
+require_once $path . "backend/helpers/mailer.php";
+``
 
 // ✅ leer webhook
 $payload = file_get_contents("php://input");
@@ -66,7 +68,15 @@ $amount = $purchaseUnit->amount->value ?? 0;
 $custom = json_decode($purchaseUnit->custom_id ?? '{}');
 
 $type = $custom->type ?? null;
+$email = $custom->email ?? null;
 $redirect = $custom->redirect ?? null;
+
+if (!$email) {
+    file_put_contents(__DIR__ . "/guest_paypal_error.log",
+        "Sin email en metadata\n",
+        FILE_APPEND
+    );
+}
 
 if ($type !== "guest_addenda") {
     exit("No es guest checkout");
@@ -128,5 +138,41 @@ file_put_contents($file,
     ]) . "\n",
     FILE_APPEND
 );
+
+// ✅ OBTENER TEMPLATE
+$stmt = $conn->prepare("
+    SELECT subject, body 
+    FROM email_templates 
+    WHERE code = 'guest_purchase_confirmation'
+    LIMIT 1
+");
+
+$stmt->execute();
+$stmt->bind_result($subject, $templateBody);
+$stmt->fetch();
+$stmt->close();
+
+// ✅ VARIABLES
+$vars = [
+    'order_id' => $orderId,
+    'date' => date('d/m/Y H:i'),
+    'amount' => number_format($amount, 2)
+];
+
+// ✅ RENDER
+$body = renderTemplate($templateBody, $vars);
+
+// ✅ ENVIAR EMAIL
+$status = sendEmail($email, $subject, $body) ? 'sent' : 'error';
+
+// ✅ LOG EMAIL
+$logStmt = $conn->prepare("
+    INSERT INTO email_logs (user_id, email, template_code, status)
+    VALUES (?, ?, 'guest_purchase_confirmation', ?)
+");
+
+$logStmt->bind_param("iss", $userId, $email, $status);
+$logStmt->execute();
+$logStmt->close();
 
 echo "OK";
