@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         createOrder: function(data, actions) {
 
-            const total = <?= $total ?>;
+            const total = <?= json_encode($total) ?>;
 
             return actions.order.create({
                 purchase_units: [{
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     },
                     custom_id: JSON.stringify({
                         type: "guest_addenda",
-                        redirect: "<?= $redirect ?>"
+                        redirect: <?= json_encode($redirect) ?>
                     })
                 }]
             });
