@@ -81,15 +81,15 @@ $plans = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
        <div class="plans-grid">
 
-<?php foreach ($plans as $p):
+        <?php foreach ($plans as $p):
 
-    $unit = round($p['price'] / $p['credits']);
+            $unit = round($p['price'] / $p['credits']);
 
-    $expires = formatExpiration($p['expires_days']);
+            $expires = formatExpiration($p['expires_days']);
 
-    $iva = $p['price'] * 0.16;
-    $total = $p['price'] + $iva;
-?>
+            $iva = $p['price'] * 0.16;
+            $total = $p['price'] + $iva;
+        ?>
 
     <div class="plan-card">
 
