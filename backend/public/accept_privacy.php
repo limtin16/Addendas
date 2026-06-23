@@ -28,7 +28,7 @@ $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
 // obtener versión activa
 $stmt = $conn->prepare("
-    SELECT version FROM privacy_policy WHERE active = 1 LIMIT 1
+    SELECT version FROM policy WHERE active = 1 AND type = 'privacy' LIMIT 1
 ");
 $stmt->execute();
 $stmt->bind_result($version);
