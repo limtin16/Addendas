@@ -1,0 +1,70 @@
+{
+    "id": "tpl_6a3abaec171416.86674063",
+    "name": "Addenda Upload",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+            "instance": {
+                "type": "node",
+                "name": "Factura",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "NumeroDeFacturaDelProveedor"
+                    },
+                    {
+                        "type": "field",
+                        "name": "FechaDeFactura"
+                    },
+                    {
+                        "type": "field",
+                        "name": "Moneda"
+                    },
+                    {
+                        "type": "node",
+                        "name": "Conceptos",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "part",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "NumeroDeOrdenDeCompra"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "PosicionDeOrdenDeCompra"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "CantidadPorPosicion"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "PrecioPorPosicion"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "UnidadPorPosicion"
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "Remision"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<THY:Factura xmlns:THY=\"http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd\" NumeroDeFacturaDelProveedor=\"23\" FechaDeFactura=\"10\/02\/2026\" Moneda=\"MXN\">\n      <THY:Conceptos>\n        <THY:part NumeroDeOrdenDeCompra=\"4500079343\" PosicionDeOrdenDeCompra=\"10\" CantidadPorPosicion=\"1\" PrecioPorPosicion=\"117000.00\" UnidadPorPosicion=\"SRV\" Remision=\"23\"\/>\n      <\/THY:Conceptos>\n    <\/THY:Factura>",
+            "addenda_extra_ns": "http:\/\/www.sat.gob.mx\/cfd\/3",
+            "children": []
+        }
+    },
+    "createdAt": null
+}

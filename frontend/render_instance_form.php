@@ -19,15 +19,22 @@ require_once BACKEND_ROOT . '/src/Services/CreditService.php';
 
 $creditService = new CreditService($conn);
 
-$hasCredits = true;
+$hasCredits = false;
 
+// ✅ usuario registrado
 if (isset($_SESSION['user_id'])) {
     $credits = $creditService->getAvailableCredits($_SESSION['user_id']);
-    if ($credits <= 0) {
-        $hasCredits = false;
+    if ($credits > 0) {
+        $hasCredits = true;
     }
+
+// ✅ guest
 } else {
-    $hasCredits = false;
+    $guestCredits = $_SESSION['guest_credits'] ?? 0;
+
+    if ($guestCredits > 0) {
+        $hasCredits = true;
+    }
 }
     
 use App\Services\TemplateService;
@@ -459,8 +466,6 @@ form.addEventListener('input', updatePreview);
 updatePreview();
 
 document.getElementById('generateBtn').addEventListener('click', async function () {
-
-    
 // ✅ VALIDAR CRÉDITOS
     if (!hasCredits) {
         const msg = document.createElement("div");

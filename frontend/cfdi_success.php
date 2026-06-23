@@ -76,7 +76,7 @@ if (!$cfdi) {
 
             <!-- ✅ BOTÓN DESCARGA -->
             <?php if ($isGuest): ?>
-                <button class="btn blue full" onclick="handleGuestDownload(<?= $cfdi['id'] ?>)">
+                <button class="btn blue" onclick="handleGuestDownload(<?= $cfdi['id'] ?>)">
                     ⬇ Descargar CFDI
                 </button>
             <?php else: ?>
@@ -100,7 +100,7 @@ if (!$cfdi) {
 
                     <input type="email" id="guestEmail" placeholder="tu@email.com" class="input">
 
-                    <button class="btn gray full" style="margin-top:10px;" onclick="sendGuestEmail(<?= $cfdi['id'] ?>)">
+                    <button class="btn gray" style="margin-top:10px;" onclick="sendGuestEmail(<?= $cfdi['id'] ?>)">
                         📩 Enviarme el CFDI por correo
                     </button>
 

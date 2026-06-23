@@ -74,11 +74,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     paypal.Buttons({
-
         createOrder: function(data, actions) {
-
             const total = <?= json_encode($total) ?>;
-
             return actions.order.create({
                 purchase_units: [{
                     amount: {
@@ -96,17 +93,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return actions.order.capture().then(function(details) {
 
                 window.location.href =
-                    "<?= BASE_URL ?>/frontend/check_guest_access.php"
-                    + "?orderID=" + data.orderID
-                    + "&redirect=<?= urlencode($redirect) ?>";
+                    "<?= BASE_URL ?>/frontend/guest_success.php"
+                    + "?redirect=<?= urlencode($redirect) ?>";
             });
-        },
-
-        onError: function(err) {
-            console.error(err);
-            alert("Error en el pago");
         }
-
     }).render('#paypal-button-container');
 
 });

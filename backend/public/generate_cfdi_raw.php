@@ -18,9 +18,9 @@ session_start();
 header('Content-Type: application/json');
 
 $userId = $_SESSION['user_id'] ?? null;
-$isGuestPaid = $_SESSION['guest_paid'] ?? false;
+$guestCredits = $_SESSION['guest_credits'] ?? 0;
 
-if (!$userId && !$isGuestPaid) {
+if (!$userId && $guestCredits <= 0) {
     echo json_encode(['error' => 'No autorizado']);
     exit;
 }
@@ -403,8 +403,20 @@ if ($userId) {
     }
 
 } else {
-    // ✅ visitante: solo permitir UNA vez
-    unset($_SESSION['guest_paid']);
+    // ✅ consumir crédito guest
+    if (!isset($_SESSION['guest_credits']) || $_SESSION['guest_credits'] <= 0) {
+        echo json_encode([
+            'error' => 'No tienes créditos disponibles'
+        ]);
+        exit;
+    }
+
+    $_SESSION['guest_credits']--;
+
+    // ✅ protección extra
+    if ($_SESSION['guest_credits'] < 0) {
+        $_SESSION['guest_credits'] = 0;
+    }
 }
 
 

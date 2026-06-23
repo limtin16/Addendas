@@ -43,6 +43,7 @@ define('BASE_URL_sb', $base);
     <?php else: ?>
 
         <div class="menu-top">
+            <a href="<?= BASE_URL_sb ?>/frontend/select_mode.php">🏠 Generar Addenda</a>
             <a href="<?= BASE_URL_sb ?>/frontend/register.php">📝 Registrarse</a>
             <a href="<?= BASE_URL_sb ?>/frontend/login.php">🔐 Login</a>
             <a href="<?= BASE_URL_sb ?>/frontend/recover_cfdi.php">📥 Recuperar CFDI</a>

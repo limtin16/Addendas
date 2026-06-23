@@ -99,7 +99,7 @@ if ($stmt->num_rows > 0) {
 }
 
 // ✅ INSERTAR pago (guest = user_id 4, 1 crédito)
-$userId = 4;
+$userId = 4; // usuario guest interno
 $credits = 1;
 
 $stmt = $conn->prepare("
