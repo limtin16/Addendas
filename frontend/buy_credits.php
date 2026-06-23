@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../backend/config.php';
+require_once __DIR__ . '/../backend/db.php';
 
 session_start();
 
@@ -7,6 +8,42 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: " . BASE_URL . "/frontend/login.php");
     exit;
 }
+
+function formatExpiration($days) {
+
+    if ($days < 30) {
+        return $days . ' día' . ($days > 1 ? 's' : '');
+    }
+
+    if ($days < 365) {
+        $months = $days / 30;
+
+        // si es entero → sin decimal
+        if ($months == floor($months)) {
+            return $months . ' mes' . ($months > 1 ? 'es' : '');
+        }
+
+        return number_format($months, 1) . ' meses';
+    }
+
+    $years = $days / 365;
+
+    // ✅ MISMA LÓGICA AQUÍ
+    if ($years == floor($years)) {
+        return $years . ' año' . ($years > 1 ? 's' : '');
+    }
+
+    return number_format($years, 1) . ' años';
+}
+
+$stmt = $conn->prepare("
+    SELECT * FROM plans
+    WHERE active = 1 AND audience = 'registered'
+    ORDER BY credits ASC
+");
+
+$stmt->execute();
+$plans = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -42,61 +79,44 @@ if (!isset($_SESSION['user_id'])) {
         <!-- ✅ CONTENEDOR CHECKOUT -->
         <div id="conektaIframeContainer" style="margin-bottom:30px;"></div>
 
-        <div class="plans-grid">
+       <div class="plans-grid">
 
-        <?php
-        $plans = [
-            ['credits'=>1,   'price'=>100,   'expires'=>'1 mes'],
-            ['credits'=>10,  'price'=>850,   'expires'=>'3 meses'],
-            ['credits'=>20,  'price'=>1500,  'expires'=>'6 meses'],
-            ['credits'=>50,  'price'=>3250,  'expires'=>'6 meses'],
-            ['credits'=>100, 'price'=>5500,  'expires'=>'1 año'],
-            ['credits'=>200, 'price'=>10000, 'expires'=>'1 año'],
-            ['credits'=>300, 'price'=>13500, 'expires'=>'1 año'],
-            ['credits'=>500, 'price'=>20000, 'expires'=>'1 año'],
-        ];
-        foreach ($plans as $p):
-            $unit = round($p['price'] / $p['credits']);
-        ?>
-        <div class="plan-card">
-            <h3><?= $p['credits'] ?> Addenda<?= $p['credits'] > 1 ? 's' : '' ?></h3>
-            <?php
-                $iva = $p['price'] * 0.16;
-                $total = $p['price'] + $iva;
-            ?>
+<?php foreach ($plans as $p):
 
-            <div>
-                $<?= number_format($p['price'],2) ?> + IVA
-            </div>
+    $unit = round($p['price'] / $p['credits']);
 
-            <div style="font-size:13px; color:#6b7280;">
-                Total: $<?= number_format($total,2) ?>
-            </div>
+    $expires = formatExpiration($p['expires_days']);
 
-            <div class="plan-expiration">
-                ⏳ Expira en <?= $p['expires'] ?>
-            </div>
+    $iva = $p['price'] * 0.16;
+    $total = $p['price'] + $iva;
+?>
 
-            <div class="payment-options">
+    <div class="plan-card">
 
-            <!-- ✅ PAYPAL -->
-            <div class="paypal-button-container"
-                data-credits="<?= $p['credits'] ?>"
-                data-amount="<?= $total ?>">
-            </div>
+        <h3><?= $p['credits'] ?> Addenda<?= $p['credits'] > 1 ? 's' : '' ?></h3>
 
-            <!-- ✅ CONEKTA (DESACTIVADO TEMPORALMENTE) -->
-            <!--
-            <button class="generate-checkout btn blue"
-                    data-credits="<?= $p['credits'] ?>">
-                Pagar con tarjeta / OXXO
-            </button>
-            -->
-
-        </div>
+        <div>
+            $<?= number_format($p['price'],2) ?> + IVA
         </div>
 
-        <?php endforeach; ?>
+        <div style="font-size:13px; color:#6b7280;">
+            Total: $<?= number_format($total,2) ?>
+        </div>
+
+        <div class="plan-expiration">
+            ⏳ Expira en <?= $expires ?>
+        </div>
+
+        <div class="paypal-button-container"
+            data-plan-id="<?= $p['id'] ?>"
+            data-amount="<?= $total ?>">
+        </div>
+
+    </div>
+
+    <?php endforeach; ?>
+
+    </div>
 
         </div>
 
@@ -115,7 +135,7 @@ document.addEventListener("DOMContentLoaded", function () {
     containers.forEach(container => {
 
         const userId = <?= (int) $_SESSION['user_id'] ?>;
-        const credits = parseInt(container.dataset.credits);
+        const planId = parseInt(container.dataset.planId);
         const amount = container.dataset.amount;
 
         paypal.Buttons({
@@ -128,7 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                         custom_id: JSON.stringify({
                             user_id: userId,
-                            credits: credits
+                            plan_id: planId
                         })
                     }]
                 });

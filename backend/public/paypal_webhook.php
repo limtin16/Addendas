@@ -62,7 +62,6 @@ if (!$orderId) {
     exit;
 }
 
-
 // ✅ VALIDAR CON PAYPAL
 $paypalOrder = verifyPayPalOrder($orderId);
 
@@ -72,24 +71,41 @@ if (!$paypalOrder || $paypalOrder->status !== 'COMPLETED') {
     exit;
 }
 
-
 // ✅ obtener datos desde PayPal (fuente confiable)
 $purchaseUnit = $paypalOrder->purchase_units[0];
-
 $amount = $purchaseUnit->amount->value ?? 0;
 
 // ✅ metadata segura
 $custom = json_decode($purchaseUnit->custom_id ?? '{}');
 
 $userId = $custom->user_id ?? null;
-$credits = $custom->credits ?? 0;
+$planId = $custom->plan_id ?? null;
 
-if (!$userId || !$credits) {
+if (!$userId || !$planId) {
     http_response_code(400);
     echo "Metadata inválida";
     exit;
 }
 
+$stmt = $conn->prepare("
+    SELECT credits, expires_days 
+    FROM plans 
+    WHERE id = ? AND active = 1
+    LIMIT 1
+");
+
+$stmt->bind_param("i", $planId);
+$stmt->execute();
+
+$stmt->bind_result($credits, $expiresDays);
+
+if (!$stmt->fetch()) {
+    http_response_code(400);
+    echo "Plan no encontrado";
+    exit;
+}
+
+$stmt->close();
 
 // ✅ EVITAR DUPLICADOS (IMPORTANTE)
 $stmt = $conn->prepare("
@@ -114,7 +130,7 @@ $stmt = $conn->prepare("
     VALUES (?, ?, ?, ?, NOW())
 ");
 
-$expiresAt = date('Y-m-d H:i:s', strtotime('+1 year'));
+$expiresAt = date('Y-m-d H:i:s', strtotime("+$expiresDays days"));
 
 $stmt->bind_param("iiis", $userId, $credits, $credits, $expiresAt);
 
@@ -123,13 +139,14 @@ if (!$stmt->execute()) {
     exit;
 }
 
-
 // ✅ GUARDAR PAGO
 $stmt = $conn->prepare("
     INSERT INTO payments 
-    (user_id, credits, provider, external_order_id, amount)
-    VALUES (?, ?, 'paypal', ?, ?)
+    (user_id, credits, provider, external_order_id, amount, plan_id)
+    VALUES (?, ?, 'paypal', ?, ?, ?)
 ");
+
+$stmt->bind_param("iisdi", $userId, $credits, $orderId, $amount, $planId);
 
 $stmt->bind_param("iisd", $userId, $credits, $orderId, $amount);
 
