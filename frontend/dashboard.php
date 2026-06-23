@@ -36,6 +36,7 @@ $credits = $creditService->getAvailableCredits($userId);
 <head>
     <title>Dashboard</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 </head>
 <div id="predefined-warning" class="modal" style="display:none;">
     <div class="modal-content">

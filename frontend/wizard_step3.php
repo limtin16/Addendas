@@ -23,6 +23,7 @@ if (!$templateId) {
 <meta charset="UTF-8">
 <title>Crear addenda – Paso 3</title>
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 </head>
 
 <body>

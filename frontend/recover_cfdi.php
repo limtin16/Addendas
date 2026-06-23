@@ -17,6 +17,7 @@ require_once $path;
 <head>
     <title>Recuperar CFDI</title>
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
     <style>
 /* ✅ CONTENEDOR ESPECÍFICO */
 .recover-wrapper {

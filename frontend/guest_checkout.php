@@ -26,6 +26,7 @@ $total = round($price + $iva, 2);
 <meta charset="UTF-8">
 <title>Pagar Addenda</title>
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 <script src="https://www.paypal.com/sdk/js?client-id=<?= PAYPAL_CLIENT_ID ?>&currency=MXN&locale=es_MX"></script>
 </head>
 <body>

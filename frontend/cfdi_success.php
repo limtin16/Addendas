@@ -55,6 +55,7 @@ if (!$cfdi) {
 <meta charset="UTF-8">
 <title>CFDI generado</title>
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
 <?php include __DIR__ . '/partials/sidebar.php'; ?>

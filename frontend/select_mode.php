@@ -45,6 +45,7 @@ unset($_SESSION['using_template']);
 <title>Crear Addenda – Seleccionar modo</title>
 
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 
 </head>
 

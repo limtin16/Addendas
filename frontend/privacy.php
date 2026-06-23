@@ -33,6 +33,7 @@ $policy = $stmt->get_result()->fetch_assoc();
     <meta charset="UTF-8">
     <title>Aviso de Privacidad</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
     <style>
 
 /* ✅ RESET TOTAL para esta página */

@@ -13,11 +13,19 @@ define('BASE_URL_sb', $base);
 ?>
 
 <div class="sidebar">
+   
+ <div class="logo" style="text-align:center;">
+        <a href="<?= BASE_URL_sb ?>/frontend/dashboard.php"> 
+        <img src="<?= BASE_URL_sb ?>/frontend/assets/logo_transparent.png" alt="AddendaFacil" style="max-width:100%;"
+                alt="AddendaFacil"
+                style="max-width:160px;"
+            >
+        </a>
+    </div>
 
-    <h2 class="logo">📄 Addendas</h2>
 
     <?php if ($isLogged): ?>
-
+        
         <div class="user">
             👤<br>
             <small><?= htmlspecialchars($_SESSION['user_email']) ?></small>

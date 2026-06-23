@@ -17,6 +17,7 @@ require_once $path;
     <meta charset="UTF-8">
     <title>Recuperar contraseña</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
     <style>
 body {
     display: block !important;

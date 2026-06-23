@@ -15,6 +15,7 @@ if (!isset($_SESSION['user_id'])) {
 <meta charset="UTF-8">
 <title>Comprar Créditos</title>
  <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 <!-- ✅ SCRIPT CONEKTA Temporalmente desactivado-->
 <!--
 <script src="https://pay.conekta.com/v1.0/js/components.js"></script>

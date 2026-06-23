@@ -23,6 +23,7 @@ require_once $path;
 <meta name="keywords" content="addenda CFDI, cómo hacer addenda, XML CFDI addenda, generar addenda, factura addenda">
 
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 
 <style>
 .article {

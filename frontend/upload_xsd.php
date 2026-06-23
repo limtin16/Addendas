@@ -30,6 +30,7 @@ if (
 <meta charset="UTF-8">
 <title>Subir XSD</title>
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 </head>
 
 <body>

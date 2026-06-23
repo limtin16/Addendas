@@ -44,6 +44,7 @@ $cfdis = $result->fetch_all(MYSQLI_ASSOC);
 <head>
     <title>Mis CFDIs</title>
     <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 </head>
 
 <body>

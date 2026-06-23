@@ -190,6 +190,7 @@ function renderFields(array $nodes, string $prefix = ''): void
 <meta charset="UTF-8">
 <title>Rellenar Addenda</title>
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
+<link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">
 <style>
         /* 🎯 ROOT SOLO PARA ESTA PÁGINA */
         .render-main {
