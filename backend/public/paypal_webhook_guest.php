@@ -16,7 +16,6 @@ require_once $path . "backend/config.php";
 require_once $path . "backend/helpers/paypal.php";
 require_once $path . "backend/db.php";
 require_once $path . "backend/helpers/mailer.php";
-``
 
 // ✅ leer webhook
 $payload = file_get_contents("php://input");
@@ -59,6 +58,16 @@ if (!$paypalOrder || $paypalOrder->status !== 'COMPLETED') {
     http_response_code(400);
     exit("Pago no validado");
 }
+$email = $paypalOrder->payer->email_address ?? null;
+
+if (!$email) {
+    file_put_contents(__DIR__ . "/guest_paypal_error.log",
+        "No se pudo obtener email desde PayPal\n",
+        FILE_APPEND
+    );
+    exit("Sin email");
+}
+
 
 // ✅ obtener datos
 $purchaseUnit = $paypalOrder->purchase_units[0];
@@ -77,6 +86,11 @@ if (!$email) {
         FILE_APPEND
     );
 }
+
+file_put_contents(__DIR__ . "/guest_paypal_email.log",
+    $email . "\n",
+    FILE_APPEND
+);
 
 if ($type !== "guest_addenda") {
     exit("No es guest checkout");
