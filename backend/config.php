@@ -33,6 +33,9 @@ if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
 define('SYSTEM_USER_ID', 4);
 define('BACKEND_ROOT', __DIR__);
 define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/src/Storage/templates');
+
+
+
 define('PAYPAL_ENV', 'live'); // 'sandbox' o 'live'
 
 if (PAYPAL_ENV === 'sandbox') {

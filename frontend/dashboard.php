@@ -193,6 +193,26 @@ document.getElementById('btn-create').addEventListener('click', function(e) {
         }, 3000);
     }
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const url = new URL(window.location.href);
+
+    if (url.searchParams.get("paid") === "1") {
+
+        console.log("Pago detectado ✅");
+
+        // ✅ opcional: pequeño delay para UX
+        setTimeout(() => {
+
+            // ✅ elimina el ?paid=1 SIN recargar doble
+            window.location.replace("<?= BASE_URL ?>/frontend/dashboard.php");
+
+        }, 5000);// 5 segundos
+    }
+
+});
+
 const msg = document.getElementById("paid-msg");
 if (msg) {
     setTimeout(() => {
