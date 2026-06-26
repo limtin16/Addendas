@@ -51,7 +51,7 @@ if (!$cfdi) {
 }
 
 // ✅ generar link temporal (token ya existente)
-$downloadLink = BASE_URL_FULL . "/backend/public/download_cfdi_by_id.php?id=" . $cfdiId;
+$downloadLink = BASE_URL_FULL . "/backend/public/download_cfdi_by_id.php?token=" . urlencode($cfdi['token']);
 
 // ✅ obtener template
 $stmt = $conn->prepare("
