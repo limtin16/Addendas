@@ -1,0 +1,310 @@
+{
+    "id": "tpl_6a3eabf54c01b2.49492203",
+    "name": "Addenda XSD",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "AddendaBasware",
+            "prefix": "",
+            "namespace": "",
+            "children": [
+                {
+                    "type": "field",
+                    "name": "version",
+                    "type_data": "string"
+                },
+                {
+                    "type": "node",
+                    "name": "Documento",
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "OrdenCompra",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "NumeroContrato",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "PersonaReferencia",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "Email",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "DocumentoTransporte",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "NumeroProveedor",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "CodigoDestinatario",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "ISOMoneda",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "FechaPago",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "field",
+                            "name": "TerminoPago",
+                            "children": [],
+                            "type_data": "string"
+                        },
+                        {
+                            "type": "node",
+                            "name": "ExtraInformacion",
+                            "children": [
+                                {
+                                    "type": "field",
+                                    "name": "ExtraInfo",
+                                    "children": [],
+                                    "type_data": "string"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "node",
+                    "name": "Lineas",
+                    "children": [
+                        {
+                            "type": "node",
+                            "name": "Linea",
+                            "children": [
+                                {
+                                    "type": "field",
+                                    "name": "NumeroLinea",
+                                    "children": [],
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "OrdenCompra",
+                                    "children": [],
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "LineaOrdenCompra",
+                                    "children": [],
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "NumeroContrato",
+                                    "children": [],
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "CodigoProductoComprador",
+                                    "children": [],
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "field",
+                                    "name": "DocumentoTransporte",
+                                    "children": [],
+                                    "type_data": "string"
+                                },
+                                {
+                                    "type": "node",
+                                    "name": "ExtraInformacion",
+                                    "children": [
+                                        {
+                                            "type": "field",
+                                            "name": "ExtraInfo",
+                                            "children": [],
+                                            "type_data": "string"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "instance": {
+                "type": "node",
+                "name": "AddendaBasware",
+                "children": [
+                    {
+                        "type": "field",
+                        "name": "version",
+                        "type_data": "string",
+                        "options": []
+                    },
+                    {
+                        "type": "node",
+                        "name": "Documento",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "OrdenCompra",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "NumeroContrato",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "PersonaReferencia",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "Email",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "DocumentoTransporte",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "NumeroProveedor",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "CodigoDestinatario",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "ISOMoneda",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "FechaPago",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "field",
+                                "name": "TerminoPago",
+                                "type_data": "string",
+                                "options": []
+                            },
+                            {
+                                "type": "node",
+                                "name": "ExtraInformacion",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "ExtraInfo",
+                                        "type_data": "string",
+                                        "options": []
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "type": "node",
+                        "name": "Lineas",
+                        "children": [
+                            {
+                                "type": "node",
+                                "name": "Linea",
+                                "children": [
+                                    {
+                                        "type": "field",
+                                        "name": "NumeroLinea",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "OrdenCompra",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "LineaOrdenCompra",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "NumeroContrato",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "CodigoProductoComprador",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "field",
+                                        "name": "DocumentoTransporte",
+                                        "type_data": "string",
+                                        "options": []
+                                    },
+                                    {
+                                        "type": "node",
+                                        "name": "ExtraInformacion",
+                                        "children": [
+                                            {
+                                                "type": "field",
+                                                "name": "ExtraInfo",
+                                                "type_data": "string",
+                                                "options": []
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<AddendaBasware version=\"\">\n  <Documento OrdenCompra=\"\" NumeroContrato=\"\" PersonaReferencia=\"\" Email=\"\" DocumentoTransporte=\"\" NumeroProveedor=\"\" CodigoDestinatario=\"\" ISOMoneda=\"\" FechaPago=\"\" TerminoPago=\"\">\n    <ExtraInformacion ExtraInfo=\"\"\/>\n  <\/Documento>\n  <Lineas>\n    <Linea NumeroLinea=\"\" OrdenCompra=\"\" LineaOrdenCompra=\"\" NumeroContrato=\"\" CodigoProductoComprador=\"\" DocumentoTransporte=\"\">\n      <ExtraInformacion ExtraInfo=\"\"\/>\n    <\/Linea>\n  <\/Lineas>\n<\/AddendaBasware>",
+            "addenda_extra_ns": ""
+        }
+    },
+    "createdAt": null
+}
