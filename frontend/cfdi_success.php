@@ -154,33 +154,8 @@ if (!$cfdi) {
 <script>
 function handleGuestDownload(cfdiId) {
 
-    const email = document.getElementById("guestEmail")?.value || '';
-
-    fetch("<?= BASE_URL ?>/frontend/complete_guest_process.php", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            cfdi_id: cfdiId,
-            email: email
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        if (!data.success) {
-            alert("Error procesando el CFDI");
-            return;
-        }
-
-        // ✅ descarga
-        window.location.href = "<?= BASE_URL ?>/backend/public/download_cfdi_by_id.php?id=" + cfdiId;
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error inesperado");
-    });
+    // ✅ descarga directa (sin backend intermedio)
+    window.location.href = "<?= BASE_URL ?>/backend/public/download_cfdi_by_id.php?id=" + cfdiId;
 }
 
 function sendGuestEmail(cfdiId) {
