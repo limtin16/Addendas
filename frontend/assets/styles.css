@@ -1382,4 +1382,13 @@ html, body {
     margin-bottom: 25px;
 }
 
+.card.scrollable {
+    width: 100%;   /* ✅ ocupa todo el ancho disponible */
+    max-width: 100%;
+}
+
+.grid > .card.scrollable {
+    justify-self: stretch;
+}
+
 

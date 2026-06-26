@@ -36,7 +36,7 @@ define('TEMPLATE_STORAGE_PATH', BACKEND_ROOT . '/src/Storage/templates');
 
 
 
-define('PAYPAL_ENV', 'live'); // 'sandbox' o 'live'
+define('PAYPAL_ENV', 'sandbox'); // 'sandbox' o 'live'
 
 if (PAYPAL_ENV === 'sandbox') {
     //sandbox credentials
