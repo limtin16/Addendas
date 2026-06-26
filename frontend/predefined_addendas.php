@@ -62,9 +62,7 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
         <?php if (empty($templates)): ?>
             <p class="empty">No hay addendas predefinidas disponibles aún.</p>
         <?php else: ?>
-
             <div class="market-grid">
-
                 <?php foreach ($templates as $tpl): 
                     ?>
                     <div class="market-card">
@@ -77,7 +75,6 @@ $templates = $result->fetch_all(MYSQLI_ASSOC);
                                     alt="<?= htmlspecialchars($tpl['name']) ?>">
                             </a>
                         </div>
-
                         <!-- INFO -->
                         <div class="market-info">
 
