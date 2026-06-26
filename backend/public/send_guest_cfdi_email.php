@@ -30,7 +30,7 @@ if (!$row) {
 $token = $row['token'];
 
 // ✅ URL descarga
-$downloadUrl = BASE_URL_FULL . "/backend/public/recover_cfdi.php?token=" . $token;
+$downloadUrl = BASE_URL_FULL . "/backend/public/recover_cfdi.php?id=" . $cfdiId;
 
 // ✅ email
 $subject = "✅ Tu CFDI está listo para descargar";
