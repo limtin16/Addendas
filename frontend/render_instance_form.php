@@ -540,10 +540,6 @@ document.getElementById('generateBtn').addEventListener('click', async function 
         storeFd.append('xml', data.xml);
         storeFd.append('original_name', data.original_name);
 
-
-        // ✅ ESTE ES EL CAMBIO CLAVE
-        storeFd.append('original_name', data.original_name);
-
         const saved = await fetch('<?= BASE_URL ?>/backend/public/save_generated_cfdi.php', {
             method: 'POST',
             body: storeFd
@@ -622,7 +618,7 @@ targetCfdiInput.addEventListener('change', async function () {
     }
 
     let files = Array.from(targetCfdiInput.files);
-
+    const file = files[0]; // ✅ SIEMPRE DEFINIDO
     // ✅ bloquear multi para guest
     if (isGuest && files.length > 1) {
         alert("Como invitado solo puedes generar 1 CFDI a la vez");
@@ -667,11 +663,6 @@ targetCfdiInput.addEventListener('change', async function () {
     targetCfdiLoaded = validCount > 0;
     generateBtn.disabled = false;
 
-    statusBox.textContent = 'Factura cargada: ' + file.name;
-    targetCfdiLoaded = true;
-    generateBtn.disabled = true;
-    const satResult = await validateSat(file);
-
     // ✅ controlar flujo según resultado
     if (satResult.status === 'invalid') {
 
@@ -692,14 +683,14 @@ targetCfdiInput.addEventListener('change', async function () {
     }
 
     // Enviar CFDI destino al backend para habilitar autofill
-const fd = new FormData();
-fd.append('target_cfdi', file);
+    const fd = new FormData();
+    fd.append('target_cfdi', file);
 
-fetch('<?= BASE_URL ?>/backend/public/load_target_cfdi.php', {
-    method: 'POST',
-    body: fd
-})
-.then(async r => {
+    fetch('<?= BASE_URL ?>/backend/public/load_target_cfdi.php', {
+        method: 'POST',
+        body: fd
+    })
+    .then(async r => {
 
     if (!r) return;
 
