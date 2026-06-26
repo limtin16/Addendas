@@ -43,6 +43,7 @@ function sendEmail($to, $subject, $body, $replyTo = null) {
         $mail->Subject = $subject;
         $mail->Subject = mb_encode_mimeheader($subject, 'UTF-8');
         $mail->Body = $body;
+        $mail->AltBody = strip_tags($body);
 
         $mail->send();
 
