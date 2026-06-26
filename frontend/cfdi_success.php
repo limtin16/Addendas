@@ -17,36 +17,56 @@ session_start();
 $isLoggedUser = !empty($_SESSION['user_id']);
 $isGuest = empty($_SESSION['user_id']) && !empty($_SESSION['guest_paid']);
 
-$id = $_GET['id'] ?? 0;
-$templateId = $_GET['template_id'] ?? null;
+$idsParam = $_GET['ids'] ?? '';
+$ids = array_filter(explode(',', $idsParam));
 
+$isMultiple = count($ids) > 1;
+
+if (empty($ids)) {
+    die("❌ No se recibieron CFDIs");
+}
+
+$templateId = $_GET['template_id'] ?? null;
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    $types = str_repeat('i', count($ids));
 // ✅ obtener CFDI
 if ($isLoggedUser) {
+
     $userId = $_SESSION['user_id'];
 
-    $stmt = $conn->prepare("
+    $query = "
         SELECT id, filename, token, created_at 
         FROM generated_cfdis 
-        WHERE id = ? AND user_id = ?
-    ");
-    $stmt->bind_param("ii", $id, $userId);
+        WHERE id IN ($placeholders) AND user_id = ?
+    ";
+
+    $stmt = $conn->prepare($query);
+
+    $types .= 'i';
+    $params = array_merge($ids, [$userId]);
+
+    $stmt->bind_param($types, ...$params);
 
 } else {
-    $stmt = $conn->prepare("
+
+    $query = "
         SELECT id, filename, token, created_at 
         FROM generated_cfdis 
-        WHERE id = ?
-    ");
-    $stmt->bind_param("i", $id);
+        WHERE id IN ($placeholders)
+    ";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param($types, ...$ids);
 }
 
 $stmt->execute();
 $result = $stmt->get_result();
-$cfdi = $result->fetch_assoc();
+$cfdis = $result->fetch_all(MYSQLI_ASSOC);
 
-if (!$cfdi) {
+if (!$cfdis) {
     die("❌ CFDI no encontrado");
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -67,32 +87,60 @@ if (!$cfdi) {
 
             <p>Tu CFDI fue generado correctamente.</p>
 
-            <div class="plan-summary">
-                <b>ID:</b> <?= $cfdi['id'] ?><br>
-                <b>Archivo:</b> <?= htmlspecialchars($cfdi['filename']) ?><br>
-                <b>Fecha:</b> <?= $cfdi['created_at'] ?>
-            </div>
+            <?php if (!$isMultiple): ?>
+                <div class="plan-summary">
+                    <b>ID:</b> <?= $cfdis[0]['id'] ?><br>
+                    <b>Archivo:</b> <?= htmlspecialchars($cfdis[0]['filename']) ?><br>
+                    <b>Fecha:</b> <?= $cfdis[0]['created_at'] ?>
+                </div>
+            <?php endif; ?>
+            <?php if ($isMultiple): ?>
+
+            <p><b><?= count($cfdis) ?> CFDI generados correctamente</b></p>
+
+            <ul>
+            <?php foreach ($cfdis as $c): ?>
+                <li><?= htmlspecialchars($c['filename']) ?></li>
+            <?php endforeach; ?>
+            </ul>
+
+            <?php endif; ?>
 
             <br>
 
             <!-- ✅ BOTÓN DESCARGA -->
-            <?php if ($isGuest): ?>
-                <button class="btn blue" onclick="handleGuestDownload(<?= $cfdi['id'] ?>)">
-                    ⬇ Descargar CFDI
-                </button>
-            <?php else: ?>
-                <a href="<?= BASE_URL ?>/backend/public/download_cfdi_by_id.php?id=<?php echo $cfdi['id'] ?>" class="btn blue">
-                   ⬇ Descargar CFDI
+            <?php if ($isMultiple): ?>
+
+                <a href="<?=BASE_URL?>/backend/public/download_cfdis_zip.php?ids=<?= $idsParam ?>" class="btn blue">
+                    ⬇ Descargar ZIP
                 </a>
+
+            <?php else: ?>
+
+                <?php if ($isGuest): ?>
+                    <button class="btn blue"
+                        onclick="handleGuestDownload(<?= $cfdis[0]['id'] ?>)">
+                        ⬇ Descargar CFDI
+                    </button>
+                <?php else: ?>
+                    <a href="<?=BASE_URL?>/backend/public/download_cfdi_by_id.php?id=<?= $cfdis[0]['id'] ?>"
+                    class="btn blue">
+                    ⬇ Descargar CFDI
+                    </a>
+                <?php endif; ?>
+
             <?php endif; ?>
 
             <br>
 
             <!-- ✅ PDF -->
-            <a href="<?= BASE_URL ?>/backend/public/generate_cfdi_pdf.php?id=<?= $cfdi['id'] ?>" class="btn purple"
+            <?php if (!$isMultiple): ?>
+                <a href="<?=BASE_URL?>/backend/public/generate_cfdi_pdf.php?id=<?= $cfdis[0]['id'] ?>"
+                class="btn purple"
                 onclick="return confirmPDF();">
-               🧾 Descargar PDF
-            </a>
+                🧾 Descargar PDF
+                </a>
+            <?php endif; ?>
 
             <!-- ✅ SOLO GUEST: correo -->
             <?php if ($isGuest): ?>
@@ -101,7 +149,7 @@ if (!$cfdi) {
 
                     <input type="email" id="guestEmail" placeholder="tu@email.com" class="input">
 
-                    <button class="btn gray" style="margin-top:10px;" onclick="sendGuestEmail(<?= $cfdi['id'] ?>)">
+                    <button class="btn gray" style="margin-top:10px;" onclick="<?php if (!$isMultiple): ?> sendGuestEmail(<?= $cfdis[0]['id'] ?>) <?php endif; ?>">
                         📩 Enviarme el CFDI por correo
                     </button>
 

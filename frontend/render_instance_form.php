@@ -396,7 +396,8 @@ function renderFields(array $nodes, string $prefix = ''): void
                         Esta factura no debe contener Addenda.</p>
                     <input type="file"
                         id="targetCfdi"
-                        accept=".xml">
+                        accept=".xml"
+                        multiple>
                     <div class="file-status" id="targetCfdiStatus">No se ha seleccionado ningún archivo.</div>
                     <div id="satStatus" style="
                         margin-top:8px;
@@ -418,6 +419,7 @@ function renderFields(array $nodes, string $prefix = ''): void
     </div>
 </div>
 <script>
+const isGuest = <?= empty($_SESSION['user_id']) ? 'true' : 'false' ?>;
 const hasCredits = <?= $hasCredits ? 'true' : 'false' ?>;
 const TEMPLATE_ID = "<?= htmlspecialchars($templateId) ?>";
 const templateNamespace = document.getElementById('addendaNamespace').value
@@ -493,53 +495,66 @@ document.getElementById('generateBtn').addEventListener('click', async function 
         alert('El preview no es válido.');
         return;
     }
+                
+    const isGuest = <?= empty($_SESSION['user_id']) ? 'true' : 'false' ?>;
+    let files = Array.from(targetCfdiInput.files);
 
-    const targetFile = targetCfdiInput.files[0];
-
-    const formData = new FormData();
-    formData.append('addenda_xml', xmlAddenda);
-    formData.append('cfdi', targetFile);
-    formData.append("addenda_namespace", templateNamespace);
-
-    // ✅ generar CFDI
-    const res = await fetch('<?= BASE_URL ?>/backend/public/generate_cfdi_raw.php', {
-        method: 'POST',
-        body: formData
-    });
-
-    const text = await res.text();
-
-    console.log("RAW RESPONSE:", text);
-
-    let data;
-
-    try {
-        data = JSON.parse(text);
-    } catch (e) {
-        console.error("Respuesta inválida:", text);
-        alert("Error del servidor:\n" + text);
+    if (isGuest && files.length > 1) {
+        alert("Como invitado solo puedes generar 1 CFDI a la vez");
         return;
     }
 
-    if (!res.ok || !data.xml) {
-        alert('Error generando CFDI');
+    // ✅ si es guest, usar solo el primero
+    if (isGuest) {
+        files = [files[0]];
+    }
+
+    if (!files.length) {
+        alert("Selecciona al menos un CFDI");
         return;
     }
 
-    // ✅ guardar en BD
-    const fdStore = new FormData();
-    fdStore.append('xml', data.xml);
+    const ids = [];
 
-    const storeRes = await fetch('<?= BASE_URL ?>/backend/public/save_generated_cfdi.php', {
-        method: 'POST',
-        body: fdStore
-    });
+    for (const file of files) {
 
-    const saved = await storeRes.json();
+        const fd = new FormData();
+        fd.append('addenda_xml', xmlAddenda);
+        fd.append('cfdi', file);
+        fd.append('original_name', file.name);
+        fd.append("addenda_namespace", templateNamespace);
 
-    // ✅ redirect final
-    window.location.href = '<?= BASE_URL ?>/frontend/cfdi_success.php?id='
-    + saved.id + '&template_id=<?= htmlspecialchars($templateId) ?>';
+        const res = await fetch('<?= BASE_URL ?>/backend/public/generate_cfdi_raw.php', {
+            method: 'POST',
+            body: fd
+        });
+
+        const data = await res.json();
+
+        if (!data.xml) {
+            alert("Error en: " + file.name);
+            return;
+        }
+
+        const storeFd = new FormData();
+        storeFd.append('xml', data.xml);
+        storeFd.append('original_name', data.original_name);
+
+
+        // ✅ ESTE ES EL CAMBIO CLAVE
+        storeFd.append('original_name', data.original_name);
+
+        const saved = await fetch('<?= BASE_URL ?>/backend/public/save_generated_cfdi.php', {
+            method: 'POST',
+            body: storeFd
+        }).then(r => r.json());
+
+        ids.push(saved.id);
+    }
+
+    // ✅ REDIRECT MULTI
+    window.location.href =
+    '<?= BASE_URL ?>/frontend/cfdi_success.php?ids=' + ids.join(',');
 });
 
 const targetCfdiInput = document.getElementById('targetCfdi');
@@ -606,34 +621,51 @@ targetCfdiInput.addEventListener('change', async function () {
         return;
     }
 
-    const file = this.files[0];
-    const name = file.name.toLowerCase();
+    let files = Array.from(targetCfdiInput.files);
 
-    // ✅ validar extensión
-    if (!name.endsWith('.xml')) {
-        statusBox.textContent = 'El archivo debe ser XML (.xml)';
-        this.value = '';
-        generateBtn.disabled = true;
-        targetCfdiLoaded = false;
+    // ✅ bloquear multi para guest
+    if (isGuest && files.length > 1) {
+        alert("Como invitado solo puedes generar 1 CFDI a la vez");
         return;
     }
 
-    // ✅ validar tamaño (2MB)
-    if (file.size > 2 * 1024 * 1024) {
-        statusBox.textContent = 'El archivo es demasiado grande';
-        this.value = '';
-        generateBtn.disabled = true;
-        targetCfdiLoaded = false;
-        return;
+    // ✅ si es guest usa solo uno
+    if (isGuest) {
+        files = [files[0]];
     }
 
-    if (!file.type.includes('xml') && file.type !== '') {
-        statusBox.textContent = 'Tipo de archivo inválido';
-        this.value = '';
-        generateBtn.disabled = true;
-        targetCfdiLoaded = false;
-        return;
+    let validCount = 0;
+
+    for (const file of files) {
+
+        if (!file.name.toLowerCase().endsWith('.xml')) {
+            statusBox.textContent = 'Todos los archivos deben ser XML';
+            this.value = '';
+            generateBtn.disabled = true;
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            statusBox.textContent = 'Uno de los archivos es muy grande';
+            this.value = '';
+            generateBtn.disabled = true;
+            return;
+        }
+
+        const sat = await validateSat(file);
+
+        if (sat.status === 'invalid') {
+            statusBox.textContent = 'Uno de los CFDI no es válido';
+            generateBtn.disabled = true;
+            return;
+        }
+
+        validCount++;
     }
+
+    statusBox.textContent = validCount + " CFDI cargados correctamente";
+    targetCfdiLoaded = validCount > 0;
+    generateBtn.disabled = false;
 
     statusBox.textContent = 'Factura cargada: ' + file.name;
     targetCfdiLoaded = true;

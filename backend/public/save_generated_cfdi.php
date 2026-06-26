@@ -1,4 +1,8 @@
 <?php
+ob_start();
+ini_set('display_errors', 0);
+error_reporting(0);
+
 session_start();
 header('Content-Type: application/json');
 $path="";
@@ -13,10 +17,11 @@ $cfgPath = $path . "backend/src/storage/cfdi_generated/";
 $dbPath = $path . "backend/db.php";
 require_once $dbPath;
 
-$userId = $_SESSION['user_id'] ?? null;
+$userId = $_SESSION['user_id'] ?? 4;
 
 // ✅ XML obligatorio
 $xml = $_POST['xml'] ?? null;
+$originalName = $_POST['original_name'] ?? null;
 
 if (!$xml) {
     echo json_encode(['error' => 'No XML']);
@@ -49,16 +54,17 @@ $token = bin2hex(random_bytes(8));
 
 // ✅ guardar en BD (👀 user_id puede ser NULL)
 $stmt = $conn->prepare("
-    INSERT INTO generated_cfdis (user_id, filename, xml, token, created_at)
-    VALUES (?, ?, ?, ?, NOW())
+    INSERT INTO generated_cfdis (user_id, filename, xml, token, original_name, created_at)
+    VALUES (?, ?, ?, ?, ?, NOW())
 ");
 
-$stmt->bind_param("isss", $userId, $filename, $xml, $token);
+$stmt->bind_param("issss", $userId, $filename, $xml, $token, $originalName);
 $stmt->execute();
 
 $id = $stmt->insert_id;
 
 // ✅ respuesta
+while (ob_get_level()) ob_end_clean();
 echo json_encode([
     "id" => $id
 ]);

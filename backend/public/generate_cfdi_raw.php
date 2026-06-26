@@ -17,11 +17,11 @@ session_start();
 
 header('Content-Type: application/json');
 
-$userId = $_SESSION['user_id'] ?? null;
+$userId = $_SESSION['user_id'] ?? 4;
 $guestCredits = $_SESSION['guest_credits'] ?? 0;
 
-if (!$userId && $guestCredits <= 0) {
-    echo json_encode(['error' => 'No autorizado']);
+if ($userId == 4 && ($_SESSION['guest_credits'] ?? 0) <= 0) {
+    echo json_encode(['error' => 'Sin créditos']);
     exit;
 }
 
@@ -199,7 +199,7 @@ function processAddendaForInsert(string $originalCfdi, string $newAddendaXml): s
 $creditService = new CreditService($conn);
 
 // ✅ SOLO validar créditos si es usuario logueado
-if ($userId) {
+if ($userId && $userId != 4) {
 
     $available = $creditService->getAvailableCredits($userId);
 
@@ -223,6 +223,18 @@ if (!isset($_FILES['cfdi'])) {
 }
 
 $file = $_FILES['cfdi'];
+
+// ✅ BLOQUEO MULTI PARA GUEST (user_id = 4)
+if ($userId == 4) {
+
+    // si viene como array (multi upload forzado)
+    if (is_array($_FILES['cfdi']['name'])) {
+        echo json_encode([
+            'error' => 'Como invitado solo puedes procesar un CFDI'
+        ]);
+        exit;
+    }
+}
 
 /* ===============================
    ✅ VALIDACIONES DE SEGURIDAD
@@ -298,6 +310,8 @@ if (
     exit;
 }
 $xmlInput = trim($_POST['addenda_xml']);
+$originalName = $_POST['original_name'] ?? null;
+
 
 if (strlen($xmlInput) > 2 * 1024 * 1024) {
     echo json_encode(['error' => 'Addenda demasiado grande']);
@@ -389,8 +403,23 @@ if (!$finalCfdi || trim($finalCfdi) === '') {
     exit;
 }
 
+// ✅ protección adicional: guest solo genera 1 por request
+if ($userId == 4) {
+
+    static $alreadyGenerated = false;
+
+    if ($alreadyGenerated) {
+        echo json_encode([
+            'error' => 'Solo puedes generar un CFDI por operación'
+        ]);
+        exit;
+    }
+
+    $alreadyGenerated = true;
+}
+
 // ✅ SOLO consumir créditos si es usuario
-if ($userId) {
+if ($userId && $userId != 4) {
 
     if (!$creditService->consumeOne(
         $userId,
@@ -425,7 +454,8 @@ $_SESSION['cfdi_generated'] = true;
 
 // respuesta
 echo json_encode([
-    'xml' => $finalCfdi
+    'xml' => $finalCfdi,
+    'original_name' => $originalName
 ]);
 
 exit;
