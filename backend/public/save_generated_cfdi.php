@@ -22,6 +22,7 @@ $userId = $_SESSION['user_id'] ?? 4;
 // ✅ XML obligatorio
 $xml = $_POST['xml'] ?? null;
 $originalName = $_POST['original_name'] ?? null;
+$originalName = $originalName ?: '';
 
 if (!$xml) {
     echo json_encode(['error' => 'No XML']);
@@ -32,13 +33,20 @@ if (!$xml) {
 $filename = 'cfdi_' . time() . '.xml';
 
 // ✅ guardar archivo físico
-$path = $cfgPath . $filename;
+$path = __DIR__ . '/../src/storage/cfdi_generated/' . $filename;
 // ✅ asegurar existencia de carpeta
 if (!is_dir($cfgPath)) {
     mkdir($cfgPath, 0775, true);
 }
 
 $result = file_put_contents($path, $xml);
+if (!is_writable($cfgPath)) {
+    echo json_encode([
+        'error' => 'Carpeta no escribible',
+        'path' => $cfgPath
+    ]);
+    exit;
+}
 if ($result === false) {
     echo json_encode([
         'error' => 'No se pudo escribir archivo',
@@ -59,12 +67,26 @@ $stmt = $conn->prepare("
 ");
 
 $stmt->bind_param("issss", $userId, $filename, $xml, $token, $originalName);
+if (!$stmt) {
+    echo json_encode([
+        'error' => 'Prepare failed',
+        'detail' => $conn->error
+    ]);
+    exit;
+}
+if (!$stmt->execute()) {
+    echo json_encode([
+        'error' => 'Execute failed',
+        'detail' => $stmt->error
+    ]);
+    exit;
+}
 $stmt->execute();
 
 $id = $stmt->insert_id;
 
 // ✅ respuesta
-while (ob_get_level()) ob_end_clean();
+// while (ob_get_level()) ob_end_clean();
 echo json_encode([
     "id" => $id
 ]);

@@ -543,7 +543,22 @@ document.getElementById('generateBtn').addEventListener('click', async function 
         const saved = await fetch('<?= BASE_URL ?>/backend/public/save_generated_cfdi.php', {
             method: 'POST',
             body: storeFd
-        }).then(r => r.json());
+        })
+        const res = await fetch('<?= BASE_URL ?>/backend/public/save_generated_cfdi.php', {
+            method: 'POST',
+            body: storeFd
+        });
+
+        const text = await res.text();
+        console.log("SAVE RESPONSE:", text);
+
+        let saved;
+        try {
+            saved = JSON.parse(text);
+        } catch (e) {
+            alert("Error servidor:\n" + text);
+            return;
+        }
 
         ids.push(saved.id);
     }
