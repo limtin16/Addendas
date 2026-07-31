@@ -270,7 +270,7 @@ body {
         </div>
         <div>
             <p><br>
-                AddendaFácil es una herramienta para generar addendas CFDI automáticamente sin necesidad de editar XML manualmente.
+                AddendaFácil es una herramienta para generar addendas CFDI automáticamente sin necesidad de editar XML manualmente. 
             </p>
         </div>
     </div>
