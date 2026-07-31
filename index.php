@@ -5,6 +5,15 @@ require_once __DIR__ . '/backend/config.php';
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18362690034"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-18362690034');
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Genera addendas CFDI 4.0 en minutos. Sube XML, XSD o crea addendas desde cero de forma automática con AddendaFácil.">

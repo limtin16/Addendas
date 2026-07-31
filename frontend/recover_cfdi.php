@@ -15,6 +15,15 @@ require_once $path;
 <!DOCTYPE html>
 <html>
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18362690034"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-18362690034');
+</script>
     <title>Recuperar CFDI</title>
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
 <link rel="icon" href="<?= BASE_URL?>/frontend/assets/favicon.ico" type="image/x-icon">

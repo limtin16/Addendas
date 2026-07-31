@@ -41,6 +41,15 @@ $groups = $template->structure['root']['children'] ?? [];
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18362690034"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-18362690034');
+</script>
 <meta charset="UTF-8">
 <title>Crear addenda – Paso 4</title>
 <link rel="stylesheet" href="<?= BASE_URL ?>/frontend/assets/styles.css">
