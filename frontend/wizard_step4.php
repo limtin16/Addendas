@@ -85,14 +85,14 @@ $groups = $template->structure['root']['children'] ?? [];
                             ℹ️
                         </span>
                     </label>
-                    <input type="text" name="group_name" required>
+                    <input type="text" onkeydown="return event.key !== ' '" oninput="this.value = this.value.replace(/ /g,'')" name="group_name" required>
                     <label>
                         Nombre de cada elemento
                         <span class="tooltip" data-tooltip="Es el nombre que tendrá cada elemento dentro del grupo. Por ejemplo, si el grupo es Conceptos, cada elemento puede llamarse part o item.">
                             ℹ️
                         </span>
                     </label>
-                    <input type="text" name="item_name" required>
+                    <input type="text" onkeydown="return event.key !== ' '" oninput="this.value = this.value.replace(/ /g,'')" name="item_name" required>
                     <button type="submit">Crear grupo</button>
                 </form>
 
@@ -120,7 +120,7 @@ $groups = $template->structure['root']['children'] ?? [];
                             ℹ️
                         </span>
                     </label>
-                    <input type="text" name="field_name" required>
+                    <input type="text" onkeydown="return event.key !== ' '" oninput="this.value = this.value.replace(/ /g,'')" name="field_name" required>
                     <input type="hidden" name="representation" value="attribute">
                     <button type="submit">Agregar campo</button>
                 </form>

@@ -135,7 +135,13 @@ $doc = new DOMDocument('1.0', 'UTF-8');
 $doc->preserveWhiteSpace = false;
 $doc->formatOutput = true;
 
-if ($doc->loadXML($finalXml)) {
+$xmlForPreview = str_replace(
+    '<cfdi:Addenda>',
+    '<cfdi:Addenda xmlns:cfdi="http://www.sat.gob.mx/cfd/4">',
+    $finalXml
+);
+
+if ($doc->loadXML($xmlForPreview)) {
     $prettyXml = $doc->saveXML($doc->documentElement);
 } else {
     $prettyXml = $finalXml; // fallback

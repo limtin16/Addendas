@@ -57,7 +57,7 @@ if (!$templateId) {
                         ℹ️
                     </span>
                 </label>
-                <input type="text" name="field_name" placeholder="Ej. Folio" required>
+                <input type="text" name="field_name" onkeydown="return event.key !== ' '" oninput="this.value = this.value.replace(/ /g,'')" placeholder="Ej. Folio" required>
                 <input type="hidden" name="representation" value="attribute">
                 <button type="submit">Agregar campo</button>
             </form>

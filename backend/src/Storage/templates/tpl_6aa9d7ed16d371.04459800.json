@@ -1,0 +1,57 @@
+{
+    "id": "tpl_6aa9d7ed16d371.04459800",
+    "name": "test",
+    "location": "ADDENDA",
+    "structure": {
+        "root": {
+            "name": "Factura",
+            "prefix": "THY",
+            "namespace": "http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd",
+            "children": [
+                {
+                    "type": "group",
+                    "name": "Conceptos",
+                    "item_name": "part1",
+                    "repeatable": true,
+                    "source": null,
+                    "children": [
+                        {
+                            "type": "field",
+                            "name": "test",
+                            "representation": "attribute"
+                        },
+                        {
+                            "type": "field",
+                            "name": "dfa",
+                            "representation": "attribute"
+                        }
+                    ]
+                }
+            ],
+            "addenda_extra_ns": "http:\/\/addendatest.com",
+            "instance": {
+                "type": "node",
+                "name": "Factura",
+                "children": [
+                    {
+                        "type": "group",
+                        "name": "Conceptos",
+                        "item_name": "part1",
+                        "children": [
+                            {
+                                "type": "field",
+                                "name": "test"
+                            },
+                            {
+                                "type": "field",
+                                "name": "dfa"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "addenda_xml_template": "<THY:Factura xmlns:THY=\"http:\/\/www.lagermex.com.mx\/addenda-proveedores\/tkMM.xsd\">\n  <THY:Conceptos>\n    <THY:part1 test=\"\" dfa=\"\"\/>\n  <\/THY:Conceptos>\n<\/THY:Factura>"
+        }
+    },
+    "createdAt": null
+}

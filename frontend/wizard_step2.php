@@ -47,7 +47,7 @@ require_once $path;
                         ℹ️
                     </span>
                 </label>
-                <input type="text" id="root_name" name="root_name" required placeholder="Ej: Factura, AddendaDCM, Invoice">
+                <input type="text" id="root_name" onkeydown="return event.key !== ' '" oninput="this.value = this.value.replace(/ /g,'')" name="root_name" required placeholder="Ej: Factura, AddendaDCM, Invoice">
                     <div class="hint">
                         <small>
                             Normalmente lo especifica tu cliente.
@@ -60,7 +60,7 @@ require_once $path;
                         ℹ️
                     </span>
                 </label>
-                <input type="text" id="prefix" name="prefix" placeholder="Ej: THY, mabee">
+                <input type="text" id="prefix" onkeydown="return event.key !== ' '" oninput="this.value = this.value.replace(/ /g,'')" name="prefix" placeholder="Ej: THY, mabee">
                     <div class="hint">
                         <small>   
                             Si tu cliente no indicó ninguno, puedes dejarlo vacío.
@@ -68,8 +68,8 @@ require_once $path;
                     </div>
                 <br>
                 <label for="namespace">
-                    Namespace del formato
-                    <span class="tooltip" data-tooltip="Es un identificador único del formato de la addenda (una dirección tipo web). Solo se usa si el cliente te lo proporciona.">
+                    Namespace del formato (opcional)
+                    <span class="tooltip" data-tooltip="Es un identificador único del formato de la addenda (una dirección tipo web). Si dejas este campo vacío, se utilizará automáticamente: https://www.addendafacil.com/addendas .">
                         ℹ️
                     </span>
                 </label>
@@ -77,8 +77,8 @@ require_once $path;
                     type="text"
                     id="namespace"
                     name="namespace"
+                    onkeydown="return event.key !== ' '" oninput="this.value = this.value.replace(/ /g,'')"
                     placeholder="Ej: http://www.mycorp.com/schema"
-                    required
                 >
                 <div class="hint">
                     <small>   
@@ -95,6 +95,7 @@ require_once $path;
                 <input 
                     type="text" 
                     name="addenda_extra_ns" 
+                    onkeydown="return event.key !== ' '" oninput="this.value = this.value.replace(/ /g,'')"
                     placeholder="Ej: xmlns:abc='http://cliente.com/addenda'"
                 >
                 <div class="hint">
@@ -108,5 +109,16 @@ require_once $path;
         </div>
     </div>
 </div>
+<script>
+    document.querySelector('form').addEventListener('submit', function () {
+
+        const namespace = document.getElementById('namespace');
+
+        if (!namespace.value.trim()) {
+            namespace.value = 'https://www.addendafacil.com/addendas';
+        }
+
+    });
+</script>
 </body>
 </html>
