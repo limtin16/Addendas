@@ -558,8 +558,11 @@ document.getElementById('generateBtn').addEventListener('click', async function 
     }
 
     // ✅ REDIRECT MULTI
-    window.location.href =
-    '<?= BASE_URL ?>/frontend/cfdi_success.php?ids=' + ids.join(',');
+window.location.href =
+    '<?= BASE_URL ?>/frontend/cfdi_success.php?ids='
+    + encodeURIComponent(ids.join(','))
+    + '&template_id='
+    + encodeURIComponent(TEMPLATE_ID);
 });
 
 const targetCfdiInput = document.getElementById('targetCfdi');
