@@ -25,7 +25,7 @@ $name = $_POST['name'] ?? null;
 $cfdiId = $_POST['cfdi_id'] ?? null;
 $templateId = $_POST['template_id'] ?? null;
 
-if (!$name || !$templateId) {
+if (!$name) {
     die("Datos incompletos");
 }
 
