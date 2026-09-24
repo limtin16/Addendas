@@ -27,18 +27,6 @@ if (empty($ids)) {
 }
 
 $templateId = $_GET['template_id'] ?? null;
-
-echo "<pre>";
-echo "idsParam: ";
-var_dump($idsParam);
-
-echo "templateId: ";
-var_dump($templateId);
-
-echo "GET completo:\n";
-print_r($_GET);
-echo "</pre>";
-
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $types = str_repeat('i', count($ids));
 // ✅ obtener CFDI

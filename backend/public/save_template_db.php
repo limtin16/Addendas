@@ -22,9 +22,9 @@ if (!$userId) {
 }
 
 $name = $_POST['name'] ?? null;
-$cfdiId = $_POST['cfdi_id'] ?? null;
+$cfdiId = $_"POST['cfdi_id'] ?? null;
 $templateId = $_POST['template_id'] ?? null;
-
+$templateId='tpl_6a3eb1fe56cfc9.89265377';
 if (!$name) {
     die("Datos incompletos");
 }
