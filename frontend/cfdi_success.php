@@ -27,6 +27,18 @@ if (empty($ids)) {
 }
 
 $templateId = $_GET['template_id'] ?? null;
+
+echo "<pre>";
+echo "idsParam: ";
+var_dump($idsParam);
+
+echo "templateId: ";
+var_dump($templateId);
+
+echo "GET completo:\n";
+print_r($_GET);
+echo "</pre>";
+
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $types = str_repeat('i', count($ids));
 // ✅ obtener CFDI
@@ -180,7 +192,7 @@ if (!$cfdis) {
                     onsubmit="return confirmGuardarTemplate();">
                     <input type="text" name="name" placeholder="Nombre del template" required>
                     <!-- ✅ enviar ID del CFDI -->
-                    <input type="hidden" name="cfdi_id" value="<?= $cfdi['id'] ?>">
+                    <input type="hidden" name="cfdi_id" value="<?= $cfdis[0]['id'] ?>">
                     <input type="hidden" name="template_id" value="<?= $templateId ?>">
                     <button class="btn green">💾 Guardar template</button>
                 </form>
