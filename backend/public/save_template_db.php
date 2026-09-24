@@ -22,7 +22,7 @@ if (!$userId) {
 }
 
 $name = $_POST['name'] ?? null;
-$cfdiId = $_"POST['cfdi_id'] ?? null;
+$cfdiId = $_POST['cfdi_id'] ?? null;
 $templateId = $_POST['template_id'] ?? null;
 
 if (!$name) {
